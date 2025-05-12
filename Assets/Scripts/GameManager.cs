@@ -27,9 +27,9 @@ public class GameManager : MonoBehaviour
     private Cell[,] cellGrid;
     private Cell startCell;
     private Vector2 startPos;
-    private LineRenderer previewLine;
+    private LineRenderer previewEdge;
 
-    [SerializeField] private Material previewLineMaterial; // 预览线材质
+    [SerializeField] private Material previewEdgeMaterial; // 预览线材质
     [SerializeField] private Material _lineMaterial; // 用于连线的材质
     private Dictionary<(Cell, Cell), LineRenderer> _edges = new Dictionary<(Cell, Cell), LineRenderer>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
@@ -255,8 +255,8 @@ public class GameManager : MonoBehaviour
     Cell RaycastCell()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        Debug.Log("Raycast: origin=" + ray.origin + ", direction=" + ray.direction);
-        RaycastHit2D hit = Physics2D.Raycast(ray.origin, new Vector2(ray.direction.x, ray.direction.y), 100f);
+        int cellLayer = LayerMask.GetMask("Cell"); // 只检测Cell层
+        RaycastHit2D hit = Physics2D.Raycast(ray.origin, new Vector2(ray.direction.x, ray.direction.y), 100f, cellLayer);
         if (hit.collider != null)
         {
             Debug.Log("Hit Collider: " + hit.collider.name);
@@ -267,37 +267,38 @@ public class GameManager : MonoBehaviour
 
     void ShowPreviewLine(Vector3 startPosition)
     {
-        if (previewLine == null)
+        if (previewEdge == null)
         {
             GameObject lineObj = new GameObject("PreviewLine");
-            previewLine = lineObj.AddComponent<LineRenderer>();
-            previewLine.material = previewLineMaterial;
-            previewLine.startWidth = 0.15f;
-            previewLine.endWidth = 0.15f;
-            previewLine.positionCount = 2;
-            previewLine.useWorldSpace = true;
-            previewLine.startColor = Color.black;
-            previewLine.endColor = Color.black;
+            lineObj.layer = LayerMask.NameToLayer("PreviewEdge");
+            previewEdge = lineObj.AddComponent<LineRenderer>();
+            previewEdge.material = _lineMaterial;
+            previewEdge.startWidth = 0.15f;
+            previewEdge.endWidth = 0.15f;
+            previewEdge.positionCount = 2;
+            previewEdge.useWorldSpace = true;
+            previewEdge.startColor = Color.black;
+            previewEdge.endColor = Color.black;
         }
-        previewLine.SetPosition(0, startPosition);
-        previewLine.SetPosition(1, startPosition);
-        previewLine.enabled = true;
+        previewEdge.SetPosition(0, startPosition);
+        previewEdge.SetPosition(1, startPosition);
+        previewEdge.enabled = true;
     }
 
     void UpdatePreviewLine(Vector3 endPosition)
     {
-        if (previewLine != null && previewLine.enabled)
+        if (previewEdge != null && previewEdge.enabled)
         {
             endPosition.z = 0; // 保证2D
-            previewLine.SetPosition(1, endPosition);
+            previewEdge.SetPosition(1, endPosition);
         }
     }
 
     void HidePreviewLine()
     {
-        if (previewLine != null)
+        if (previewEdge != null)
         {
-            previewLine.enabled = false;
+            previewEdge.enabled = false;
         }
     }
 
