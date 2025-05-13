@@ -34,6 +34,11 @@ public class GameManager : MonoBehaviour
     private Dictionary<(Cell, Cell), LineRenderer> _edges = new Dictionary<(Cell, Cell), LineRenderer>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
+    private Vector2 eraseLineStart;
+    private Vector2 eraseLineEnd;
+    private bool isErasing = false;
+    private LineRenderer eraseLineRenderer; // 用于显示擦除线
+
     private void Awake()
     {
         // TODO: Implement initialization logic
@@ -142,67 +147,85 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0)) // 左键
+        if (Input.GetMouseButtonDown(0))
         {
-            Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePos2D = new Vector2(mouseWorld.x, mouseWorld.y);
-
-            // 1. 先检测 cell 层
-            int cellLayer = LayerMask.GetMask("Cell");
-            RaycastHit2D hitCell = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, cellLayer);
-            if (hitCell.collider != null)
+            if (!HandleCellClick()) // 只有没点中cell时才检测edge
             {
-                Debug.Log("Raycast 命中 Cell: " + hitCell.collider.gameObject.name);
-                // 处理 cell 点击逻辑
-                var cell = hitCell.collider.GetComponent<Cell>();
-                if (cell != null)
-                {
-                    startCell = cell;
-                    ShowPreviewLine(cell.transform.position);
-                }
-                return;
-            }
-            else
-            {
-                Debug.Log("Raycast 未命中 Cell");
-            }
-
-            // 2. 再检测 edge 层
-            int edgeLayer = LayerMask.GetMask("Edge");
-            RaycastHit2D hitEdge = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, edgeLayer);
-            if (hitEdge.collider != null && hitEdge.collider.gameObject.name.StartsWith("Line_"))
-            {
-                Debug.Log("Raycast 命中 Line: " + hitEdge.collider.gameObject.name);
-                Destroy(hitEdge.collider.gameObject);
-                var toRemove = _edges.FirstOrDefault(pair => pair.Value.gameObject == hitEdge.collider.gameObject).Key;
-                if (!toRemove.Equals(default((Cell, Cell))))
-                {
-                    _edges.Remove(toRemove);
-                }
-                return;
-            }
-            else
-            {
-                Debug.Log("Raycast 未命中 Line");
+                HandleEdgeClick();
             }
         }
         else if (Input.GetMouseButton(0) && startCell != null)
         {
-            // 预览线跟随鼠标
-            UpdatePreviewLine(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            HandlePreviewDrag();
         }
         else if (Input.GetMouseButtonUp(0) && startCell != null)
         {
-            // 检测终点Cell
-            var endCell = RaycastCell();
-            Debug.Log("Mouse Up, Raycast Cell: " + (endCell != null ? endCell.Number.ToString() : "null"));
-            if (endCell != null && endCell != startCell)
-            {
-                startCell.AddEdge(endCell);
-            }
-            HidePreviewLine();
-            startCell = null;
+            HandleMouseUp();
         }
+    }
+
+    private bool HandleCellClick()
+    {
+        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 mousePos2D = new Vector2(mouseWorld.x, mouseWorld.y);
+
+        int cellLayer = LayerMask.GetMask("Cell");
+        RaycastHit2D hitCell = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, cellLayer);
+        if (hitCell.collider != null)
+        {
+            Debug.Log("Raycast 命中 Cell: " + hitCell.collider.gameObject.name);
+            var cell = hitCell.collider.GetComponent<Cell>();
+            if (cell != null)
+            {
+                startCell = cell;
+                ShowPreviewLine(cell.transform.position);
+                return true; // 命中cell
+            }
+        }
+        else
+        {
+            Debug.Log("Raycast 未命中 Cell");
+        }
+        return false; // 没命中cell
+    }
+
+    private void HandleEdgeClick()
+    {
+        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 mousePos2D = new Vector2(mouseWorld.x, mouseWorld.y);
+
+        int edgeLayer = LayerMask.GetMask("Edge");
+        RaycastHit2D hitEdge = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, edgeLayer);
+        if (hitEdge.collider != null && hitEdge.collider.gameObject.name.StartsWith("Line_"))
+        {
+            Debug.Log("点击到连线，准备删除: " + hitEdge.collider.gameObject.name);
+            var toRemove = _edges.FirstOrDefault(pair => pair.Value.gameObject == hitEdge.collider.gameObject).Key;
+            if (!toRemove.Equals(default((Cell, Cell))))
+            {
+                RemoveEdge(toRemove.Item1, toRemove.Item2);
+            }
+        }
+        else
+        {
+            Debug.Log("Raycast 未命中 Line");
+        }
+    }
+
+    private void HandlePreviewDrag()
+    {
+        UpdatePreviewLine(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+    }
+
+    private void HandleMouseUp()
+    {
+        var endCell = RaycastCell();
+        Debug.Log("Mouse Up, Raycast Cell: " + (endCell != null ? endCell.Number.ToString() : "null"));
+        if (endCell != null && endCell != startCell)
+        {
+            startCell.AddEdge(endCell);
+        }
+        HidePreviewLine();
+        startCell = null;
     }
 
     private void CheckWin()
@@ -347,6 +370,9 @@ public class GameManager : MonoBehaviour
 
             // 将连线存储到字典中
             _edges[key] = lineRenderer;
+
+            // 设置连线的Layer为Edge
+            lineObject.layer = LayerMask.NameToLayer("Edge");
         }
     }
 
