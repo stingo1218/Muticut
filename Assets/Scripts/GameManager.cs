@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Material previewEdgeMaterial; // 预览线材质
     [SerializeField] private Material _lineMaterial; // 用于连线的材质
+    [SerializeField] private Material _eraseLineMaterial; // 用于擦除线的材质
     private Dictionary<(Cell, Cell), LineRenderer> _edges = new Dictionary<(Cell, Cell), LineRenderer>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
@@ -38,6 +39,8 @@ public class GameManager : MonoBehaviour
     private Vector2 eraseLineEnd;
     private bool isErasing = false;
     private LineRenderer eraseLineRenderer; // 用于显示擦除线
+
+    private List<Vector2> erasePath = new List<Vector2>();
 
     private void Awake()
     {
@@ -161,6 +164,34 @@ public class GameManager : MonoBehaviour
         else if (Input.GetMouseButtonUp(0) && startCell != null)
         {
             HandleMouseUp();
+        }
+
+        // 按下右键，开始擦除
+        if (Input.GetMouseButtonDown(1))
+        {
+            erasePath.Clear();
+            Vector2 start = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            erasePath.Add(start);
+            ShowEraseLine(start);
+            isErasing = true;
+        }
+        // 拖动右键，持续记录轨迹
+        else if (Input.GetMouseButton(1) && isErasing)
+        {
+            Vector2 point = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            // 只在鼠标移动一定距离时才添加新点，避免过多点
+            if (erasePath.Count == 0 || Vector2.Distance(erasePath[erasePath.Count - 1], point) > 0.05f)
+            {
+                erasePath.Add(point);
+                UpdateEraseLinePath(erasePath);
+            }
+        }
+        // 松开右键，检测并删除被轨迹划过的edge
+        else if (Input.GetMouseButtonUp(1) && isErasing)
+        {
+            HideEraseLine();
+            EraseEdgesCrossedByPath(erasePath);
+            isErasing = false;
         }
     }
 
@@ -438,6 +469,78 @@ public class GameManager : MonoBehaviour
             }
         }
         return connectedCells;
+    }
+
+    private void ShowEraseLine(Vector2 start)
+    {
+        if (eraseLineRenderer == null)
+        {
+            GameObject obj = new GameObject("EraseLine");
+            eraseLineRenderer = obj.AddComponent<LineRenderer>();
+            eraseLineRenderer.material = _eraseLineMaterial;
+            eraseLineRenderer.startWidth = 0.2f;
+            eraseLineRenderer.endWidth = 0.2f;
+            eraseLineRenderer.useWorldSpace = true;
+            eraseLineRenderer.textureMode = LineTextureMode.Tile; // 启用纹理平铺
+            eraseLineRenderer.sortingOrder = 10; // 确保显示在最上层
+        }
+        // 关键：每次新轨迹都重置为1个点
+        eraseLineRenderer.positionCount = 1;
+        eraseLineRenderer.SetPosition(0, start);
+        eraseLineRenderer.enabled = true;
+    }
+
+    private void UpdateEraseLinePath(List<Vector2> path)
+    {
+        if (eraseLineRenderer == null) return;
+        eraseLineRenderer.positionCount = path.Count;
+        for (int i = 0; i < path.Count; i++)
+        {
+            eraseLineRenderer.SetPosition(i, path[i]);
+        }
+    }
+
+    private void HideEraseLine()
+    {
+        if (eraseLineRenderer != null)
+        {
+            eraseLineRenderer.enabled = false;
+        }
+    }
+
+    private void EraseEdgesCrossedByPath(List<Vector2> path)
+    {
+        if (path.Count < 2) return;
+        foreach (var pair in _edges.ToList())
+        {
+            var lineRenderer = pair.Value;
+            Vector2 edgeStart = lineRenderer.GetPosition(0);
+            Vector2 edgeEnd = lineRenderer.GetPosition(1);
+
+            // 检查轨迹的每一段与edge是否相交
+            for (int i = 0; i < path.Count - 1; i++)
+            {
+                if (LineSegmentsIntersect(path[i], path[i + 1], edgeStart, edgeEnd))
+                {
+                    RemoveEdge(pair.Key.Item1, pair.Key.Item2);
+                    break; // 一旦相交就删除，不用再检测
+                }
+            }
+        }
+    }
+
+    // 判断两线段是否相交的工具函数
+    private bool LineSegmentsIntersect(Vector2 p1, Vector2 p2, Vector2 q1, Vector2 q2)
+    {
+        // 利用叉积判断
+        float Cross(Vector2 a, Vector2 b) => a.x * b.y - a.y * b.x;
+        Vector2 r = p2 - p1;
+        Vector2 s = q2 - q1;
+        float denominator = Cross(r, s);
+        if (denominator == 0) return false; // 平行
+        float t = Cross(q1 - p1, s) / denominator;
+        float u = Cross(q1 - p1, r) / denominator;
+        return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     }
 }
 
