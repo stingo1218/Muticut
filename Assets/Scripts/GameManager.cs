@@ -10,23 +10,11 @@ public class GameManager : MonoBehaviour
 
     [HideInInspector] public bool hasgameFinished;
 
-    [SerializeField] private SpriteRenderer _bgSprite;
-    [SerializeField] private SpriteRenderer _highlightSprite;
-    [SerializeField] private Vector2 _highlightSize;
-    [SerializeField] private LevelData _levelData;
-    [SerializeField] private float _cellGap;
-    [SerializeField] private float _levelGap;
-    [SerializeField] private List<Vector2> _cellPositions; // 自定义单元格位置列表
-    [SerializeField] private int _cellCount = 10; // 要生成的单元格数量
-    [SerializeField] private float _cellSize = 1.5f; // 单元格的最小间距
+    [SerializeField] private int _cellNumbers = 10; // 要生成的单元格数量
 
-    private Cell[,] _cellGrid; // 存储生成的单元格
+    private List<Cell> _cells = new List<Cell>(); // 改用List存储单元格，更灵活
 
-
-    private int[,] levelgrid;
-    private Cell[,] cellGrid;
     private Cell startCell;
-    private Vector2 startPos;
     private LineRenderer previewEdge;
 
     [SerializeField] private Material previewEdgeMaterial; // 预览线材质
@@ -35,8 +23,6 @@ public class GameManager : MonoBehaviour
     private Dictionary<(Cell, Cell), LineRenderer> _edges = new Dictionary<(Cell, Cell), LineRenderer>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
-    private Vector2 eraseLineStart;
-    private Vector2 eraseLineEnd;
     private bool isErasing = false;
     private LineRenderer eraseLineRenderer; // 用于显示擦除线
 
@@ -44,20 +30,23 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        // TODO: Implement initialization logic
         Instance = this;
-        // 创建一个空物体来组织所有的连线
         linesRoot = new GameObject("LinesRoot").transform;
         linesRoot.SetParent(transform);
-        SpawnLevel(); // 生成网格
+        SpawnLevel(_cellNumbers);
     }
 
-    private List<Vector2> GenerateCellPositions()
+    public void LoadLevelAndSpawnNodes(int numberOfCells)
     {
-        List<Vector2> cellPositions = new List<Vector2>(); // 初始化位置列表
+        _cellNumbers = numberOfCells;
+        SpawnLevel(numberOfCells);
+    }
+
+    private List<Vector2> GenerateCellPositions(int numberOfPoints)
+    {
+        List<Vector2> cellPositions = new List<Vector2>();
         int maxAttempts = 5; // 最大尝试次数，避免死循环
 
-        // 获取 Main Camera 的视口边界
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
@@ -65,7 +54,6 @@ public class GameManager : MonoBehaviour
             return cellPositions;
         }
 
-        // 计算相机的视口边界（以世界坐标表示）
         float cameraHeight = 2f * mainCamera.orthographicSize;
         float cameraWidth = cameraHeight * mainCamera.aspect;
 
@@ -75,35 +63,34 @@ public class GameManager : MonoBehaviour
         float minY = mainCamera.transform.position.y - cameraHeight * 0.4f; // 下边界
         float maxY = mainCamera.transform.position.y + cameraHeight * 0.4f; // 上边界
 
-        for (int i = 0; i < _cellCount; i++) // 根据指定数量生成位置
+        float minDistance = 1.5f; // 最小间距，可以根据需要调整
+
+        for (int i = 0; i < numberOfPoints; i++)
         {
             bool isValidPosition = false;
             int attempts = 0;
-            Vector2 newPosition = Vector2.zero; // 在循环外声明变量
+            Vector2 newPosition = Vector2.zero;
 
             while (!isValidPosition && attempts < maxAttempts)
             {
-                // 在缩小的相机视口范围内随机生成一个位置
                 float randomX = UnityEngine.Random.Range(minX, maxX);
                 float randomY = UnityEngine.Random.Range(minY, maxY);
                 newPosition = new Vector2(randomX, randomY);
 
-                // 检查是否与已有位置过于接近
                 isValidPosition = true;
                 foreach (Vector2 existingPosition in cellPositions)
                 {
-                    if (Vector2.Distance(newPosition, existingPosition) < _cellSize)
+                    if (Vector2.Distance(newPosition, existingPosition) < minDistance)
                     {
                         isValidPosition = false;
                         break;
                     }
                 }
-                Debug.Log($"Attempting to place cell at {newPosition}, valid: {isValidPosition}"); // 输出调试信息
+                Debug.Log($"Attempting to place cell at {newPosition}, valid: {isValidPosition}");
 
                 attempts++;
             }
 
-            // 如果找到有效位置，则添加到列表
             if (isValidPosition)
             {
                 cellPositions.Add(newPosition);
@@ -114,39 +101,45 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        return cellPositions; // 返回生成的单元格位置列表
+        return cellPositions;
     }
 
-    private void SpawnLevel()
+    private void SpawnLevel(int numberOfPoints)
     {
-        _cellPositions = GenerateCellPositions(); // 生成单元格位置
-
-        _cellGrid = new Cell[_cellPositions.Count, 1]; // 初始化网格数组
-
-        for (int i = 0; i < _cellPositions.Count; i++)
+        // 清除现有的单元格和连线
+        foreach (var cell in _cells)
         {
-            // 获取自定义位置
-            Vector2 position = _cellPositions[i];
+            if (cell != null)
+            {
+                Destroy(cell.gameObject);
+            }
+        }
+        _cells.Clear();
+        RemoveAllEdges();
 
-            // 实例化单元格
+        List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
+
+        for (int i = 0; i < cellPositions.Count; i++)
+        {
+            Vector2 position = cellPositions[i];
+
             Cell newCell = Instantiate(_cellPrefab, position, Quaternion.identity, transform);
-
-            // 分配唯一数字
-            newCell.Number = i + 1; // 从 1 开始递增
-            // 初始化单元格
+            newCell.Number = i + 1;
             newCell.Init(i + 1);
-
-            // 设置单元格名称（可选）
             newCell.gameObject.name = $"Cell {newCell.Number}";
 
-            // 存储到网格数组中
-            _cellGrid[i, 0] = newCell;
+            _cells.Add(newCell);
+        }
+
+        // 创建所有点之间的全连接
+        for (int i = 0; i < _cells.Count; i++)
+        {
+            for (int j = i + 1; j < _cells.Count; j++)
+            {
+                CreateOrUpdateEdge(_cells[i], _cells[j]);
+            }
         }
     }
-
-
-
-
 
     private void Update()
     {
@@ -170,9 +163,9 @@ public class GameManager : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             erasePath.Clear();
-            Vector2 start = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            erasePath.Add(start);
-            ShowEraseLine(start);
+            Vector2 startPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            erasePath.Add(startPos);
+            ShowEraseLine(startPos);
             isErasing = true;
         }
         // 拖动右键，持续记录轨迹
@@ -230,10 +223,23 @@ public class GameManager : MonoBehaviour
         if (hitEdge.collider != null && hitEdge.collider.gameObject.name.StartsWith("Line_"))
         {
             Debug.Log("点击到连线，准备删除: " + hitEdge.collider.gameObject.name);
-            var toRemove = _edges.FirstOrDefault(pair => pair.Value.gameObject == hitEdge.collider.gameObject).Key;
-            if (!toRemove.Equals(default((Cell, Cell))))
+            var toRemoveKey = _edges.FirstOrDefault(pair => pair.Value.gameObject == hitEdge.collider.gameObject).Key;
+            
+            if (!toRemoveKey.Equals(default((Cell, Cell))))
             {
-                RemoveEdge(toRemove.Item1, toRemove.Item2);
+                List<(Cell, Cell)> edgeAsList = new List<(Cell, Cell)> { toRemoveKey };
+
+                int initialComponents = CalculateNumberOfConnectedComponents();
+                int componentsAfterRemoval = CalculateNumberOfConnectedComponents(edgeAsList);
+
+                if (componentsAfterRemoval > initialComponents)
+                {
+                    RemoveEdge(toRemoveKey.Item1, toRemoveKey.Item2);
+                }
+                else
+                {
+                    Debug.Log("不能删除此边：删除后不会增加连通分量数量。");
+                }
             }
         }
         else
@@ -358,51 +364,37 @@ public class GameManager : MonoBehaviour
 
     public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
     {
-        if (!IsValidConnection(fromCell, toCell))
-        {
-            Debug.LogWarning("Invalid connection attempt between cells!");
-            return;
-        }
-
         var key = (fromCell, toCell);
-        if (_edges.ContainsKey(key))
+        var reversedKey = (toCell, fromCell);
+
+        if (_edges.ContainsKey(key) || _edges.ContainsKey(reversedKey)) 
         {
-            // 如果已经存在连线，更新它的位置
             UpdateEdge(fromCell, toCell);
         }
         else
         {
-            // 创建新的连线
             GameObject lineObject = new GameObject($"Line_{fromCell.Number}_to_{toCell.Number}");
-            lineObject.transform.SetParent(linesRoot); // 设置父物体
+            lineObject.transform.SetParent(linesRoot);
             LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
 
-            // 配置 LineRenderer
             lineRenderer.material = _lineMaterial;
             lineRenderer.startWidth = 0.1f;
             lineRenderer.endWidth = 0.1f;
             lineRenderer.positionCount = 2;
             lineRenderer.useWorldSpace = true;
 
-            // 设置连线的起点和终点
             lineRenderer.SetPosition(0, fromCell.transform.position);
             lineRenderer.SetPosition(1, toCell.transform.position);
 
-            // 添加EdgeCollider2D用于点击检测
-            EdgeCollider2D edge = lineObject.AddComponent<EdgeCollider2D>();
-            Vector2 start = fromCell.transform.position;
-            Vector2 end = toCell.transform.position;
-            edge.points = new Vector2[] {
-                lineObject.transform.InverseTransformPoint(start),
-                lineObject.transform.InverseTransformPoint(end)
-            };
-            edge.edgeRadius = 0.1f; // 可调宽度
-            edge.isTrigger = true;  // 推荐设为Trigger
+            EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
+            Vector2[] points = new Vector2[2];
+            points[0] = lineObject.transform.InverseTransformPoint(fromCell.transform.position);
+            points[1] = lineObject.transform.InverseTransformPoint(toCell.transform.position);
+            edgeCollider.points = points;
+            edgeCollider.edgeRadius = 0.1f;
+            edgeCollider.isTrigger = true;
 
-            // 将连线存储到字典中
             _edges[key] = lineRenderer;
-
-            // 设置连线的Layer为Edge
             lineObject.layer = LayerMask.NameToLayer("Edge");
         }
     }
@@ -410,7 +402,9 @@ public class GameManager : MonoBehaviour
     private void UpdateEdge(Cell fromCell, Cell toCell)
     {
         var key = (fromCell, toCell);
-        if (_edges.TryGetValue(key, out LineRenderer lineRenderer))
+        var reversedKey = (toCell, fromCell);
+
+        if (_edges.TryGetValue(key, out LineRenderer lineRenderer) || _edges.TryGetValue(reversedKey, out lineRenderer))
         {
             lineRenderer.SetPosition(0, fromCell.transform.position);
             lineRenderer.SetPosition(1, toCell.transform.position);
@@ -420,10 +414,17 @@ public class GameManager : MonoBehaviour
     public void RemoveEdge(Cell fromCell, Cell toCell)
     {
         var key = (fromCell, toCell);
+        var reversedKey = (toCell, fromCell);
+
         if (_edges.TryGetValue(key, out LineRenderer lineRenderer))
         {
             Destroy(lineRenderer.gameObject);
             _edges.Remove(key);
+        }
+        else if (_edges.TryGetValue(reversedKey, out lineRenderer))
+        {
+            Destroy(lineRenderer.gameObject);
+            _edges.Remove(reversedKey);
         }
     }
 
@@ -436,24 +437,6 @@ public class GameManager : MonoBehaviour
         _edges.Clear();
     }
 
-    // 检查两个Cell之间是否可以连线
-    private bool IsValidConnection(Cell fromCell, Cell toCell)
-    {
-
-        return true;
-    }
-
-    // 移除与指定Cell相连的所有连线
-    private void RemoveConnectedEdges(Cell cell)
-    {
-        var edgesToRemove = _edges.Keys.Where(k => k.Item1 == cell || k.Item2 == cell).ToList();
-        foreach (var edge in edgesToRemove)
-        {
-            RemoveEdge(edge.Item1, edge.Item2);
-        }
-    }
-
-    // 获取与指定Cell相连的所有Cell
     public List<Cell> GetConnectedCells(Cell cell)
     {
         var connectedCells = new List<Cell>();
@@ -481,10 +464,9 @@ public class GameManager : MonoBehaviour
             eraseLineRenderer.startWidth = 0.2f;
             eraseLineRenderer.endWidth = 0.2f;
             eraseLineRenderer.useWorldSpace = true;
-            eraseLineRenderer.textureMode = LineTextureMode.Tile; // 启用纹理平铺
-            eraseLineRenderer.sortingOrder = 10; // 确保显示在最上层
+            eraseLineRenderer.textureMode = LineTextureMode.Tile; 
+            eraseLineRenderer.sortingOrder = 10; 
         }
-        // 关键：每次新轨迹都重置为1个点
         eraseLineRenderer.positionCount = 1;
         eraseLineRenderer.SetPosition(0, start);
         eraseLineRenderer.enabled = true;
@@ -511,33 +493,97 @@ public class GameManager : MonoBehaviour
     private void EraseEdgesCrossedByPath(List<Vector2> path)
     {
         if (path.Count < 2) return;
-        foreach (var pair in _edges.ToList())
+
+        List<(Cell, Cell)> edgesToRemove = new List<(Cell, Cell)>();
+        foreach (var pair in _edges.ToList()) 
         {
             var lineRenderer = pair.Value;
             Vector2 edgeStart = lineRenderer.GetPosition(0);
             Vector2 edgeEnd = lineRenderer.GetPosition(1);
 
-            // 检查轨迹的每一段与edge是否相交
             for (int i = 0; i < path.Count - 1; i++)
             {
                 if (LineSegmentsIntersect(path[i], path[i + 1], edgeStart, edgeEnd))
                 {
-                    RemoveEdge(pair.Key.Item1, pair.Key.Item2);
-                    break; // 一旦相交就删除，不用再检测
+                    edgesToRemove.Add(pair.Key);
+                    break; 
                 }
             }
         }
+
+        if (edgesToRemove.Count == 0) return;
+
+        int initialComponents = CalculateNumberOfConnectedComponents();
+        int componentsAfterRemoval = CalculateNumberOfConnectedComponents(edgesToRemove);
+
+        if (componentsAfterRemoval > initialComponents)
+        {
+            foreach (var edge in edgesToRemove)
+            {
+                RemoveEdge(edge.Item1, edge.Item2);
+            }
+        }
+        else
+        {
+            Debug.Log("不能擦除：此次操作不会增加连通分量数量。");
+        }
     }
 
-    // 判断两线段是否相交的工具函数
+    // 计算当前图中（或忽略某些边后）的连通分量数量
+    private int CalculateNumberOfConnectedComponents(List<(Cell, Cell)> ignoreEdges = null)
+    {
+        if (_cells.Count == 0) return 0;
+
+        Dictionary<Cell, HashSet<Cell>> graph = new Dictionary<Cell, HashSet<Cell>>();
+        foreach (var cell in _cells)
+        {
+            graph[cell] = new HashSet<Cell>();
+        }
+
+        foreach (var pair in _edges)
+        {
+            if (ignoreEdges != null && ignoreEdges.Contains(pair.Key))
+            {
+                continue;
+            }
+            graph[pair.Key.Item1].Add(pair.Key.Item2);
+            graph[pair.Key.Item2].Add(pair.Key.Item1);
+        }
+
+        HashSet<Cell> visited = new HashSet<Cell>();
+        int componentCount = 0;
+        foreach (var cell in _cells)
+        {
+            if (!visited.Contains(cell))
+            {
+                componentCount++;
+                Queue<Cell> queue = new Queue<Cell>();
+                queue.Enqueue(cell);
+                visited.Add(cell);
+                while (queue.Count > 0)
+                {
+                    var current = queue.Dequeue();
+                    foreach (var neighbor in graph[current])
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            visited.Add(neighbor);
+                            queue.Enqueue(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+        return componentCount;
+    }
+
     private bool LineSegmentsIntersect(Vector2 p1, Vector2 p2, Vector2 q1, Vector2 q2)
     {
-        // 利用叉积判断
         float Cross(Vector2 a, Vector2 b) => a.x * b.y - a.y * b.x;
         Vector2 r = p2 - p1;
         Vector2 s = q2 - q1;
         float denominator = Cross(r, s);
-        if (denominator == 0) return false; // 平行
+        if (denominator == 0) return false; 
         float t = Cross(q1 - p1, s) / denominator;
         float u = Cross(q1 - p1, r) / denominator;
         return t >= 0 && t <= 1 && u >= 0 && u <= 1;
