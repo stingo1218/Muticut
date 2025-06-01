@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,13 +21,106 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Material previewEdgeMaterial; // 预览线材质
     [SerializeField] private Material _lineMaterial; // 用于连线的材质
     [SerializeField] private Material _eraseLineMaterial; // 用于擦除线的材质
-    private Dictionary<(Cell, Cell), LineRenderer> _edges = new Dictionary<(Cell, Cell), LineRenderer>(); // 存储所有的连线
+    private Dictionary<(Cell, Cell), (LineRenderer renderer, float weight)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, float)>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
     private bool isErasing = false;
     private LineRenderer eraseLineRenderer; // 用于显示擦除线
 
     private List<Vector2> erasePath = new List<Vector2>();
+
+    private const float EPSILON = 1e-6f; // 用于浮点数比较
+
+    [SerializeField]
+    private bool useWeightedEdges = false; // 这个就是一个开关
+
+    // 唯一权重缓存
+    private Dictionary<(Cell, Cell), float> _edgeWeightCache = new Dictionary<(Cell, Cell), float>();
+    [SerializeField] private float minEdgeWeight = 1f;
+    [SerializeField] private float maxEdgeWeight = 10f;
+
+    // Delaunay Triangulation Structures
+    private struct DelaunayEdge
+    {
+        public int P1Index, P2Index; // Indices into the original points list
+
+        public DelaunayEdge(int p1Index, int p2Index)
+        {
+            // Ensure P1Index < P2Index for consistent hashing/equality
+            if (p1Index < p2Index)
+            {
+                P1Index = p1Index;
+                P2Index = p2Index;
+            }
+            else
+            {
+                P1Index = p2Index;
+                P2Index = p1Index;
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is DelaunayEdge)) return false;
+            DelaunayEdge other = (DelaunayEdge)obj;
+            return P1Index == other.P1Index && P2Index == other.P2Index;
+        }
+
+        public override int GetHashCode()
+        {
+            return P1Index.GetHashCode() ^ (P2Index.GetHashCode() << 2);
+        }
+    }
+
+    private struct DelaunayTriangle
+    {
+        public Vector2 V1, V2, V3; // Actual coordinates
+        public int Index1, Index2, Index3; // Indices in the original points list
+
+        public Vector2 Circumcenter;
+        public float CircumradiusSq;
+
+        public DelaunayTriangle(Vector2 v1, Vector2 v2, Vector2 v3, int idx1, int idx2, int idx3)
+        {
+            V1 = v1; V2 = v2; V3 = v3;
+            Index1 = idx1; Index2 = idx2; Index3 = idx3;
+
+            // Calculate circumcircle
+            // Using the formula from Wikipedia: https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
+            float D = 2 * (V1.x * (V2.y - V3.y) + V2.x * (V3.y - V1.y) + V3.x * (V1.y - V2.y));
+
+            if (Mathf.Abs(D) < EPSILON) // Collinear or very small triangle
+            {
+                Circumcenter = Vector2.positiveInfinity; // Invalid
+                CircumradiusSq = float.PositiveInfinity;
+                return;
+            }
+
+            float v1Sq = V1.x * V1.x + V1.y * V1.y;
+            float v2Sq = V2.x * V2.x + V2.y * V2.y;
+            float v3Sq = V3.x * V3.x + V3.y * V3.y;
+
+            Circumcenter = new Vector2(
+                (v1Sq * (V2.y - V3.y) + v2Sq * (V3.y - V1.y) + v3Sq * (V1.y - V2.y)) / D,
+                (v1Sq * (V3.x - V2.x) + v2Sq * (V1.x - V3.x) + v3Sq * (V2.x - V1.x)) / D
+            );
+
+            CircumradiusSq = (V1 - Circumcenter).sqrMagnitude;
+        }
+
+        public bool ContainsVertex(Vector2 v, float tolerance = EPSILON)
+        {
+            return (V1 - v).sqrMagnitude < tolerance ||
+                   (V2 - v).sqrMagnitude < tolerance ||
+                   (V3 - v).sqrMagnitude < tolerance;
+        }
+
+        public bool IsPointInCircumcircle(Vector2 point)
+        {
+            if (float.IsInfinity(CircumradiusSq)) return false; // Invalid triangle
+            return (point - Circumcenter).sqrMagnitude < CircumradiusSq;
+        }
+    }
 
     private void Awake()
     {
@@ -118,27 +212,173 @@ public class GameManager : MonoBehaviour
         RemoveAllEdges();
 
         List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
+        // Assign positions to cells and collect Vector2 for triangulation
+        List<Vector2> pointsForTriangulation = new List<Vector2>();
 
         for (int i = 0; i < cellPositions.Count; i++)
         {
             Vector2 position = cellPositions[i];
 
             Cell newCell = Instantiate(_cellPrefab, position, Quaternion.identity, transform);
-            newCell.Number = i + 1;
+            newCell.Number = i + 1; // Cell.Number is 1-indexed for display/logic
             newCell.Init(i + 1);
             newCell.gameObject.name = $"Cell {newCell.Number}";
-
             _cells.Add(newCell);
+            pointsForTriangulation.Add(position);
         }
 
-        // 创建所有点之间的全连接
-        for (int i = 0; i < _cells.Count; i++)
+        // Generate Delaunay Triangulation
+        if (_cells.Count >= 3) // Need at least 3 points for triangulation
         {
-            for (int j = i + 1; j < _cells.Count; j++)
+            List<DelaunayEdge> delaunayEdges = PerformDelaunayTriangulation(pointsForTriangulation);
+            foreach (var edge in delaunayEdges)
             {
-                CreateOrUpdateEdge(_cells[i], _cells[j]);
+                CreateOrUpdateEdge(_cells[edge.P1Index], _cells[edge.P2Index]);
             }
         }
+        else if (_cells.Count == 2) // If only two points, connect them directly
+        {
+            CreateOrUpdateEdge(_cells[0], _cells[1]);
+        }
+        // If 0 or 1 cell, do nothing
+    }
+
+    private List<Vector2> GetSuperTriangleVertices(List<Vector2> points)
+    {
+        float minX = points[0].x, minY = points[0].y, maxX = points[0].x, maxY = points[0].y;
+        foreach (var p in points)
+        {
+            if (p.x < minX) minX = p.x;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.y > maxY) maxY = p.y;
+        }
+
+        float dx = maxX - minX;
+        float dy = maxY - minY;
+        float deltaMax = Mathf.Max(dx, dy) * 2; // Increased multiplier for safety
+
+        // Center of the bounding box
+        float centerX = minX + dx * 0.5f;
+        float centerY = minY + dy * 0.5f;
+
+        // Vertices of the super triangle
+        // These need to be far enough to surely encompass all points and their circumcircles
+        Vector2 p1 = new Vector2(centerX - 20 * deltaMax, centerY - deltaMax);
+        Vector2 p2 = new Vector2(centerX + 20 * deltaMax, centerY - deltaMax);
+        Vector2 p3 = new Vector2(centerX, centerY + 20 * deltaMax);
+        
+        return new List<Vector2> { p1, p2, p3 };
+    }
+
+    private List<DelaunayEdge> PerformDelaunayTriangulation(List<Vector2> points)
+    {
+        if (points == null || points.Count < 3)
+        {
+            Debug.LogWarning("Delaunay triangulation requires at least 3 points.");
+            // For 2 points, handle outside or return empty and let caller handle.
+            // For now, SpawnLevel handles 2 points separately.
+             return new List<DelaunayEdge>();
+        }
+
+        List<DelaunayTriangle> triangles = new List<DelaunayTriangle>();
+
+        // 1. Create a "super triangle" that encloses all input points
+        List<Vector2> superTriangleVertices = GetSuperTriangleVertices(points);
+        // Assign large negative indices to super triangle vertices to distinguish them
+        var st = new DelaunayTriangle(superTriangleVertices[0], superTriangleVertices[1], superTriangleVertices[2], -1, -2, -3);
+        triangles.Add(st);
+
+        // 2. Add each point one by one to the triangulation
+        for (int pointIndex = 0; pointIndex < points.Count; pointIndex++)
+        {
+            Vector2 point = points[pointIndex];
+            List<DelaunayTriangle> badTriangles = new List<DelaunayTriangle>();
+            List<DelaunayEdge> polygonHole = new List<DelaunayEdge>();
+
+            // Find all triangles whose circumcircle contains the point
+            foreach (var triangle in triangles)
+            {
+                if (triangle.IsPointInCircumcircle(point))
+                {
+                    badTriangles.Add(triangle);
+                }
+            }
+
+            // Remove bad triangles, and form the polygon hole
+            foreach (var triangle in badTriangles)
+            {
+                // Add edges of the bad triangle to the polygon hole if not shared by another bad triangle
+                DelaunayEdge[] edges = {
+                    new DelaunayEdge(triangle.Index1, triangle.Index2), // These indices are from original point set or super triangle
+                    new DelaunayEdge(triangle.Index2, triangle.Index3),
+                    new DelaunayEdge(triangle.Index3, triangle.Index1)
+                };
+                Vector2[] triVertices = {triangle.V1, triangle.V2, triangle.V3};
+                int[] triIndices = {triangle.Index1, triangle.Index2, triangle.Index3};
+
+
+                for(int i=0; i<3; ++i)
+                {
+                    DelaunayEdge edge = new DelaunayEdge(triIndices[i], triIndices[(i+1)%3]);
+                    Vector2 v_current = triVertices[i];
+                    Vector2 v_next = triVertices[(i+1)%3];
+
+                    bool isShared = false;
+                    foreach (var otherBadTriangle in badTriangles)
+                    {
+                        if (triangle.Equals(otherBadTriangle)) continue; // Don't compare with self
+
+                        // Check if otherBadTriangle shares this edge
+                        // An edge is (v_current, v_next)
+                        if (otherBadTriangle.ContainsVertex(v_current) && otherBadTriangle.ContainsVertex(v_next))
+                        {
+                            isShared = true;
+                            break;
+                        }
+                    }
+                    if (!isShared)
+                    {
+                         // Store edge by original indices
+                        polygonHole.Add(new DelaunayEdge(triIndices[i], triIndices[(i+1)%3]));
+                    }
+                }
+            }
+            triangles.RemoveAll(t => badTriangles.Contains(t));
+
+
+            // Re-triangulate the polygonal hole by connecting the new point to all its vertices
+            // The vertices of the polygonHole are formed by the edges.
+            // Each edge in polygonHole connects to the new point.
+            // The indices in polygonHole edges are original point indices (or super triangle negative indices).
+            foreach (var edge in polygonHole)
+            {
+                // Determine the actual vertices for the new triangle from the edge's original indices
+                Vector2 p1 = (edge.P1Index < 0) ? superTriangleVertices[-edge.P1Index -1] : points[edge.P1Index];
+                Vector2 p2 = (edge.P2Index < 0) ? superTriangleVertices[-edge.P2Index -1] : points[edge.P2Index];
+                triangles.Add(new DelaunayTriangle(point, p1, p2, pointIndex, edge.P1Index, edge.P2Index));
+            }
+        }
+
+        // 3. Remove all triangles that share a vertex with the original super triangle
+        triangles.RemoveAll(triangle =>
+            triangle.Index1 < 0 || triangle.Index2 < 0 || triangle.Index3 < 0 ||
+            triangle.ContainsVertex(superTriangleVertices[0]) ||
+            triangle.ContainsVertex(superTriangleVertices[1]) ||
+            triangle.ContainsVertex(superTriangleVertices[2])
+        );
+        
+        // 4. Collect unique edges from the final triangulation
+        HashSet<DelaunayEdge> finalEdges = new HashSet<DelaunayEdge>();
+        foreach (var triangle in triangles)
+        {
+            // Ensure indices are valid (not from super triangle)
+            if (triangle.Index1 >= 0 && triangle.Index2 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index1, triangle.Index2));
+            if (triangle.Index2 >= 0 && triangle.Index3 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index2, triangle.Index3));
+            if (triangle.Index3 >= 0 && triangle.Index1 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index3, triangle.Index1));
+        }
+        Debug.Log($"Delaunay triangulation resulted in {finalEdges.Count} unique edges.");
+        return new List<DelaunayEdge>(finalEdges);
     }
 
     private void Update()
@@ -223,7 +463,7 @@ public class GameManager : MonoBehaviour
         if (hitEdge.collider != null && hitEdge.collider.gameObject.name.StartsWith("Line_"))
         {
             Debug.Log("点击到连线，准备删除: " + hitEdge.collider.gameObject.name);
-            var toRemoveKey = _edges.FirstOrDefault(pair => pair.Value.gameObject == hitEdge.collider.gameObject).Key;
+            var toRemoveKey = _edges.FirstOrDefault(pair => pair.Value.renderer.gameObject == hitEdge.collider.gameObject).Key;
             
             if (!toRemoveKey.Equals(default((Cell, Cell))))
             {
@@ -362,27 +602,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
+    public void CreateOrUpdateEdge(Cell fromCell, Cell toCell, float weight = 1f)
     {
-        var key = (fromCell, toCell);
-        var reversedKey = (toCell, fromCell);
-
-        if (_edges.ContainsKey(key) || _edges.ContainsKey(reversedKey)) 
+        var key = GetCanonicalEdgeKey(fromCell, toCell);
+        if (_edges.ContainsKey(key))
         {
-            UpdateEdge(fromCell, toCell);
+            var (renderer, _) = _edges[key];
+            renderer.SetPosition(0, fromCell.transform.position);
+            renderer.SetPosition(1, toCell.transform.position);
+            _edges[key] = (renderer, weight); // 更新权重
         }
         else
         {
             GameObject lineObject = new GameObject($"Line_{fromCell.Number}_to_{toCell.Number}");
             lineObject.transform.SetParent(linesRoot);
             LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
-
             lineRenderer.material = _lineMaterial;
             lineRenderer.startWidth = 0.1f;
             lineRenderer.endWidth = 0.1f;
             lineRenderer.positionCount = 2;
             lineRenderer.useWorldSpace = true;
-
             lineRenderer.SetPosition(0, fromCell.transform.position);
             lineRenderer.SetPosition(1, toCell.transform.position);
 
@@ -393,38 +632,43 @@ public class GameManager : MonoBehaviour
             edgeCollider.points = points;
             edgeCollider.edgeRadius = 0.1f;
             edgeCollider.isTrigger = true;
-
-            _edges[key] = lineRenderer;
             lineObject.layer = LayerMask.NameToLayer("Edge");
+
+            // 创建TextMeshPro
+            GameObject textObj = new GameObject("EdgeWeightText");
+            textObj.transform.SetParent(lineObject.transform);
+            TextMeshPro tmp = textObj.AddComponent<TextMeshPro>();
+            tmp.fontSize = 4;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.black;
+
+            // 设置文本内容
+            tmp.text = weight.ToString("0.0");
+
+            // 设置位置为边的中点
+            Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
+            textObj.transform.position = midPoint;
+
+            // 可选：让文本始终朝向摄像机
+            textObj.transform.rotation = Quaternion.identity;
+
+            _edges[key] = (lineRenderer, weight);
         }
     }
 
-    private void UpdateEdge(Cell fromCell, Cell toCell)
+    public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
     {
-        var key = (fromCell, toCell);
-        var reversedKey = (toCell, fromCell);
-
-        if (_edges.TryGetValue(key, out LineRenderer lineRenderer) || _edges.TryGetValue(reversedKey, out lineRenderer))
-        {
-            lineRenderer.SetPosition(0, fromCell.transform.position);
-            lineRenderer.SetPosition(1, toCell.transform.position);
-        }
+        float weight = GetOrCreateEdgeWeight(fromCell, toCell);
+        CreateOrUpdateEdge(fromCell, toCell, weight);
     }
 
     public void RemoveEdge(Cell fromCell, Cell toCell)
     {
-        var key = (fromCell, toCell);
-        var reversedKey = (toCell, fromCell);
-
-        if (_edges.TryGetValue(key, out LineRenderer lineRenderer))
+        var key = GetCanonicalEdgeKey(fromCell, toCell);
+        if (_edges.TryGetValue(key, out var edge))
         {
-            Destroy(lineRenderer.gameObject);
+            Destroy(edge.renderer.gameObject);
             _edges.Remove(key);
-        }
-        else if (_edges.TryGetValue(reversedKey, out lineRenderer))
-        {
-            Destroy(lineRenderer.gameObject);
-            _edges.Remove(reversedKey);
         }
     }
 
@@ -432,7 +676,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (var edge in _edges.Values)
         {
-            Destroy(edge.gameObject);
+            Destroy(edge.renderer.gameObject);
         }
         _edges.Clear();
     }
@@ -497,7 +741,7 @@ public class GameManager : MonoBehaviour
         List<(Cell, Cell)> edgesToRemove = new List<(Cell, Cell)>();
         foreach (var pair in _edges.ToList()) 
         {
-            var lineRenderer = pair.Value;
+            var lineRenderer = pair.Value.renderer;
             Vector2 edgeStart = lineRenderer.GetPosition(0);
             Vector2 edgeEnd = lineRenderer.GetPosition(1);
 
@@ -588,11 +832,22 @@ public class GameManager : MonoBehaviour
         float u = Cross(q1 - p1, r) / denominator;
         return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     }
-}
 
-[Serializable]
-public struct LevelData
-{
-    public int row, col;
-    public List<int> data;
+    // 辅助方法：返回规范化的边key
+    private (Cell, Cell) GetCanonicalEdgeKey(Cell cell1, Cell cell2)
+    {
+        return cell1.GetInstanceID() < cell2.GetInstanceID() ? (cell1, cell2) : (cell2, cell1);
+    }
+
+    // 获取或生成唯一权重
+    private float GetOrCreateEdgeWeight(Cell a, Cell b)
+    {
+        var key = GetCanonicalEdgeKey(a, b);
+        if (!_edgeWeightCache.TryGetValue(key, out float weight))
+        {
+            weight = UnityEngine.Random.Range(minEdgeWeight, maxEdgeWeight);
+            _edgeWeightCache[key] = weight;
+        }
+        return weight;
+    }
 }

@@ -26,9 +26,10 @@ public class Cell : MonoBehaviour
     [SerializeField] private TMP_Text _numberText;    // Text component for displaying number
     [SerializeField] private SpriteRenderer _cellSprite; // Background sprite renderer
 
-
-
     private int _number; // Backing field for Number (note naming convention difference)
+
+    // 新增：记录与其它Cell的权重
+    public Dictionary<Cell, float> EdgeWeights = new Dictionary<Cell, float>();
 
     public void Init(int number)
     {
@@ -48,7 +49,6 @@ public class Cell : MonoBehaviour
             collider = gameObject.AddComponent<BoxCollider2D>();
         }
 
-
         // 根据SpriteRenderer的尺寸设置Collider的size
         if (_cellSprite != null)
         {
@@ -56,14 +56,27 @@ public class Cell : MonoBehaviour
         }
     }
 
-    public void AddEdge(Cell otherCell)
+    // 新增：支持权重的AddEdge
+    public void AddEdge(Cell otherCell, float weight = 1f)
     {
+        // 记录权重
+        EdgeWeights[otherCell] = weight;
+        // 只调用原有的CreateOrUpdateEdge（暂不传权重）
         GameManager.Instance.CreateOrUpdateEdge(this, otherCell);
         GameManager.Instance.CreateOrUpdateEdge(otherCell, this);
     }
 
+    // 保留原有无权重AddEdge（兼容旧代码）
+    public void AddEdge(Cell otherCell)
+    {
+        AddEdge(otherCell, 1f);
+    }
+
+    // 移除边时同步移除权重
     public void RemoveEdge(Cell otherCell)
     {
+        if (EdgeWeights.ContainsKey(otherCell))
+            EdgeWeights.Remove(otherCell);
         GameManager.Instance.RemoveEdge(this, otherCell);
         GameManager.Instance.RemoveEdge(otherCell, this);
     }
@@ -71,6 +84,14 @@ public class Cell : MonoBehaviour
     public void RemoveAllEdges()
     {
         GameManager.Instance.RemoveAllEdges();
+    }
+
+    // 可选：获取与某Cell的权重
+    public float GetEdgeWeight(Cell otherCell)
+    {
+        if (EdgeWeights.TryGetValue(otherCell, out float w))
+            return w;
+        return 1f;
     }
 
     private void ChangeSpriteSize(SpriteRenderer sprite, float size)
