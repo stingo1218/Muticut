@@ -1,0 +1,9 @@
+[33m69379cf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33m3b930ca[m HEAD@{1}: commit: update weight display
+[33m69379cf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m HEAD@{2}: commit: erase rules updated
+[33m6df1fe6[m HEAD@{3}: commit: with eraseedge updated
+[33m6885320[m HEAD@{4}: commit: now we can remove edges
+[33mff439dc[m HEAD@{5}: commit: edgeconnection ready
+[33m979def2[m HEAD@{6}: checkout: moving from master to master
+[33m979def2[m HEAD@{7}: checkout: moving from master to master
+[33m979def2[m HEAD@{8}: commit (initial): Initial commit: Unity project setup with cell connection system

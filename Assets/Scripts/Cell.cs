@@ -25,6 +25,20 @@ public class Cell : MonoBehaviour
     // Serialized fields (visible in Unity Inspector)
     [SerializeField] private TMP_Text _numberText;    // Text component for displaying number
     [SerializeField] private SpriteRenderer _cellSprite; // Background sprite renderer
+    [SerializeField]
+    private Color[] colorPalette = new Color[]
+    {
+        new Color(0.15f, 0.20f, 0.35f), // 深蓝
+        new Color(0.20f, 0.15f, 0.25f), // 深紫
+        new Color(0.10f, 0.18f, 0.18f), // 深青
+        new Color(0.18f, 0.18f, 0.10f), // 深橄榄
+        new Color(0.22f, 0.13f, 0.13f), // 深红棕
+        new Color(0.13f, 0.22f, 0.13f), // 深绿
+        new Color(0.18f, 0.13f, 0.22f), // 深蓝紫
+        new Color(0.13f, 0.18f, 0.22f), // 深蓝青
+        new Color(0.22f, 0.18f, 0.13f), // 深棕黄
+        new Color(0.10f, 0.10f, 0.15f), // 近黑
+    };
 
     private int _number; // Backing field for Number (note naming convention difference)
 
@@ -39,8 +53,15 @@ public class Cell : MonoBehaviour
         // 设置单元格的名称为数字，方便调试
         gameObject.name = $"Cell {Number}";
 
-        // 随机设置单元格颜色（可选）
-        _cellSprite.color = new Color(Random.value, Random.value, Random.value);
+        // 从深色库中随机选一个颜色
+        if (colorPalette != null && colorPalette.Length > 0)
+        {
+            _cellSprite.color = colorPalette[UnityEngine.Random.Range(0, colorPalette.Length)];
+        }
+        else
+        {
+            _cellSprite.color = new Color(Random.value, Random.value, Random.value);
+        }
 
         // 确保Cell有Collider2D组件
         BoxCollider2D collider = GetComponent<BoxCollider2D>();

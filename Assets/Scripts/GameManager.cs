@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using System.Linq;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -21,7 +22,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Material previewEdgeMaterial; // 预览线材质
     [SerializeField] private Material _lineMaterial; // 用于连线的材质
     [SerializeField] private Material _eraseLineMaterial; // 用于擦除线的材质
-    private Dictionary<(Cell, Cell), (LineRenderer renderer, float weight)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, float)>(); // 存储所有的连线
+    [SerializeField] private GameObject bgPrefab; // 用于权重背景的BG prefab
+    private Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshPro tmp, GameObject bg)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshPro, GameObject)>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
     private bool isErasing = false;
@@ -35,9 +37,33 @@ public class GameManager : MonoBehaviour
     private bool useWeightedEdges = false; // 这个就是一个开关
 
     // 唯一权重缓存
-    private Dictionary<(Cell, Cell), float> _edgeWeightCache = new Dictionary<(Cell, Cell), float>();
-    [SerializeField] private float minEdgeWeight = 1f;
-    [SerializeField] private float maxEdgeWeight = 10f;
+    private Dictionary<(Cell, Cell), int> _edgeWeightCache = new Dictionary<(Cell, Cell), int>();
+    [SerializeField] private int minEdgeWeight = 1;
+    [SerializeField] private int maxEdgeWeight = 10;
+
+    [SerializeField]
+    private Color[] colorPalette = new Color[]
+    {
+        // 深色
+        new Color(0.15f, 0.20f, 0.35f), // 深蓝
+        new Color(0.20f, 0.15f, 0.25f), // 深紫
+        new Color(0.10f, 0.18f, 0.18f), // 深青
+        new Color(0.18f, 0.18f, 0.10f), // 深橄榄
+        new Color(0.22f, 0.13f, 0.13f), // 深红棕
+        // 淡色
+        new Color(0.65f, 0.75f, 0.95f), // 淡蓝
+        new Color(0.85f, 0.75f, 0.95f), // 淡紫
+        new Color(0.70f, 0.90f, 0.90f), // 淡青
+        new Color(0.90f, 0.90f, 0.70f), // 淡黄
+        new Color(0.95f, 0.80f, 0.80f), // 淡粉
+        new Color(0.80f, 0.95f, 0.80f), // 淡绿
+        new Color(0.90f, 0.85f, 0.75f), // 淡棕
+        new Color(0.85f, 0.90f, 0.95f), // 淡灰蓝
+        new Color(0.95f, 0.95f, 0.95f), // 近白
+        new Color(0.75f, 0.85f, 0.95f), // 淡天蓝
+    };
+
+    private Button debugButton;
 
     // Delaunay Triangulation Structures
     private struct DelaunayEdge
@@ -128,6 +154,68 @@ public class GameManager : MonoBehaviour
         linesRoot = new GameObject("LinesRoot").transform;
         linesRoot.SetParent(transform);
         SpawnLevel(_cellNumbers);
+    }
+
+    private void Start()
+    {
+        CreateDebugButton();
+    }
+
+    private void CreateDebugButton()
+    {
+        // 创建Canvas
+        GameObject canvasObj = new GameObject("DebugCanvas");
+        Canvas canvas = canvasObj.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+        canvasObj.AddComponent<GraphicRaycaster>();
+
+        // 创建Button
+        GameObject buttonObj = new GameObject("DebugButton");
+        buttonObj.transform.SetParent(canvasObj.transform);
+
+        // 添加RectTransform
+        RectTransform rect = buttonObj.AddComponent<RectTransform>();
+
+        Button button = buttonObj.AddComponent<Button>();
+        Image image = buttonObj.AddComponent<Image>();
+        var colors = button.colors;
+        colors.normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);      // 正常
+        colors.highlightedColor = new Color(0.3f, 0.3f, 0.3f, 0.9f);  // 悬停
+        colors.pressedColor = new Color(0.1f, 0.1f, 0.1f, 1f);        // 按下
+        colors.selectedColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);  // 选中
+        colors.disabledColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);     // 不可用
+        button.colors = colors;
+
+        // 设置按钮位置和大小
+        rect.anchorMin = new Vector2(0, 0);
+        rect.anchorMax = new Vector2(0, 0);
+        rect.pivot = new Vector2(0, 0);
+        rect.anchoredPosition = new Vector2(20, 20);
+        rect.sizeDelta = new Vector2(120, 40);
+
+        // 添加文字
+        GameObject textObj = new GameObject("Text");
+        textObj.transform.SetParent(buttonObj.transform);
+        Text text = textObj.AddComponent<Text>();
+        text.text = "调试按钮";
+        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = Color.white;
+        RectTransform textRect = textObj.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        // 按钮事件
+        button.onClick.AddListener(() => {
+            Debug.Log("左下角按钮被点击了！");
+        });
+
+        debugButton = button;
     }
 
     public void LoadLevelAndSpawnNodes(int numberOfCells)
@@ -602,15 +690,46 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void CreateOrUpdateEdge(Cell fromCell, Cell toCell, float weight = 1f)
+    public void CreateOrUpdateEdge(Cell fromCell, Cell toCell, int weight = 1)
     {
         var key = GetCanonicalEdgeKey(fromCell, toCell);
+
+        // 如果不开启权重边，强制权重为1
+        if (!useWeightedEdges)
+            weight = 1;
+
         if (_edges.ContainsKey(key))
         {
-            var (renderer, _) = _edges[key];
+            var (renderer, _, tmp, bg) = _edges[key];
             renderer.SetPosition(0, fromCell.transform.position);
             renderer.SetPosition(1, toCell.transform.position);
-            _edges[key] = (renderer, weight); // 更新权重
+
+            Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
+
+            // 权重数字和背景只在开启权重时显示
+            if (useWeightedEdges)
+            {
+                tmp.gameObject.SetActive(true);
+                bg.SetActive(true);
+                tmp.transform.position = midPoint;
+                bg.transform.position = midPoint;
+                tmp.text = weight.ToString();
+                Vector2 textSize = tmp.GetPreferredValues(tmp.text);
+                float baseWidth = bg.GetComponent<SpriteRenderer>().size.x;
+                float baseHeight = bg.GetComponent<SpriteRenderer>().size.y;
+                bg.transform.localScale = new Vector3((textSize.x + 0.1f) / baseWidth, (textSize.y + 0.1f) / baseHeight, 1f);
+            }
+            else
+            {
+                tmp.gameObject.SetActive(false);
+                bg.SetActive(false);
+            }
+
+            _edges[key] = (renderer, weight, tmp, bg);
+            renderer.sortingOrder = 0;
+            if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
+                bgRenderer.sortingOrder = renderer.sortingOrder + 1;
+            tmp.sortingOrder = bgRenderer.sortingOrder + 1;
         }
         else
         {
@@ -638,27 +757,38 @@ public class GameManager : MonoBehaviour
             GameObject textObj = new GameObject("EdgeWeightText");
             textObj.transform.SetParent(lineObject.transform);
             TextMeshPro tmp = textObj.AddComponent<TextMeshPro>();
-            tmp.fontSize = 4;
+            tmp.fontSize = 2;
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.black;
-
-            // 设置文本内容
-            tmp.text = weight.ToString("0.0");
-
-            // 设置位置为边的中点
+            tmp.color = Color.white;
+            tmp.text = weight.ToString();
             Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
             textObj.transform.position = midPoint;
-
-            // 可选：让文本始终朝向摄像机
             textObj.transform.rotation = Quaternion.identity;
 
-            _edges[key] = (lineRenderer, weight);
+            // 实例化BG prefab作为背景
+            GameObject bg = Instantiate(bgPrefab, lineObject.transform);
+            bg.transform.position = midPoint;
+            Vector2 textSize = tmp.GetPreferredValues(tmp.text);
+            float baseWidth = bg.GetComponent<SpriteRenderer>().size.x;
+            float baseHeight = bg.GetComponent<SpriteRenderer>().size.y;
+            bg.transform.localScale = new Vector3((textSize.x + 0.1f) / baseWidth, (textSize.y + 0.1f) / baseHeight, 1f);
+
+            // 根据开关决定是否显示权重
+            tmp.gameObject.SetActive(useWeightedEdges);
+            bg.SetActive(useWeightedEdges);
+
+            _edges[key] = (lineRenderer, weight, tmp, bg);
+
+            lineRenderer.sortingOrder = 0;
+            if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
+                bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
+            tmp.sortingOrder = bgRenderer.sortingOrder + 1;
         }
     }
 
     public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
     {
-        float weight = GetOrCreateEdgeWeight(fromCell, toCell);
+        int weight = GetOrCreateEdgeWeight(fromCell, toCell);
         CreateOrUpdateEdge(fromCell, toCell, weight);
     }
 
@@ -667,7 +797,8 @@ public class GameManager : MonoBehaviour
         var key = GetCanonicalEdgeKey(fromCell, toCell);
         if (_edges.TryGetValue(key, out var edge))
         {
-            Destroy(edge.renderer.gameObject);
+            var (renderer, _, tmp, bg) = edge;
+            Destroy(renderer.gameObject); // 这会同时销毁所有子物体（包括文本和BG）
             _edges.Remove(key);
         }
     }
@@ -676,7 +807,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (var edge in _edges.Values)
         {
-            Destroy(edge.renderer.gameObject);
+            var (renderer, _, tmp, bg) = edge;
+            Destroy(renderer.gameObject);
         }
         _edges.Clear();
     }
@@ -756,6 +888,8 @@ public class GameManager : MonoBehaviour
         }
 
         if (edgesToRemove.Count == 0) return;
+
+        Debug.Log($"检测到{edgesToRemove.Count}条边被轨迹划过");
 
         int initialComponents = CalculateNumberOfConnectedComponents();
         int componentsAfterRemoval = CalculateNumberOfConnectedComponents(edgesToRemove);
@@ -840,12 +974,12 @@ public class GameManager : MonoBehaviour
     }
 
     // 获取或生成唯一权重
-    private float GetOrCreateEdgeWeight(Cell a, Cell b)
+    private int GetOrCreateEdgeWeight(Cell a, Cell b)
     {
         var key = GetCanonicalEdgeKey(a, b);
-        if (!_edgeWeightCache.TryGetValue(key, out float weight))
+        if (!_edgeWeightCache.TryGetValue(key, out int weight))
         {
-            weight = UnityEngine.Random.Range(minEdgeWeight, maxEdgeWeight);
+            weight = UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
             _edgeWeightCache[key] = weight;
         }
         return weight;
