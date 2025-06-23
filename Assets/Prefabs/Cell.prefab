@@ -388,3 +388,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _numberText: {fileID: 624034172026017270}
   _cellSprite: {fileID: 5072761218065930179}
+  colorPalette: []

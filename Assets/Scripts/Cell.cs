@@ -28,16 +28,14 @@ public class Cell : MonoBehaviour
     [SerializeField]
     private Color[] colorPalette = new Color[]
     {
-        new Color(0.15f, 0.20f, 0.35f), // 深蓝
-        new Color(0.20f, 0.15f, 0.25f), // 深紫
-        new Color(0.10f, 0.18f, 0.18f), // 深青
-        new Color(0.18f, 0.18f, 0.10f), // 深橄榄
-        new Color(0.22f, 0.13f, 0.13f), // 深红棕
-        new Color(0.13f, 0.22f, 0.13f), // 深绿
-        new Color(0.18f, 0.13f, 0.22f), // 深蓝紫
-        new Color(0.13f, 0.18f, 0.22f), // 深蓝青
-        new Color(0.22f, 0.18f, 0.13f), // 深棕黄
-        new Color(0.10f, 0.10f, 0.15f), // 近黑
+        new Color(0.98f, 0.36f, 0.36f), // 红rgb(166, 27, 78)
+        new Color(0.99f, 0.80f, 0.36f), // 黄rgb(86, 81, 27)
+        new Color(0.56f, 0.89f, 0.56f), // 绿 #A6E22E
+        new Color(0.36f, 0.82f, 0.98f), // 蓝rgb(61, 127, 140)
+        new Color(0.82f, 0.36f, 0.98f), // 紫 #AE81FF
+        new Color(0.98f, 0.56f, 0.36f), // 橙 #FD971F
+        new Color(0.36f, 0.98f, 0.82f), // 青rgb(79, 119, 114)
+        new Color(0.36f, 0.36f, 0.36f), // 深灰 #595959
     };
 
     private int _number; // Backing field for Number (note naming convention difference)
@@ -73,7 +71,7 @@ public class Cell : MonoBehaviour
         // 根据SpriteRenderer的尺寸设置Collider的size
         if (_cellSprite != null)
         {
-            collider.size = _cellSprite.bounds.size*5f;
+            collider.size = _cellSprite.bounds.size * 5f;
         }
     }
 

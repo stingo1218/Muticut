@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
+using Gurobi;
 
 public class GameManager : MonoBehaviour
 {
@@ -41,29 +42,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int minEdgeWeight = 1;
     [SerializeField] private int maxEdgeWeight = 10;
 
-    [SerializeField]
-    private Color[] colorPalette = new Color[]
-    {
-        // 深色
-        new Color(0.15f, 0.20f, 0.35f), // 深蓝
-        new Color(0.20f, 0.15f, 0.25f), // 深紫
-        new Color(0.10f, 0.18f, 0.18f), // 深青
-        new Color(0.18f, 0.18f, 0.10f), // 深橄榄
-        new Color(0.22f, 0.13f, 0.13f), // 深红棕
-        // 淡色
-        new Color(0.65f, 0.75f, 0.95f), // 淡蓝
-        new Color(0.85f, 0.75f, 0.95f), // 淡紫
-        new Color(0.70f, 0.90f, 0.90f), // 淡青
-        new Color(0.90f, 0.90f, 0.70f), // 淡黄
-        new Color(0.95f, 0.80f, 0.80f), // 淡粉
-        new Color(0.80f, 0.95f, 0.80f), // 淡绿
-        new Color(0.90f, 0.85f, 0.75f), // 淡棕
-        new Color(0.85f, 0.90f, 0.95f), // 淡灰蓝
-        new Color(0.95f, 0.95f, 0.95f), // 近白
-        new Color(0.75f, 0.85f, 0.95f), // 淡天蓝
-    };
-
     private Button debugButton;
+
+    private HashSet<(Cell, Cell)> _initialEdges = new HashSet<(Cell, Cell)>(); // 记录初始边
+
+    public enum MulticutAlgorithm
+    {
+        Greedy,
+        ILP
+    }
+
+    [SerializeField]
+    private MulticutAlgorithm multicutAlgorithm = MulticutAlgorithm.Greedy;
 
     // Delaunay Triangulation Structures
     private struct DelaunayEdge
@@ -148,6 +138,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    [SerializeField] private Material highlightEdgeMaterial;
+
     private void Awake()
     {
         Instance = this;
@@ -192,18 +184,20 @@ public class GameManager : MonoBehaviour
         // 设置按钮位置和大小
         rect.anchorMin = new Vector2(0, 0);
         rect.anchorMax = new Vector2(0, 0);
-        rect.pivot = new Vector2(0, 0);
+       rect.pivot = new Vector2(0, 0);
         rect.anchoredPosition = new Vector2(20, 20);
-        rect.sizeDelta = new Vector2(120, 40);
+        rect.sizeDelta = new Vector2(120, 40); 
 
         // 添加文字
         GameObject textObj = new GameObject("Text");
         textObj.transform.SetParent(buttonObj.transform);
         Text text = textObj.AddComponent<Text>();
-        text.text = "调试按钮";
+        text.text = "HINT";
         text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.alignment = TextAnchor.MiddleCenter;
-        text.color = Color.white;
+        text.color = Color.black;
+        text.fontSize = 30;
+        text.fontStyle = FontStyle.Bold;
         RectTransform textRect = textObj.GetComponent<RectTransform>();
         textRect.anchorMin = Vector2.zero;
         textRect.anchorMax = Vector2.one;
@@ -212,7 +206,35 @@ public class GameManager : MonoBehaviour
 
         // 按钮事件
         button.onClick.AddListener(() => {
-            Debug.Log("左下角按钮被点击了！");
+            // 点击HINT按钮时计算并高亮最佳切割edges
+            var graph = new Dictionary<Cell, List<Cell>>();
+            foreach (var cell in _cells)
+                graph[cell] = new List<Cell>();
+            foreach (var edge in _edges.Keys)
+            {
+                graph[edge.Item1].Add(edge.Item2);
+                graph[edge.Item2].Add(edge.Item1);
+            }
+
+            List<(Cell, Cell)> cutEdges;
+            
+            if (multicutAlgorithm == MulticutAlgorithm.Greedy)
+            {
+                cutEdges = GreedyMulticut(graph, _edgeWeightCache); // 移除targetComponentCount参数
+                Debug.Log("使用贪心算法计算标准多割最优解");
+            }
+            else if (multicutAlgorithm == MulticutAlgorithm.ILP)
+            {
+                cutEdges = ILPMulticut(graph, _edgeWeightCache); // 移除targetComponentCount参数
+                Debug.Log("使用ILP算法计算标准多割最优解");
+            }
+            else
+            {
+                cutEdges = new List<(Cell, Cell)>();
+                Debug.LogWarning("未知的算法类型");
+            }
+
+            HighlightCutEdges(cutEdges);
         });
 
         debugButton = button;
@@ -227,8 +249,8 @@ public class GameManager : MonoBehaviour
     private List<Vector2> GenerateCellPositions(int numberOfPoints)
     {
         List<Vector2> cellPositions = new List<Vector2>();
-        int maxAttempts = 5; // 最大尝试次数，避免死循环
-
+        
+        // 获取相机视野范围
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
@@ -240,50 +262,147 @@ public class GameManager : MonoBehaviour
         float cameraWidth = cameraHeight * mainCamera.aspect;
 
         // 缩小范围到 80% 的区域
-        float minX = mainCamera.transform.position.x - cameraWidth * 0.4f; // 左边界
-        float maxX = mainCamera.transform.position.x + cameraWidth * 0.4f; // 右边界
-        float minY = mainCamera.transform.position.y - cameraHeight * 0.4f; // 下边界
-        float maxY = mainCamera.transform.position.y + cameraHeight * 0.4f; // 上边界
+        float minX = mainCamera.transform.position.x - cameraWidth * 0.4f;
+        float maxX = mainCamera.transform.position.x + cameraWidth * 0.4f;
+        float minY = mainCamera.transform.position.y - cameraHeight * 0.4f;
+        float maxY = mainCamera.transform.position.y + cameraHeight * 0.4f;
 
-        float minDistance = 1.5f; // 最小间距，可以根据需要调整
+        float minDistance = 1.2f; // 最小间距
+        float cellSize = minDistance / Mathf.Sqrt(2); // 网格大小
 
-        for (int i = 0; i < numberOfPoints; i++)
+        // 创建网格
+        int cols = Mathf.CeilToInt((maxX - minX) / cellSize);
+        int rows = Mathf.CeilToInt((maxY - minY) / cellSize);
+        int?[,] grid = new int?[cols, rows];
+
+        // 活动点列表
+        List<Vector2> activePoints = new List<Vector2>();
+
+        // 添加第一个点
+        Vector2 firstPoint = new Vector2(
+            UnityEngine.Random.Range(minX, maxX),
+            UnityEngine.Random.Range(minY, maxY)
+        );
+        cellPositions.Add(firstPoint);
+        activePoints.Add(firstPoint);
+
+        // 将点添加到网格
+        int gridX = Mathf.FloorToInt((firstPoint.x - minX) / cellSize);
+        int gridY = Mathf.FloorToInt((firstPoint.y - minY) / cellSize);
+        grid[gridX, gridY] = cellPositions.Count - 1;
+
+        while (activePoints.Count > 0 && cellPositions.Count < numberOfPoints)
         {
-            bool isValidPosition = false;
-            int attempts = 0;
-            Vector2 newPosition = Vector2.zero;
+            // 随机选择一个活动点
+            int activeIndex = UnityEngine.Random.Range(0, activePoints.Count);
+            Vector2 point = activePoints[activeIndex];
 
-            while (!isValidPosition && attempts < maxAttempts)
+            bool foundValidPoint = false;
+
+            // 尝试在活动点周围生成新点
+            for (int i = 0; i < 30; i++) // 每个点尝试30次
             {
-                float randomX = UnityEngine.Random.Range(minX, maxX);
-                float randomY = UnityEngine.Random.Range(minY, maxY);
-                newPosition = new Vector2(randomX, randomY);
+                float angle = UnityEngine.Random.Range(0, 2 * Mathf.PI);
+                float distance = UnityEngine.Random.Range(minDistance, 2 * minDistance);
+                Vector2 newPoint = point + new Vector2(
+                    Mathf.Cos(angle) * distance,
+                    Mathf.Sin(angle) * distance
+                );
 
-                isValidPosition = true;
-                foreach (Vector2 existingPosition in cellPositions)
+                // 检查新点是否在有效范围内
+                if (newPoint.x < minX || newPoint.x > maxX || 
+                    newPoint.y < minY || newPoint.y > maxY)
+                    continue;
+
+                // 检查新点是否与现有点距离足够
+                int newGridX = Mathf.FloorToInt((newPoint.x - minX) / cellSize);
+                int newGridY = Mathf.FloorToInt((newPoint.y - minY) / cellSize);
+
+                bool isValid = true;
+
+                // 检查周围网格
+                for (int x = -2; x <= 2; x++)
                 {
-                    if (Vector2.Distance(newPosition, existingPosition) < minDistance)
+                    for (int y = -2; y <= 2; y++)
                     {
-                        isValidPosition = false;
-                        break;
+                        int checkX = newGridX + x;
+                        int checkY = newGridY + y;
+
+                        if (checkX >= 0 && checkX < cols && checkY >= 0 && checkY < rows)
+                        {
+                            int? pointIndex = grid[checkX, checkY];
+                            if (pointIndex.HasValue)
+                            {
+                                Vector2 existingPoint = cellPositions[pointIndex.Value];
+                                if (Vector2.Distance(newPoint, existingPoint) < minDistance)
+                                {
+                                    isValid = false;
+                                    break;
+                                }
+                            }
+                        }
                     }
+                    if (!isValid) break;
                 }
-                Debug.Log($"Attempting to place cell at {newPosition}, valid: {isValidPosition}");
 
-                attempts++;
+                if (isValid)
+                {
+                    cellPositions.Add(newPoint);
+                    activePoints.Add(newPoint);
+                    grid[newGridX, newGridY] = cellPositions.Count - 1;
+                    foundValidPoint = true;
+                    break;
+                }
             }
 
-            if (isValidPosition)
+            if (!foundValidPoint)
             {
-                cellPositions.Add(newPosition);
-            }
-            else
-            {
-                Debug.LogWarning("Failed to find a valid position after maximum attempts.");
+                activePoints.RemoveAt(activeIndex);
             }
         }
 
+        Debug.Log($"Generated {cellPositions.Count} points using Poisson Disk Sampling");
         return cellPositions;
+    }
+
+    void StretchAndCenterCells(List<Cell> cells)
+    {
+        // 1. 计算包围盒
+        float minX = float.MaxValue, maxX = float.MinValue;
+        float minY = float.MaxValue, maxY = float.MinValue;
+        foreach (var cell in cells)
+        {
+            Vector2 pos = cell.transform.position;
+            if (pos.x < minX) minX = pos.x;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y < minY) minY = pos.y;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+
+        // 2. 计算目标区域
+        Camera cam = Camera.main;
+        float camHeight = cam.orthographicSize * 2f * 0.8f;
+        float camWidth = camHeight * cam.aspect;
+
+        // 3. 计算缩放比例（分别计算水平和垂直）
+        float width = Mathf.Max(maxX - minX, 0.01f);
+        float height = Mathf.Max(maxY - minY, 0.01f);
+        float scaleX = camWidth / width;
+        float scaleY = camHeight / height;
+
+        // 4. 以中心为基准，拉伸并居中
+        Vector2 center = new Vector2((minX + maxX) / 2f, (minY + maxY) / 2f);
+        Vector2 screenCenter = cam.transform.position;
+        foreach (var cell in cells)
+        {
+            Vector2 pos = cell.transform.position;
+            // 先平移到原中心，再分别缩放，再平移到屏幕中心
+            Vector2 newPos = new Vector2(
+                (pos.x - center.x) * scaleX,
+                (pos.y - center.y) * scaleY
+            ) + screenCenter;
+            cell.transform.position = new Vector3(newPos.x, newPos.y, cell.transform.position.z);
+        }
     }
 
     private void SpawnLevel(int numberOfPoints)
@@ -298,6 +417,7 @@ public class GameManager : MonoBehaviour
         }
         _cells.Clear();
         RemoveAllEdges();
+        _initialEdges.Clear(); // 清空初始边集合
 
         List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
         // Assign positions to cells and collect Vector2 for triangulation
@@ -315,20 +435,42 @@ public class GameManager : MonoBehaviour
             pointsForTriangulation.Add(position);
         }
 
+        // 先归一化/缩放/居中所有Cell
+        StretchAndCenterCells(_cells);
+
+        // 归一化后重新收集点坐标用于三角剖分
+        pointsForTriangulation.Clear();
+        foreach (var cell in _cells)
+        {
+            pointsForTriangulation.Add(cell.transform.position);
+        }
+
         // Generate Delaunay Triangulation
         if (_cells.Count >= 3) // Need at least 3 points for triangulation
         {
-            List<DelaunayEdge> delaunayEdges = PerformDelaunayTriangulation(pointsForTriangulation);
+            List<DelaunayTriangle> _;
+            List<DelaunayEdge> delaunayEdges = PerformDelaunayTriangulationWithRefinement(pointsForTriangulation, 0.2f, 10, out _);
             foreach (var edge in delaunayEdges)
             {
-                CreateOrUpdateEdge(_cells[edge.P1Index], _cells[edge.P2Index]);
+                // 只处理原始点集对应的边，过滤掉包含细分插入点的边
+                if (edge.P1Index < _cells.Count && edge.P2Index < _cells.Count)
+                {
+                    CreateOrUpdateEdge(_cells[edge.P1Index], _cells[edge.P2Index]);
+                    // 记录初始边（规范化key）
+                    var key = GetCanonicalEdgeKey(_cells[edge.P1Index], _cells[edge.P2Index]);
+                    _initialEdges.Add(key);
+                }
             }
         }
         else if (_cells.Count == 2) // If only two points, connect them directly
         {
             CreateOrUpdateEdge(_cells[0], _cells[1]);
+            var key = GetCanonicalEdgeKey(_cells[0], _cells[1]);
+            _initialEdges.Add(key);
         }
         // If 0 or 1 cell, do nothing
+
+        // 生成图后不再自动调用多割算法
     }
 
     private List<Vector2> GetSuperTriangleVertices(List<Vector2> points)
@@ -359,32 +501,72 @@ public class GameManager : MonoBehaviour
         return new List<Vector2> { p1, p2, p3 };
     }
 
-    private List<DelaunayEdge> PerformDelaunayTriangulation(List<Vector2> points)
+    // Delaunay Refinement（细分法）集成，带out参数重载
+    private List<DelaunayEdge> PerformDelaunayTriangulationWithRefinement(List<Vector2> points, float minHeightToEdgeRatio, int maxRefineIters, out List<DelaunayTriangle> trianglesOut)
+    {
+        List<Vector2> refinedPoints = new List<Vector2>(points);
+        int iter = 0;
+        List<DelaunayTriangle> triangles = null;
+        while (iter < maxRefineIters)
+        {
+            iter++;
+            List<DelaunayEdge> edges = PerformDelaunayTriangulation(refinedPoints, out triangles);
+            bool hasBadTriangle = false;
+            Vector2? insertPoint = null;
+            foreach (var tri in triangles)
+            {
+                float a = Vector2.Distance(tri.V1, tri.V2);
+                float b = Vector2.Distance(tri.V2, tri.V3);
+                float c = Vector2.Distance(tri.V3, tri.V1);
+                float maxEdge = Mathf.Max(a, Mathf.Max(b, c));
+                float s = (a + b + c) / 2f;
+                float area = Mathf.Sqrt(Mathf.Max(s * (s - a) * (s - b) * (s - c), 0f));
+                float ha = 2 * area / a;
+                float hb = 2 * area / b;
+                float hc = 2 * area / c;
+                float minHeight = Mathf.Min(ha, Mathf.Min(hb, hc));
+                if (maxEdge < 1e-6f) continue;
+                float ratio = minHeight / maxEdge;
+                if (ratio < minHeightToEdgeRatio)
+                {
+                    insertPoint = tri.Circumcenter;
+                    hasBadTriangle = true;
+                    break;
+                }
+            }
+            if (!hasBadTriangle || !insertPoint.HasValue)
+                break;
+            refinedPoints.Add(insertPoint.Value);
+        }
+        trianglesOut = triangles ?? new List<DelaunayTriangle>();
+        return PerformDelaunayTriangulation(refinedPoints, out trianglesOut);
+    }
+
+    // 保留无out参数的简化重载
+    private List<DelaunayEdge> PerformDelaunayTriangulationWithRefinement(List<Vector2> points, float minHeightToEdgeRatio = 0.2f, int maxRefineIters = 10)
+    {
+        List<DelaunayTriangle> _;
+        return PerformDelaunayTriangulationWithRefinement(points, minHeightToEdgeRatio, maxRefineIters, out _);
+    }
+
+    // 重载：返回三角形列表
+    private List<DelaunayEdge> PerformDelaunayTriangulation(List<Vector2> points, out List<DelaunayTriangle> trianglesOut)
     {
         if (points == null || points.Count < 3)
         {
-            Debug.LogWarning("Delaunay triangulation requires at least 3 points.");
-            // For 2 points, handle outside or return empty and let caller handle.
-            // For now, SpawnLevel handles 2 points separately.
-             return new List<DelaunayEdge>();
+            trianglesOut = new List<DelaunayTriangle>();
+            return new List<DelaunayEdge>();
         }
-
         List<DelaunayTriangle> triangles = new List<DelaunayTriangle>();
-
         // 1. Create a "super triangle" that encloses all input points
         List<Vector2> superTriangleVertices = GetSuperTriangleVertices(points);
-        // Assign large negative indices to super triangle vertices to distinguish them
         var st = new DelaunayTriangle(superTriangleVertices[0], superTriangleVertices[1], superTriangleVertices[2], -1, -2, -3);
         triangles.Add(st);
-
-        // 2. Add each point one by one to the triangulation
         for (int pointIndex = 0; pointIndex < points.Count; pointIndex++)
         {
             Vector2 point = points[pointIndex];
             List<DelaunayTriangle> badTriangles = new List<DelaunayTriangle>();
             List<DelaunayEdge> polygonHole = new List<DelaunayEdge>();
-
-            // Find all triangles whose circumcircle contains the point
             foreach (var triangle in triangles)
             {
                 if (triangle.IsPointInCircumcircle(point))
@@ -392,33 +574,24 @@ public class GameManager : MonoBehaviour
                     badTriangles.Add(triangle);
                 }
             }
-
-            // Remove bad triangles, and form the polygon hole
             foreach (var triangle in badTriangles)
             {
-                // Add edges of the bad triangle to the polygon hole if not shared by another bad triangle
                 DelaunayEdge[] edges = {
-                    new DelaunayEdge(triangle.Index1, triangle.Index2), // These indices are from original point set or super triangle
+                    new DelaunayEdge(triangle.Index1, triangle.Index2),
                     new DelaunayEdge(triangle.Index2, triangle.Index3),
                     new DelaunayEdge(triangle.Index3, triangle.Index1)
                 };
                 Vector2[] triVertices = {triangle.V1, triangle.V2, triangle.V3};
                 int[] triIndices = {triangle.Index1, triangle.Index2, triangle.Index3};
-
-
                 for(int i=0; i<3; ++i)
                 {
                     DelaunayEdge edge = new DelaunayEdge(triIndices[i], triIndices[(i+1)%3]);
                     Vector2 v_current = triVertices[i];
                     Vector2 v_next = triVertices[(i+1)%3];
-
                     bool isShared = false;
                     foreach (var otherBadTriangle in badTriangles)
                     {
-                        if (triangle.Equals(otherBadTriangle)) continue; // Don't compare with self
-
-                        // Check if otherBadTriangle shares this edge
-                        // An edge is (v_current, v_next)
+                        if (triangle.Equals(otherBadTriangle)) continue;
                         if (otherBadTriangle.ContainsVertex(v_current) && otherBadTriangle.ContainsVertex(v_next))
                         {
                             isShared = true;
@@ -427,45 +600,32 @@ public class GameManager : MonoBehaviour
                     }
                     if (!isShared)
                     {
-                         // Store edge by original indices
                         polygonHole.Add(new DelaunayEdge(triIndices[i], triIndices[(i+1)%3]));
                     }
                 }
             }
             triangles.RemoveAll(t => badTriangles.Contains(t));
-
-
-            // Re-triangulate the polygonal hole by connecting the new point to all its vertices
-            // The vertices of the polygonHole are formed by the edges.
-            // Each edge in polygonHole connects to the new point.
-            // The indices in polygonHole edges are original point indices (or super triangle negative indices).
             foreach (var edge in polygonHole)
             {
-                // Determine the actual vertices for the new triangle from the edge's original indices
                 Vector2 p1 = (edge.P1Index < 0) ? superTriangleVertices[-edge.P1Index -1] : points[edge.P1Index];
                 Vector2 p2 = (edge.P2Index < 0) ? superTriangleVertices[-edge.P2Index -1] : points[edge.P2Index];
                 triangles.Add(new DelaunayTriangle(point, p1, p2, pointIndex, edge.P1Index, edge.P2Index));
             }
         }
-
-        // 3. Remove all triangles that share a vertex with the original super triangle
         triangles.RemoveAll(triangle =>
             triangle.Index1 < 0 || triangle.Index2 < 0 || triangle.Index3 < 0 ||
             triangle.ContainsVertex(superTriangleVertices[0]) ||
             triangle.ContainsVertex(superTriangleVertices[1]) ||
             triangle.ContainsVertex(superTriangleVertices[2])
         );
-        
-        // 4. Collect unique edges from the final triangulation
         HashSet<DelaunayEdge> finalEdges = new HashSet<DelaunayEdge>();
         foreach (var triangle in triangles)
         {
-            // Ensure indices are valid (not from super triangle)
             if (triangle.Index1 >= 0 && triangle.Index2 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index1, triangle.Index2));
             if (triangle.Index2 >= 0 && triangle.Index3 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index2, triangle.Index3));
             if (triangle.Index3 >= 0 && triangle.Index1 >= 0) finalEdges.Add(new DelaunayEdge(triangle.Index3, triangle.Index1));
         }
-        Debug.Log($"Delaunay triangulation resulted in {finalEdges.Count} unique edges.");
+        trianglesOut = triangles;
         return new List<DelaunayEdge>(finalEdges);
     }
 
@@ -694,6 +854,9 @@ public class GameManager : MonoBehaviour
     {
         var key = GetCanonicalEdgeKey(fromCell, toCell);
 
+        // 新增：记录添加前的连通分量数量
+        int before = CalculateNumberOfConnectedComponents();
+
         // 如果不开启权重边，强制权重为1
         if (!useWeightedEdges)
             weight = 1;
@@ -783,6 +946,26 @@ public class GameManager : MonoBehaviour
             if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
                 bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
             tmp.sortingOrder = bgRenderer.sortingOrder + 1;
+        }
+
+        // 新增：记录添加后的连通分量数量
+        int after = CalculateNumberOfConnectedComponents();
+        // 如果连通分量数量减少，说明有两个分量被合并
+        if (after < before)
+        {
+            // 获取fromCell所在新分量的所有cell
+            var allCells = GetAllCellsInSameComponent(fromCell);
+            // 恢复初始状态下这些点之间的所有边
+            foreach (var edge in _initialEdges)
+            {
+                if (allCells.Contains(edge.Item1) && allCells.Contains(edge.Item2))
+                {
+                    if (!_edges.ContainsKey(GetCanonicalEdgeKey(edge.Item1, edge.Item2)))
+                    {
+                        CreateOrUpdateEdge(edge.Item1, edge.Item2);
+                    }
+                }
+            }
         }
     }
 
@@ -979,9 +1162,373 @@ public class GameManager : MonoBehaviour
         var key = GetCanonicalEdgeKey(a, b);
         if (!_edgeWeightCache.TryGetValue(key, out int weight))
         {
+            // 生成正数权重：表示边的"重要性"
+            // 权重越大，表示边越重要，越不应该被切割
+            // 权重越小，表示边越不重要，越容易被切割
             weight = UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
             _edgeWeightCache[key] = weight;
         }
         return weight;
+    }
+
+    // 获取与指定cell连通的所有cell
+    private HashSet<Cell> GetAllCellsInSameComponent(Cell cell)
+    {
+        HashSet<Cell> visited = new HashSet<Cell>();
+        Queue<Cell> queue = new Queue<Cell>();
+        queue.Enqueue(cell);
+        visited.Add(cell);
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            foreach (var neighbor in GetConnectedCells(current))
+            {
+                if (!visited.Contains(neighbor))
+                {
+                    visited.Add(neighbor);
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+        return visited;
+    }
+
+    // 贪心多割算法实现 - 标准多割问题（不限制连通分量数量）
+    private List<(Cell, Cell)> GreedyMulticut(Dictionary<Cell, List<Cell>> graph, Dictionary<(Cell, Cell), int> edgeWeightCache)
+    {
+        // 复制边集合
+        var allEdges = edgeWeightCache.Keys.ToList();
+        // 按权重从小到大排序（优先切割不重要的边）
+        // 权重越小，表示边越不重要，越容易被切割
+        allEdges.Sort((a, b) => edgeWeightCache[a].CompareTo(edgeWeightCache[b]));
+
+        // 当前图的边集合
+        var currentEdges = new HashSet<(Cell, Cell)>(allEdges);
+        // 记录被割掉的边
+        var cutEdges = new List<(Cell, Cell)>();
+
+        // 标准多割：移除边直到没有违反的循环不等式
+        bool hasViolation = true;
+        int maxIterations = allEdges.Count; // 最多移除所有边
+        int iteration = 0;
+
+        while (hasViolation && iteration < maxIterations)
+        {
+            iteration++;
+            hasViolation = false;
+
+            // 构建当前图（移除被切割的边）
+            var currentGraph = new Dictionary<Cell, List<Cell>>();
+            foreach (var cell in graph.Keys)
+                currentGraph[cell] = new List<Cell>();
+
+            foreach (var edge in graph.Keys)
+            {
+                foreach (var neighbor in graph[edge])
+                {
+                    var edgeKey = GetCanonicalEdgeKey(edge, neighbor);
+                    if (currentEdges.Contains(edgeKey))
+                    {
+                        currentGraph[edge].Add(neighbor);
+                    }
+                }
+            }
+
+            // 计算连通分量
+            var nodeLabeling = new Dictionary<Cell, int>();
+            var visited = new HashSet<Cell>();
+            int componentId = 0;
+
+            foreach (var cell in graph.Keys)
+            {
+                if (!visited.Contains(cell))
+                {
+                    var queue = new Queue<Cell>();
+                    queue.Enqueue(cell);
+                    visited.Add(cell);
+                    nodeLabeling[cell] = componentId;
+
+                    while (queue.Count > 0)
+                    {
+                        var current = queue.Dequeue();
+                        foreach (var neighbor in currentGraph[current])
+                        {
+                            if (!visited.Contains(neighbor))
+                            {
+                                visited.Add(neighbor);
+                                nodeLabeling[neighbor] = componentId;
+                                queue.Enqueue(neighbor);
+                            }
+                        }
+                    }
+                    componentId++;
+                }
+            }
+
+            // 检查是否有违反的循环不等式
+            foreach (var edge in allEdges)
+            {
+                if (currentEdges.Contains(edge) && nodeLabeling[edge.Item1] == nodeLabeling[edge.Item2])
+                {
+                    // 找到从edge.Item1到edge.Item2的最短路径
+                    var path = FindShortestPath(currentGraph, edge.Item1, edge.Item2);
+                    if (path != null && path.Count >= 2)
+                    {
+                        // 检查路径上的所有边是否都被保留
+                        bool pathIntact = true;
+                        for (int i = 0; i < path.Count - 1; i++)
+                        {
+                            var pathEdge = GetCanonicalEdgeKey(path[i], path[i + 1]);
+                            if (!currentEdges.Contains(pathEdge))
+                            {
+                                pathIntact = false;
+                                break;
+                            }
+                        }
+
+                        if (pathIntact)
+                        {
+                            // 违反循环不等式，移除这条边
+                            currentEdges.Remove(edge);
+                            cutEdges.Add(edge);
+                            hasViolation = true;
+                            break; // 一次只移除一条边
+                        }
+                    }
+                }
+            }
+        }
+
+        Debug.Log($"贪心标准多割完成，切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
+        return cutEdges;
+    }
+
+    // ILP 多割算法实现 - 标准多割问题（不限制连通分量数量）
+    private List<(Cell, Cell)> ILPMulticut(Dictionary<Cell, List<Cell>> graph, Dictionary<(Cell, Cell), int> edgeWeightCache)
+    {
+        try
+        {
+            // 创建 Gurobi 环境
+            GRBEnv env = new GRBEnv();
+            GRBModel model = new GRBModel(env);
+
+            // 设置求解参数
+            model.Parameters.OutputFlag = 0; // 不显示求解过程
+            model.Parameters.TimeLimit = 30.0; // 30秒时间限制
+
+            // 创建决策变量：每条边是否被切割
+            var edgeVars = new Dictionary<(Cell, Cell), GRBVar>();
+            foreach (var edge in edgeWeightCache.Keys)
+            {
+                edgeVars[edge] = model.AddVar(0.0, 1.0, edgeWeightCache[edge], GRB.BINARY, 
+                                             $"edge_{edge.Item1.Number}_{edge.Item2.Number}");
+            }
+
+            // 设置目标函数：最大化保留边的权重和
+            // 等价于最小化切割边的权重和，但使用正数权重更直观
+            GRBLinExpr objective = 0.0;
+            foreach (var edge in edgeWeightCache.Keys)
+            {
+                objective.AddTerm(edgeWeightCache[edge], edgeVars[edge]);
+            }
+            model.SetObjective(objective, GRB.MAXIMIZE); // 最大化保留边的权重和
+
+            // 由于C# API的懒约束实现复杂，我们使用简化的方法：
+            // 1. 先求解一个松弛版本
+            // 2. 检查解的有效性
+            // 3. 如果无效，添加必要的约束并重新求解
+
+            // 第一轮求解
+            model.Optimize();
+
+            // 检查解的有效性并添加必要的约束
+            bool validSolution = false;
+            int maxIterations = 10; // 最多迭代10次
+            int iteration = 0;
+
+            while (!validSolution && iteration < maxIterations)
+            {
+                iteration++;
+                
+                // 获取当前解
+                var currentSolution = new Dictionary<(Cell, Cell), double>();
+                foreach (var edge in edgeWeightCache.Keys)
+                {
+                    currentSolution[edge] = edgeVars[edge].X;
+                }
+
+                // 构建当前图（移除被切割的边）
+                var currentGraph = new Dictionary<Cell, List<Cell>>();
+                foreach (var cell in _cells)
+                    currentGraph[cell] = new List<Cell>();
+
+                foreach (var edge in _edges.Keys)
+                {
+                    if (currentSolution.ContainsKey(edge) && currentSolution[edge] < 0.5)
+                    {
+                        currentGraph[edge.Item1].Add(edge.Item2);
+                        currentGraph[edge.Item2].Add(edge.Item1);
+                    }
+                }
+
+                // 计算连通分量
+                var nodeLabeling = new Dictionary<Cell, int>();
+                var visited = new HashSet<Cell>();
+                int componentId = 0;
+
+                foreach (var cell in _cells)
+                {
+                    if (!visited.Contains(cell))
+                    {
+                        var queue = new Queue<Cell>();
+                        queue.Enqueue(cell);
+                        visited.Add(cell);
+                        nodeLabeling[cell] = componentId;
+
+                        while (queue.Count > 0)
+                        {
+                            var current = queue.Dequeue();
+                            foreach (var neighbor in currentGraph[current])
+                            {
+                                if (!visited.Contains(neighbor))
+                                {
+                                    visited.Add(neighbor);
+                                    nodeLabeling[neighbor] = componentId;
+                                    queue.Enqueue(neighbor);
+                                }
+                            }
+                        }
+                        componentId++;
+                    }
+                }
+
+                // 检查是否有违反的循环不等式
+                bool hasViolation = false;
+                foreach (var edge in edgeWeightCache.Keys)
+                {
+                    if (currentSolution[edge] > 0.5 && nodeLabeling[edge.Item1] == nodeLabeling[edge.Item2])
+                    {
+                        // 找到从edge.Item1到edge.Item2的最短路径
+                        var path = FindShortestPath(currentGraph, edge.Item1, edge.Item2);
+                        if (path != null && path.Count >= 2)
+                        {
+                            // 添加循环不等式：x_uv <= sum(x_ij for all edges ij in path)
+                            GRBLinExpr pathSum = 0.0;
+                            for (int i = 0; i < path.Count - 1; i++)
+                            {
+                                var pathEdge = GetCanonicalEdgeKey(path[i], path[i + 1]);
+                                if (edgeVars.ContainsKey(pathEdge))
+                                {
+                                    pathSum.AddTerm(1.0, edgeVars[pathEdge]);
+                                }
+                            }
+                            model.AddConstr(edgeVars[edge] <= pathSum, $"cycle_{iteration}_{edge.Item1.Number}_{edge.Item2.Number}");
+                            hasViolation = true;
+                        }
+                    }
+                }
+
+                if (!hasViolation)
+                {
+                    validSolution = true;
+                }
+                else
+                {
+                    // 重新求解
+                    model.Optimize();
+                }
+            }
+
+            // 获取最终结果
+            var cutEdges = new List<(Cell, Cell)>();
+            if (model.Status == GRB.Status.OPTIMAL || model.Status == GRB.Status.TIME_LIMIT)
+            {
+                foreach (var edge in edgeVars.Keys)
+                {
+                    if (edgeVars[edge].X > 0.5) // 如果变量值接近1
+                    {
+                        cutEdges.Add(edge);
+                    }
+                }
+                Debug.Log($"标准多割求解完成，目标值: {model.ObjVal}, 切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
+            }
+            else
+            {
+                Debug.LogWarning($"标准多割求解失败，状态: {model.Status}");
+            }
+
+            // 清理资源
+            model.Dispose();
+            env.Dispose();
+
+            return cutEdges;
+        }
+        catch (GRBException e)
+        {
+            Debug.LogError($"Gurobi 错误: {e.Message}");
+            return new List<(Cell, Cell)>();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"标准多割求解错误: {e.Message}");
+            return new List<(Cell, Cell)>();
+        }
+    }
+
+    // 查找最短路径的辅助方法
+    private List<Cell> FindShortestPath(Dictionary<Cell, List<Cell>> graph, Cell start, Cell end)
+    {
+        var queue = new Queue<Cell>();
+        var visited = new HashSet<Cell>();
+        var parent = new Dictionary<Cell, Cell>();
+
+        queue.Enqueue(start);
+        visited.Add(start);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (current == end)
+            {
+                // 重建路径
+                var path = new List<Cell>();
+                var node = end;
+                while (node != start)
+                {
+                    path.Add(node);
+                    node = parent[node];
+                }
+                path.Add(start);
+                path.Reverse();
+                return path;
+            }
+
+            foreach (var neighbor in graph[current])
+            {
+                if (!visited.Contains(neighbor))
+                {
+                    visited.Add(neighbor);
+                    parent[neighbor] = current;
+                    queue.Enqueue(neighbor);
+                }
+            }
+        }
+
+        return null; // 没有找到路径
+    }
+
+    // 高亮显示需要切割的边
+    private void HighlightCutEdges(List<(Cell, Cell)> cutEdges)
+    {
+        foreach (var edge in cutEdges)
+        {
+            if (_edges.TryGetValue(edge, out var edgeInfo))
+            {
+                if (highlightEdgeMaterial != null)
+                {
+                    edgeInfo.renderer.material = highlightEdgeMaterial;
+                }
+            }
+        }
     }
 }
