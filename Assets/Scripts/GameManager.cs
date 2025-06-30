@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine.UI;
 using Gurobi;
+using UnityEngine.EventSystems;
 
 public class GameManager : MonoBehaviour
 {
@@ -140,6 +141,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Material highlightEdgeMaterial;
 
+    [SerializeField] private UnityEngine.UI.Toggle pixelHintTogglePrefab; // Inspector拖引用的PixelHintToggle预制体
+
     private void Awake()
     {
         Instance = this;
@@ -150,94 +153,86 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        CreateDebugButton();
+        // CreateDebugButton(); // 移除左边HINT按钮
+        CreatePixelHintButton();
     }
 
-    private void CreateDebugButton()
+    private void CreatePixelHintButton()
     {
-        // 创建Canvas
-        GameObject canvasObj = new GameObject("DebugCanvas");
-        Canvas canvas = canvasObj.AddComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        CanvasScaler scaler = canvasObj.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920, 1080);
-        canvasObj.AddComponent<GraphicRaycaster>();
-
-        // 创建Button
-        GameObject buttonObj = new GameObject("DebugButton");
-        buttonObj.transform.SetParent(canvasObj.transform);
-
-        // 添加RectTransform
-        RectTransform rect = buttonObj.AddComponent<RectTransform>();
-
-        Button button = buttonObj.AddComponent<Button>();
-        Image image = buttonObj.AddComponent<Image>();
-        var colors = button.colors;
-        colors.normalColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);      // 正常
-        colors.highlightedColor = new Color(0.3f, 0.3f, 0.3f, 0.9f);  // 悬停
-        colors.pressedColor = new Color(0.1f, 0.1f, 0.1f, 1f);        // 按下
-        colors.selectedColor = new Color(0.25f, 0.25f, 0.25f, 0.9f);  // 选中
-        colors.disabledColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);     // 不可用
-        button.colors = colors;
-
-        // 设置按钮位置和大小
+        // 查找UICanvas
+        GameObject canvasObj = GameObject.Find("UICanvas");
+        if (canvasObj == null)
+        {
+            Debug.LogError("UICanvas未找到，无法创建像素Hint按钮");
+            return;
+        }
+        // 使用Inspector拖引用的Toggle预制体
+        if (pixelHintTogglePrefab == null)
+        {
+            Debug.LogError("pixelHintTogglePrefab未在Inspector中赋值，请拖入Toggle预制体");
+            return;
+        }
+        // 实例化Toggle
+        var toggle = Instantiate(pixelHintTogglePrefab, canvasObj.transform);
+        toggle.name = "PixelHintToggle";
+        // 设置位置和大小
+        RectTransform rect = toggle.GetComponent<RectTransform>();
         rect.anchorMin = new Vector2(0, 0);
         rect.anchorMax = new Vector2(0, 0);
-       rect.pivot = new Vector2(0, 0);
-        rect.anchoredPosition = new Vector2(20, 20);
-        rect.sizeDelta = new Vector2(120, 40); 
-
-        // 添加文字
-        GameObject textObj = new GameObject("Text");
-        textObj.transform.SetParent(buttonObj.transform);
-        Text text = textObj.AddComponent<Text>();
-        text.text = "HINT";
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.alignment = TextAnchor.MiddleCenter;
-        text.color = Color.black;
-        text.fontSize = 30;
-        text.fontStyle = FontStyle.Bold;
-        RectTransform textRect = textObj.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = Vector2.zero;
-        textRect.offsetMax = Vector2.zero;
-
-        // 按钮事件
-        button.onClick.AddListener(() => {
-            // 点击HINT按钮时计算并高亮最佳切割edges
-            var graph = new Dictionary<Cell, List<Cell>>();
-            foreach (var cell in _cells)
-                graph[cell] = new List<Cell>();
-            foreach (var edge in _edges.Keys)
+        rect.pivot = new Vector2(0, 0);
+        rect.anchoredPosition = new Vector2(160, 20);
+        // rect.sizeDelta = new Vector2(120, 40);
+        // 设置TMP文字
+        var tmp = toggle.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        if (tmp != null)
+        {
+            tmp.text = "HINT";
+        }
+        // 监听Toggle状态变化
+        toggle.onValueChanged.RemoveAllListeners();
+        toggle.onValueChanged.AddListener((isOn) => {
+            if (isOn)
             {
-                graph[edge.Item1].Add(edge.Item2);
-                graph[edge.Item2].Add(edge.Item1);
-            }
+                // 计算并高亮最佳切割edges
+                var graph = new Dictionary<Cell, List<Cell>>();
+                foreach (var cell in _cells)
+                    graph[cell] = new List<Cell>();
+                foreach (var edge in _edges.Keys)
+                {
+                    graph[edge.Item1].Add(edge.Item2);
+                    graph[edge.Item2].Add(edge.Item1);
+                }
 
-            List<(Cell, Cell)> cutEdges;
-            
-            if (multicutAlgorithm == MulticutAlgorithm.Greedy)
-            {
-                cutEdges = GreedyMulticut(graph, _edgeWeightCache); // 移除targetComponentCount参数
-                Debug.Log("使用贪心算法计算标准多割最优解");
-            }
-            else if (multicutAlgorithm == MulticutAlgorithm.ILP)
-            {
-                cutEdges = ILPMulticut(graph, _edgeWeightCache); // 移除targetComponentCount参数
-                Debug.Log("使用ILP算法计算标准多割最优解");
+                List<(Cell, Cell)> cutEdges;
+                if (multicutAlgorithm == MulticutAlgorithm.Greedy)
+                {
+                    cutEdges = GreedyMulticut(graph, _edgeWeightCache);
+                    Debug.Log("使用贪心算法计算标准多割最优解");
+                }
+                else if (multicutAlgorithm == MulticutAlgorithm.ILP)
+                {
+                    cutEdges = ILPMulticut(graph, _edgeWeightCache);
+                    Debug.Log("使用ILP算法计算标准多割最优解");
+                }
+                else
+                {
+                    cutEdges = new List<(Cell, Cell)>();
+                    Debug.LogWarning("未知的算法类型");
+                }
+                HighlightCutEdges(cutEdges);
+                Debug.Log("像素Hint Toggle状态: 开启");
             }
             else
             {
-                cutEdges = new List<(Cell, Cell)>();
-                Debug.LogWarning("未知的算法类型");
+                // 关闭时取消高亮（可选：这里简单重置所有边材质）
+                foreach (var edgeInfo in _edges.Values)
+                {
+                    if (_lineMaterial != null)
+                        edgeInfo.renderer.material = _lineMaterial;
+                }
+                Debug.Log("像素Hint Toggle状态: 关闭");
             }
-
-            HighlightCutEdges(cutEdges);
         });
-
-        debugButton = button;
     }
 
     public void LoadLevelAndSpawnNodes(int numberOfCells)
@@ -407,13 +402,11 @@ public class GameManager : MonoBehaviour
 
     private void SpawnLevel(int numberOfPoints)
     {
-        // 清除现有的单元格和连线
+        // 清理之前的关卡
         foreach (var cell in _cells)
         {
             if (cell != null)
-            {
                 Destroy(cell.gameObject);
-            }
         }
         _cells.Clear();
         RemoveAllEdges();
