@@ -6,6 +6,9 @@ using TMPro;
 using UnityEngine.UI;
 using Gurobi;
 using UnityEngine.EventSystems;
+using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
 
 public class GameManager : MonoBehaviour
 {
@@ -163,13 +166,13 @@ public class GameManager : MonoBehaviour
         GameObject canvasObj = GameObject.Find("UICanvas");
         if (canvasObj == null)
         {
-            Debug.LogError("UICanvas未找到，无法创建像素Hint按钮");
+            UnityEngine.Debug.LogError("UICanvas未找到，无法创建像素Hint按钮");
             return;
         }
         // 使用Inspector拖引用的Toggle预制体
         if (pixelHintTogglePrefab == null)
         {
-            Debug.LogError("pixelHintTogglePrefab未在Inspector中赋值，请拖入Toggle预制体");
+            UnityEngine.Debug.LogError("pixelHintTogglePrefab未在Inspector中赋值，请拖入Toggle预制体");
             return;
         }
         // 实例化Toggle
@@ -193,34 +196,53 @@ public class GameManager : MonoBehaviour
         toggle.onValueChanged.AddListener((isOn) => {
             if (isOn)
             {
-                // 计算并高亮最佳切割edges
-                var graph = new Dictionary<Cell, List<Cell>>();
-                foreach (var cell in _cells)
-                    graph[cell] = new List<Cell>();
+                // 1. 构造输入数据
+                var nodes = _cells.Select(cell => cell.Number).ToList();
+                var edgeList = new List<Dictionary<string, object>>();
                 foreach (var edge in _edges.Keys)
                 {
-                    graph[edge.Item1].Add(edge.Item2);
-                    graph[edge.Item2].Add(edge.Item1);
+                    int u = edge.Item1.Number;
+                    int v = edge.Item2.Number;
+                    int w = _edgeWeightCache[edge];
+                    edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
                 }
+                // JsonUtility不支持复杂嵌套，这里手动拼json字符串
+                string nodesStr = string.Join(",", nodes);
+                string edgesStr = string.Join(",", edgeList.Select(e => $"{{\"u\":{e["u"]},\"v\":{e["v"]},\"weight\":{e["weight"]}}}"));
+                string jsonData = $"{{\"nodes\":[{nodesStr}],\"edges\":[{edgesStr}]}}";
 
-                List<(Cell, Cell)> cutEdges;
-                if (multicutAlgorithm == MulticutAlgorithm.Greedy)
+                // 2. 路径
+                string pythonExe = "python";
+                string scriptPath = "Assets/Scripts/multicut_solver.py";
+                string inputPath = "input.json";
+                string outputPath = "output.json";
+
+                // 3. 调用Python
+                RunPythonMulticut(pythonExe, scriptPath, inputPath, outputPath, jsonData);
+
+                // 4. 读取结果
+                string resultJson = System.IO.File.ReadAllText(outputPath);
+                var cutEdges = new List<(Cell, Cell)>();
+                try
                 {
-                    cutEdges = GreedyMulticut(graph, _edgeWeightCache);
-                    Debug.Log("使用贪心算法计算标准多割最优解");
+                    // 使用正则提取所有 {"u": x, "v": y}
+                    var matches = Regex.Matches(resultJson, @"\{\s*""u""\s*:\s*(\d+)\s*,\s*""v""\s*:\s*(\d+)\s*\}");
+                    foreach (Match match in matches)
+                    {
+                        int u = int.Parse(match.Groups[1].Value);
+                        int v = int.Parse(match.Groups[2].Value);
+                        var cellU = _cells.FirstOrDefault(c => c.Number == u);
+                        var cellV = _cells.FirstOrDefault(c => c.Number == v);
+                        if (cellU != null && cellV != null)
+                            cutEdges.Add(GetCanonicalEdgeKey(cellU, cellV));
+                    }
                 }
-                else if (multicutAlgorithm == MulticutAlgorithm.ILP)
+                catch (Exception ex)
                 {
-                    cutEdges = ILPMulticut(graph, _edgeWeightCache);
-                    Debug.Log("使用ILP算法计算标准多割最优解");
-                }
-                else
-                {
-                    cutEdges = new List<(Cell, Cell)>();
-                    Debug.LogWarning("未知的算法类型");
+                    UnityEngine.Debug.LogError("解析Python输出失败: " + ex.Message);
                 }
                 HighlightCutEdges(cutEdges);
-                Debug.Log("像素Hint Toggle状态: 开启");
+                UnityEngine.Debug.Log("Hint: Python多割已高亮最佳切割");
             }
             else
             {
@@ -230,7 +252,7 @@ public class GameManager : MonoBehaviour
                     if (_lineMaterial != null)
                         edgeInfo.renderer.material = _lineMaterial;
                 }
-                Debug.Log("像素Hint Toggle状态: 关闭");
+                UnityEngine.Debug.Log("像素Hint Toggle状态: 关闭");
             }
         });
     }
@@ -249,7 +271,7 @@ public class GameManager : MonoBehaviour
         Camera mainCamera = Camera.main;
         if (mainCamera == null)
         {
-            Debug.LogError("Main Camera not found!");
+            UnityEngine.Debug.LogError("Main Camera not found!");
             return cellPositions;
         }
 
@@ -356,7 +378,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"Generated {cellPositions.Count} points using Poisson Disk Sampling");
+        UnityEngine.Debug.Log($"Generated {cellPositions.Count} points using Poisson Disk Sampling");
         return cellPositions;
     }
 
@@ -678,7 +700,7 @@ public class GameManager : MonoBehaviour
         RaycastHit2D hitCell = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, cellLayer);
         if (hitCell.collider != null)
         {
-            Debug.Log("Raycast 命中 Cell: " + hitCell.collider.gameObject.name);
+            UnityEngine.Debug.Log("Raycast 命中 Cell: " + hitCell.collider.gameObject.name);
             var cell = hitCell.collider.GetComponent<Cell>();
             if (cell != null)
             {
@@ -689,7 +711,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("Raycast 未命中 Cell");
+            UnityEngine.Debug.Log("Raycast 未命中 Cell");
         }
         return false; // 没命中cell
     }
@@ -703,7 +725,7 @@ public class GameManager : MonoBehaviour
         RaycastHit2D hitEdge = Physics2D.Raycast(mousePos2D, Vector2.zero, 0, edgeLayer);
         if (hitEdge.collider != null && hitEdge.collider.gameObject.name.StartsWith("Line_"))
         {
-            Debug.Log("点击到连线，准备删除: " + hitEdge.collider.gameObject.name);
+            UnityEngine.Debug.Log("点击到连线，准备删除: " + hitEdge.collider.gameObject.name);
             var toRemoveKey = _edges.FirstOrDefault(pair => pair.Value.renderer.gameObject == hitEdge.collider.gameObject).Key;
             
             if (!toRemoveKey.Equals(default((Cell, Cell))))
@@ -719,13 +741,13 @@ public class GameManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("不能删除此边：删除后不会增加连通分量数量。");
+                    UnityEngine.Debug.Log("不能删除此边：删除后不会增加连通分量数量。");
                 }
             }
         }
         else
         {
-            Debug.Log("Raycast 未命中 Line");
+            UnityEngine.Debug.Log("Raycast 未命中 Line");
         }
     }
 
@@ -737,7 +759,7 @@ public class GameManager : MonoBehaviour
     private void HandleMouseUp()
     {
         var endCell = RaycastCell();
-        Debug.Log("Mouse Up, Raycast Cell: " + (endCell != null ? endCell.Number.ToString() : "null"));
+        UnityEngine.Debug.Log("Mouse Up, Raycast Cell: " + (endCell != null ? endCell.Number.ToString() : "null"));
         if (endCell != null && endCell != startCell)
         {
             startCell.AddEdge(endCell);
@@ -800,7 +822,7 @@ public class GameManager : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(ray.origin, new Vector2(ray.direction.x, ray.direction.y), 100f, cellLayer);
         if (hit.collider != null)
         {
-            Debug.Log("Hit Collider: " + hit.collider.name);
+            UnityEngine.Debug.Log("Hit Collider: " + hit.collider.name);
             return hit.collider.GetComponent<Cell>();
         }
         return null;
@@ -1065,7 +1087,7 @@ public class GameManager : MonoBehaviour
 
         if (edgesToRemove.Count == 0) return;
 
-        Debug.Log($"检测到{edgesToRemove.Count}条边被轨迹划过");
+        UnityEngine.Debug.Log($"检测到{edgesToRemove.Count}条边被轨迹划过");
 
         int initialComponents = CalculateNumberOfConnectedComponents();
         int componentsAfterRemoval = CalculateNumberOfConnectedComponents(edgesToRemove);
@@ -1079,7 +1101,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("不能擦除：此次操作不会增加连通分量数量。");
+            UnityEngine.Debug.Log("不能擦除：此次操作不会增加连通分量数量。");
         }
     }
 
@@ -1292,7 +1314,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"贪心标准多割完成，切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
+        UnityEngine.Debug.Log($"贪心标准多割完成，切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
         return cutEdges;
     }
 
@@ -1443,11 +1465,11 @@ public class GameManager : MonoBehaviour
                         cutEdges.Add(edge);
                     }
                 }
-                Debug.Log($"标准多割求解完成，目标值: {model.ObjVal}, 切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
+                UnityEngine.Debug.Log($"标准多割求解完成，目标值: {model.ObjVal}, 切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
             }
             else
             {
-                Debug.LogWarning($"标准多割求解失败，状态: {model.Status}");
+                UnityEngine.Debug.LogWarning($"标准多割求解失败，状态: {model.Status}");
             }
 
             // 清理资源
@@ -1458,12 +1480,12 @@ public class GameManager : MonoBehaviour
         }
         catch (GRBException e)
         {
-            Debug.LogError($"Gurobi 错误: {e.Message}");
+            UnityEngine.Debug.LogError($"Gurobi 错误: {e.Message}");
             return new List<(Cell, Cell)>();
         }
         catch (Exception e)
         {
-            Debug.LogError($"标准多割求解错误: {e.Message}");
+            UnityEngine.Debug.LogError($"标准多割求解错误: {e.Message}");
             return new List<(Cell, Cell)>();
         }
     }
@@ -1513,15 +1535,67 @@ public class GameManager : MonoBehaviour
     // 高亮显示需要切割的边
     private void HighlightCutEdges(List<(Cell, Cell)> cutEdges)
     {
+        // 调试：打印cutEdges数量和内容
+        UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdges.Count = {cutEdges.Count}");
         foreach (var edge in cutEdges)
         {
+            UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdge: {edge.Item1.Number}-{edge.Item2.Number}, InstanceID: {edge.Item1.GetInstanceID()}-{edge.Item2.GetInstanceID()}");
+        }
+        // 调试：打印_edges字典所有key
+        UnityEngine.Debug.Log($"[HighlightCutEdges] _edges.Keys.Count = {_edges.Keys.Count}");
+        foreach (var key in _edges.Keys)
+        {
+            UnityEngine.Debug.Log($"[HighlightCutEdges] _edges key: {key.Item1.Number}-{key.Item2.Number}, InstanceID: {key.Item1.GetInstanceID()}-{key.Item2.GetInstanceID()}");
+        }
+        // 1. 先全部恢复成普通材质
+        foreach (var edgeInfo in _edges.Values)
+        {
+            if (_lineMaterial != null)
+                edgeInfo.renderer.material = _lineMaterial;
+        }
+        // 2. 只把需要切割的边高亮
+        foreach (var edge in cutEdges)
+        {
+            // 调试输出：打印每条需要高亮的边的编号
+            UnityEngine.Debug.Log($"高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
             if (_edges.TryGetValue(edge, out var edgeInfo))
             {
                 if (highlightEdgeMaterial != null)
-                {
                     edgeInfo.renderer.material = highlightEdgeMaterial;
-                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"[HighlightCutEdges] 未找到对应的边: {edge.Item1.Number}-{edge.Item2.Number}");
             }
         }
+    }
+
+    public void RunPythonMulticut(string pythonExe, string scriptPath, string inputPath, string outputPath, string jsonData)
+    {
+        // 写入输入文件
+        File.WriteAllText(inputPath, jsonData);
+
+        // 调用Python脚本
+        ProcessStartInfo psi = new ProcessStartInfo();
+        psi.FileName = pythonExe; // 比如 "python"
+        psi.Arguments = $"{scriptPath} \"{inputPath}\" \"{outputPath}\"";
+        psi.UseShellExecute = false;
+        psi.RedirectStandardOutput = true;
+        psi.RedirectStandardError = true;
+        psi.CreateNoWindow = true;
+
+        using (Process process = Process.Start(psi))
+        {
+            string output = process.StandardOutput.ReadToEnd();
+            string error = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            if (!string.IsNullOrEmpty(error))
+                UnityEngine.Debug.LogError(error);
+        }
+
+        // 读取Python输出
+        string resultJson = File.ReadAllText(outputPath);
+        // 你可以用JsonUtility/Json.NET等解析resultJson
     }
 }
