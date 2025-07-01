@@ -49,6 +49,7 @@ public class GameManager : MonoBehaviour
     private Button debugButton;
 
     private HashSet<(Cell, Cell)> _initialEdges = new HashSet<(Cell, Cell)>(); // 记录初始边
+    private HashSet<(Cell, Cell)> playerCutEdges = new HashSet<(Cell, Cell)>();
 
     public enum MulticutAlgorithm
     {
@@ -146,6 +147,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private UnityEngine.UI.Toggle pixelHintTogglePrefab; // Inspector拖引用的PixelHintToggle预制体
 
+    private TextMeshProUGUI costText;
+    private int optimalCost = 0;
+
     private void Awake()
     {
         Instance = this;
@@ -158,6 +162,14 @@ public class GameManager : MonoBehaviour
     {
         // CreateDebugButton(); // 移除左边HINT按钮
         CreatePixelHintButton();
+        // 获取CostText组件
+        var costTextObj = GameObject.Find("UICanvas/CostText");
+        if (costTextObj != null)
+            costText = costTextObj.GetComponent<TextMeshProUGUI>();
+        else
+            UnityEngine.Debug.LogError("找不到UICanvas下的CostText！");
+
+        UpdateOptimalCostByPython();
     }
 
     private void CreatePixelHintButton()
@@ -223,6 +235,7 @@ public class GameManager : MonoBehaviour
                 // 4. 读取结果
                 string resultJson = System.IO.File.ReadAllText(outputPath);
                 var cutEdges = new List<(Cell, Cell)>();
+                int optimalCostLocal = 0;
                 try
                 {
                     // 使用正则提取所有 {"u": x, "v": y}
@@ -236,12 +249,16 @@ public class GameManager : MonoBehaviour
                         if (cellU != null && cellV != null)
                             cutEdges.Add(GetCanonicalEdgeKey(cellU, cellV));
                     }
+                    // 提取cost字段
+                    var costMatch = Regex.Match(resultJson, "\\\"cost\\\"\\s*:\\s*(-?\\d+)");
+                    if (costMatch.Success)
+                        optimalCostLocal = int.Parse(costMatch.Groups[1].Value);
                 }
                 catch (Exception ex)
                 {
                     UnityEngine.Debug.LogError("解析Python输出失败: " + ex.Message);
                 }
-                HighlightCutEdges(cutEdges);
+                HighlightCutEdges(cutEdges, optimalCostLocal);
                 UnityEngine.Debug.Log("Hint: Python多割已高亮最佳切割");
             }
             else
@@ -253,6 +270,7 @@ public class GameManager : MonoBehaviour
                         edgeInfo.renderer.material = _lineMaterial;
                 }
                 UnityEngine.Debug.Log("像素Hint Toggle状态: 关闭");
+                UpdateCostText(); // 关闭时也刷新一次
             }
         });
     }
@@ -433,6 +451,7 @@ public class GameManager : MonoBehaviour
         _cells.Clear();
         RemoveAllEdges();
         _initialEdges.Clear(); // 清空初始边集合
+        playerCutEdges.Clear(); // 清空玩家切割记录
 
         List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
         // Assign positions to cells and collect Vector2 for triangulation
@@ -486,6 +505,42 @@ public class GameManager : MonoBehaviour
         // If 0 or 1 cell, do nothing
 
         // 生成图后不再自动调用多割算法
+        UpdateOptimalCostByPython(); // 新增：自动计算最优cost并刷新UI
+    }
+
+    // 新增：自动计算最优cost的方法
+    private void UpdateOptimalCostByPython()
+    {
+        // 1. 构造输入数据
+        var nodes = _cells.Select(cell => cell.Number).ToList();
+        var edgeList = new List<Dictionary<string, object>>();
+        foreach (var edge in _edges.Keys)
+        {
+            int u = edge.Item1.Number;
+            int v = edge.Item2.Number;
+            int w = _edgeWeightCache[edge];
+            edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
+        }
+        string nodesStr = string.Join(",", nodes);
+        string edgesStr = string.Join(",", edgeList.Select(e => $"{{\"u\":{e["u"]},\"v\":{e["v"]},\"weight\":{e["weight"]}}}"));
+        string jsonData = $"{{\"nodes\":[{nodesStr}],\"edges\":[{edgesStr}]}}";
+
+        string pythonExe = "python";
+        string scriptPath = "Assets/Scripts/multicut_solver.py";
+        string inputPath = "input.json";
+        string outputPath = "output.json";
+
+        // 2. 调用Python
+        RunPythonMulticut(pythonExe, scriptPath, inputPath, outputPath, jsonData);
+
+        // 3. 读取结果
+        string resultJson = System.IO.File.ReadAllText(outputPath);
+        int optimalCostLocal = 0;
+        var costMatch = Regex.Match(resultJson, "\\\"cost\\\"\\s*:\\s*(-?\\d+)");
+        if (costMatch.Success)
+            optimalCostLocal = int.Parse(costMatch.Groups[1].Value);
+        optimalCost = optimalCostLocal;
+        UpdateCostText();
     }
 
     private List<Vector2> GetSuperTriangleVertices(List<Vector2> points)
@@ -995,9 +1050,11 @@ public class GameManager : MonoBehaviour
         var key = GetCanonicalEdgeKey(fromCell, toCell);
         if (_edges.TryGetValue(key, out var edge))
         {
-            var (renderer, _, tmp, bg) = edge;
-            Destroy(renderer.gameObject); // 这会同时销毁所有子物体（包括文本和BG）
+            // 记录玩家切割的边
+            playerCutEdges.Add(key);
+            Destroy(edge.renderer.gameObject); // 这会同时销毁所有子物体（包括文本和BG）
             _edges.Remove(key);
+            UpdateCostText(); // 每次切割后刷新
         }
     }
 
@@ -1533,7 +1590,7 @@ public class GameManager : MonoBehaviour
     }
 
     // 高亮显示需要切割的边
-    private void HighlightCutEdges(List<(Cell, Cell)> cutEdges)
+    private void HighlightCutEdges(List<(Cell, Cell)> cutEdges, int cost = 0)
     {
         // 调试：打印cutEdges数量和内容
         UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdges.Count = {cutEdges.Count}");
@@ -1556,7 +1613,6 @@ public class GameManager : MonoBehaviour
         // 2. 只把需要切割的边高亮
         foreach (var edge in cutEdges)
         {
-            // 调试输出：打印每条需要高亮的边的编号
             UnityEngine.Debug.Log($"高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
             if (_edges.TryGetValue(edge, out var edgeInfo))
             {
@@ -1567,6 +1623,29 @@ public class GameManager : MonoBehaviour
             {
                 UnityEngine.Debug.LogWarning($"[HighlightCutEdges] 未找到对应的边: {edge.Item1.Number}-{edge.Item2.Number}");
             }
+        }
+        // 更新最优cost
+        if (cost != 0) optimalCost = cost;
+        UpdateCostText();
+    }
+
+    private int GetCurrentCost()
+    {
+        int cost = 0;
+        foreach (var edge in playerCutEdges)
+        {
+            if (_edgeWeightCache.TryGetValue(edge, out int w))
+                cost += w;
+        }
+        return cost;
+    }
+
+    private void UpdateCostText()
+    {
+        if (costText != null)
+        {
+            int currentCost = GetCurrentCost();
+            costText.text = $"COST: {currentCost}/{optimalCost}";
         }
     }
 

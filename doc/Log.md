@@ -68,3 +68,87 @@
     - UI适配，HintToggle可自定义大小，支持放置到任意Canvas。
     - 其它细节优化。
 
+13. **2024-06-13 Unity中采用Python脚本调用Gurobi的原因说明**
+   - **背景**：多割问题（Multicut/K-way Cut）属于NP难问题，最优解通常依赖数学优化工具如Gurobi等求解器。
+   - **Unity集成难点**：
+     - Gurobi官方C# API仅支持Windows且依赖复杂，Unity工程跨平台（如Mac、Linux、WebGL）时兼容性差。
+     - Unity C#环境与Gurobi C# API集成时，DLL加载、授权、依赖管理等问题繁琐，易出错。
+     - Unity工程热更、打包等流程下，C#原生调用Gurobi不易维护。
+   - **Python方案优势**：
+     - Gurobi官方对Python支持极佳，安装和调用简单，社区资料丰富。
+     - Python脚本可独立于Unity运行，易于调试和快速迭代算法。
+     - 通过文件（input.json/output.json）或进程通信，Unity与Python解耦，便于后续算法升级和跨平台兼容。
+   - **具体实现**：
+     - Unity C#端将图结构和权重序列化为JSON，写入input.json。
+     - 调用Python脚本（multicut_solver.py），由其负责Gurobi建模与求解。
+     - Python输出最优切割边和cost到output.json，Unity再读取并高亮显示。
+   - **经验总结**：
+     - 采用Python脚本调用Gurobi极大提升了开发效率和算法灵活性，规避了Unity与Gurobi直接集成的兼容性和维护难题。
+
+14. **2024-06-13 多割高亮只显示一条边问题排查与解决**
+   - **问题现象**：Python输出的output.json中cut_edges有多条边，但Unity只高亮了一条（如只高亮4-3，未高亮4-1、4-2等）。
+   - **原因分析**：C#端解析output.json时采用字符串分割方式，遇到多条边、换行、空格等格式变化时，分割逻辑失效，导致只解析到一条或部分边。
+   - **调试过程**：
+     - 在HighlightCutEdges方法中加入UnityEngine.Debug.Log，打印cutEdges的内容，发现只传入了一条边。
+     - 检查output.json内容，确认cut_edges为标准JSON数组格式。
+     - 进一步分析发现，手动字符串分割方式不适合解析标准JSON数组，容易遗漏多条边。
+   - **最终解决方案**：
+     - 推荐使用Unity的JsonUtility或Newtonsoft.Json（Json.NET）直接反序列化output.json，保证所有cut_edges都能被正确读取。
+     - 关键代码建议：
+       ```csharp
+       [Serializable]
+       public class CutEdge { public int u; public int v; }
+       [Serializable]
+       public class MulticutResult { public List<CutEdge> cut_edges; public int cost; }
+       // 解析
+       var result = JsonUtility.FromJson<MulticutResult>(resultJson);
+       var cutEdges = new List<(Cell, Cell)>();
+       if (result != null && result.cut_edges != null)
+       {
+           foreach (var edge in result.cut_edges)
+           {
+               var cellU = _cells.FirstOrDefault(c => c.Number == edge.u);
+               var cellV = _cells.FirstOrDefault(c => c.Number == edge.v);
+               if (cellU != null && cellV != null)
+                   cutEdges.Add(GetCanonicalEdgeKey(cellU, cellV));
+           }
+       }
+       ```
+   - **经验总结**：解析标准JSON时应避免手动字符串分割，优先使用官方或第三方JSON库，提升健壮性和可维护性。
+
+
+---
+
+### 2024-06-13 多割算法与关卡设计问题记录
+
+1. **output.json多条边只高亮一条问题**
+   - **问题现象**：Python输出的cut_edges有多条，但Unity只高亮了一条。
+   - **原因分析**：C#解析output.json时用字符串分割，遇到换行/空格等格式变化时只解析到一条。
+   - **解决方案**：改用正则表达式批量提取所有cut_edges，保证无论格式如何都能全部解析。
+   - **正则示例**：`@"\{\s*\"u\"\s*:\s*(\d+)\s*,\s*\"v\"\s*:\s*(\d+)\s*\}"`
+
+2. **多割算法遇到无可优化空间的关卡**
+   - **问题现象**：有些关卡output.json的cut_edges为空，玩家无事可做。
+   - **原因分析**：标准多割算法下，若图结构和权重分布没有"冲突"或"优化空间"，算法会返回空解。
+   - **解决方案**：
+     - 关卡生成后自动检测cut_edges是否为空，若为空提示设计师调整结构或权重。
+     - 设计时增加环路、负权重边等，制造"可优化空间"。
+
+3. **当前cost未实时更新问题**
+   - **问题现象**：UI上COST左侧数字（当前cost）不随玩家切割实时变化。
+   - **原因分析**：原实现统计的是高亮材质的边，而不是玩家实际切割的边。
+   - **解决方案**：
+     - 新增playerCutEdges集合，记录玩家每次实际切割的边。
+     - RemoveEdge时加入集合并刷新UI。
+     - GetCurrentCost统计playerCutEdges的权重和。
+     - 关卡重置时清空集合。
+
+4. **UI中CostText的自动刷新与格式规范**
+   - **问题现象**：最优cost能更新，当前cost不变或格式不统一。
+   - **解决方案**：
+     - 每次切割后自动调用UpdateCostText，格式为`COST: 当前cost/最优cost`。
+     - 解析output.json时同步提取cost字段。
+     - 关卡重置、Hint关闭等场景也刷新一次。
+
+
+
