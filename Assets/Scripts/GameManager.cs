@@ -9,6 +9,7 @@ using UnityEngine.EventSystems;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -40,6 +41,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private bool useWeightedEdges = false; // 这个就是一个开关
+    [SerializeField]
+    private bool useBresenhamLine = false; // 是否启用Bresenham像素线
 
     // 唯一权重缓存
     private Dictionary<(Cell, Cell), int> _edgeWeightCache = new Dictionary<(Cell, Cell), int>();
@@ -161,7 +164,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         // CreateDebugButton(); // 移除左边HINT按钮
-        CreatePixelHintButton();
+        // CreatePixelHintButton(); // 不再自动生成HintToggle
         // 获取CostText组件
         var costTextObj = GameObject.Find("UICanvas/CostText");
         if (costTextObj != null)
@@ -172,108 +175,106 @@ public class GameManager : MonoBehaviour
         UpdateOptimalCostByPython();
     }
 
-    private void CreatePixelHintButton()
+    // 新增：公开方法，供HintToggle绑定
+    public void OnHintToggleChanged(bool isOn)
     {
-        // 查找UICanvas
-        GameObject canvasObj = GameObject.Find("UICanvas");
-        if (canvasObj == null)
+        UnityEngine.Debug.Log($"[HintToggle] 当前值: {isOn}");
+        if (isOn)
         {
-            UnityEngine.Debug.LogError("UICanvas未找到，无法创建像素Hint按钮");
-            return;
-        }
-        // 使用Inspector拖引用的Toggle预制体
-        if (pixelHintTogglePrefab == null)
-        {
-            UnityEngine.Debug.LogError("pixelHintTogglePrefab未在Inspector中赋值，请拖入Toggle预制体");
-            return;
-        }
-        // 实例化Toggle
-        var toggle = Instantiate(pixelHintTogglePrefab, canvasObj.transform);
-        toggle.name = "PixelHintToggle";
-        // 设置位置和大小
-        RectTransform rect = toggle.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0, 0);
-        rect.anchorMax = new Vector2(0, 0);
-        rect.pivot = new Vector2(0, 0);
-        rect.anchoredPosition = new Vector2(160, 20);
-        // rect.sizeDelta = new Vector2(120, 40);
-        // 设置TMP文字
-        var tmp = toggle.GetComponentInChildren<TMPro.TextMeshProUGUI>();
-        if (tmp != null)
-        {
-            tmp.text = "HINT";
-        }
-        // 监听Toggle状态变化
-        toggle.onValueChanged.RemoveAllListeners();
-        toggle.onValueChanged.AddListener((isOn) => {
-            if (isOn)
+            // 1. 构造输入数据
+            var nodes = _cells.Select(cell => cell.Number).ToList();
+            var edgeList = new List<Dictionary<string, object>>();
+            foreach (var edge in _edges.Keys)
             {
-                // 1. 构造输入数据
-                var nodes = _cells.Select(cell => cell.Number).ToList();
-                var edgeList = new List<Dictionary<string, object>>();
-                foreach (var edge in _edges.Keys)
-                {
-                    int u = edge.Item1.Number;
-                    int v = edge.Item2.Number;
-                    int w = _edgeWeightCache[edge];
-                    edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
-                }
-                // JsonUtility不支持复杂嵌套，这里手动拼json字符串
-                string nodesStr = string.Join(",", nodes);
-                string edgesStr = string.Join(",", edgeList.Select(e => $"{{\"u\":{e["u"]},\"v\":{e["v"]},\"weight\":{e["weight"]}}}"));
-                string jsonData = $"{{\"nodes\":[{nodesStr}],\"edges\":[{edgesStr}]}}";
-
-                // 2. 路径
-                string pythonExe = "python";
-                string scriptPath = "Assets/Scripts/multicut_solver.py";
-                string inputPath = "input.json";
-                string outputPath = "output.json";
-
-                // 3. 调用Python
-                RunPythonMulticut(pythonExe, scriptPath, inputPath, outputPath, jsonData);
-
-                // 4. 读取结果
-                string resultJson = System.IO.File.ReadAllText(outputPath);
-                var cutEdges = new List<(Cell, Cell)>();
-                int optimalCostLocal = 0;
-                try
-                {
-                    // 使用正则提取所有 {"u": x, "v": y}
-                    var matches = Regex.Matches(resultJson, @"\{\s*""u""\s*:\s*(\d+)\s*,\s*""v""\s*:\s*(\d+)\s*\}");
-                    foreach (Match match in matches)
-                    {
-                        int u = int.Parse(match.Groups[1].Value);
-                        int v = int.Parse(match.Groups[2].Value);
-                        var cellU = _cells.FirstOrDefault(c => c.Number == u);
-                        var cellV = _cells.FirstOrDefault(c => c.Number == v);
-                        if (cellU != null && cellV != null)
-                            cutEdges.Add(GetCanonicalEdgeKey(cellU, cellV));
-                    }
-                    // 提取cost字段
-                    var costMatch = Regex.Match(resultJson, "\\\"cost\\\"\\s*:\\s*(-?\\d+)");
-                    if (costMatch.Success)
-                        optimalCostLocal = int.Parse(costMatch.Groups[1].Value);
-                }
-                catch (Exception ex)
-                {
-                    UnityEngine.Debug.LogError("解析Python输出失败: " + ex.Message);
-                }
-                HighlightCutEdges(cutEdges, optimalCostLocal);
-                UnityEngine.Debug.Log("Hint: Python多割已高亮最佳切割");
+                int u = edge.Item1.Number;
+                int v = edge.Item2.Number;
+                int w = _edgeWeightCache[edge];
+                edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
             }
-            else
+            string nodesStr = string.Join(",", nodes);
+            string edgesStr = string.Join(",", edgeList.Select(e => $"{{\"u\":{e["u"]},\"v\":{e["v"]},\"weight\":{e["weight"]}}}"));
+            string jsonData = $"{{\"nodes\":[{nodesStr}],\"edges\":[{edgesStr}]}}";
+
+            string pythonExe = "python";
+            string scriptPath = "Assets/Scripts/multicut_solver.py";
+            string inputPath = "input.json";
+            string outputPath = "output.json";
+
+            RunPythonMulticut(pythonExe, scriptPath, inputPath, outputPath, jsonData);
+
+            string resultJson = System.IO.File.ReadAllText(outputPath);
+            var cutEdges = new List<(Cell, Cell)>();
+            int optimalCostLocal = 0;
+            try
             {
-                // 关闭时取消高亮（可选：这里简单重置所有边材质）
-                foreach (var edgeInfo in _edges.Values)
+                var matches = Regex.Matches(resultJson, @"\{\s*""u""\s*:\s*(\d+)\s*,\s*""v""\s*:\s*(\d+)\s*\}");
+                foreach (Match match in matches)
                 {
-                    if (_lineMaterial != null)
-                        edgeInfo.renderer.material = _lineMaterial;
+                    int u = int.Parse(match.Groups[1].Value);
+                    int v = int.Parse(match.Groups[2].Value);
+                    var cellU = _cells.FirstOrDefault(c => c.Number == u);
+                    var cellV = _cells.FirstOrDefault(c => c.Number == v);
+                    if (cellU != null && cellV != null)
+                        cutEdges.Add(GetCanonicalEdgeKey(cellU, cellV));
                 }
-                UnityEngine.Debug.Log("像素Hint Toggle状态: 关闭");
-                UpdateCostText(); // 关闭时也刷新一次
+                var costMatch = Regex.Match(resultJson, "\\\"cost\\\"\\s*:\\s*(-?\\d+)");
+                if (costMatch.Success)
+                    optimalCostLocal = int.Parse(costMatch.Groups[1].Value);
             }
-        });
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogError("解析Python输出失败: " + ex.Message);
+            }
+            HighlightCutEdges(cutEdges, optimalCostLocal);
+            UnityEngine.Debug.Log("Hint: Python多割已高亮最佳切割");
+        }
+        else
+        {
+            foreach (var edgeInfo in _edges.Values)
+            {
+                if (_lineMaterial != null)
+                    edgeInfo.renderer.material = _lineMaterial;
+            }
+            UnityEngine.Debug.Log("像素Hint Toggle状态: 关闭");
+            UpdateCostText();
+        }
     }
+
+    // private void CreatePixelHintButton()
+    // {
+    //     // 查找UICanvas
+    //     GameObject canvasObj = GameObject.Find("UICanvas");
+    //     if (canvasObj == null)
+    //     {
+    //         UnityEngine.Debug.LogError("UICanvas未找到，无法创建像素Hint按钮");
+    //         return;
+    //     }
+    //     // 使用Inspector拖引用的Toggle预制体
+    //     if (pixelHintTogglePrefab == null)
+    //     {
+    //         UnityEngine.Debug.LogError("pixelHintTogglePrefab未在Inspector中赋值，请拖入Toggle预制体");
+    //         return;
+    //     }
+    //     // 实例化Toggle
+    //     var toggle = Instantiate(pixelHintTogglePrefab, canvasObj.transform);
+    //     toggle.name = "PixelHintToggle";
+    //     // 设置位置和大小
+    //     RectTransform rect = toggle.GetComponent<RectTransform>();
+    //     rect.anchorMin = new Vector2(0, 0);
+    //     rect.anchorMax = new Vector2(0, 0);
+    //     rect.pivot = new Vector2(0, 0);
+    //     rect.anchoredPosition = new Vector2(20, 20); // 修改为左下角2%,2%的位置
+    //     // rect.sizeDelta = new Vector2(120, 40);
+    //     // 设置TMP文字
+    //     var tmp = toggle.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+    //     if (tmp != null)
+    //     {
+    //         tmp.text = "HINT";
+    //     }
+    //     // 监听Toggle状态变化，改为绑定公开方法
+    //     // toggle.onValueChanged.RemoveAllListeners();
+    //     // toggle.onValueChanged.AddListener(OnHintToggleChanged);
+    // }
 
     public void LoadLevelAndSpawnNodes(int numberOfCells)
     {
@@ -299,8 +300,8 @@ public class GameManager : MonoBehaviour
         // 缩小范围到 80% 的区域
         float minX = mainCamera.transform.position.x - cameraWidth * 0.4f;
         float maxX = mainCamera.transform.position.x + cameraWidth * 0.4f;
-        float minY = mainCamera.transform.position.y - cameraHeight * 0.4f;
-        float maxY = mainCamera.transform.position.y + cameraHeight * 0.4f;
+        float minY = mainCamera.transform.position.y - cameraHeight * 0.1f;
+        float maxY = mainCamera.transform.position.y + cameraHeight * 0.1f;
 
         float minDistance = 1.2f; // 最小间距
         float cellSize = minDistance / Mathf.Sqrt(2); // 网格大小
@@ -442,6 +443,12 @@ public class GameManager : MonoBehaviour
 
     private void SpawnLevel(int numberOfPoints)
     {
+        // 检查当前场景名，如果是Level1则不生成关卡
+        if (SceneManager.GetActiveScene().name == "Level1")
+        {
+            UnityEngine.Debug.Log("当前为Level1场景，不生成关卡。");
+            return;
+        }
         // 清理之前的关卡
         foreach (var cell in _cells)
         {
@@ -897,6 +904,7 @@ public class GameManager : MonoBehaviour
             previewEdge.useWorldSpace = true;
             previewEdge.startColor = Color.black;
             previewEdge.endColor = Color.black;
+            previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
         }
         previewEdge.SetPosition(0, startPosition);
         previewEdge.SetPosition(1, startPosition);
@@ -934,8 +942,21 @@ public class GameManager : MonoBehaviour
         if (_edges.ContainsKey(key))
         {
             var (renderer, _, tmp, bg) = _edges[key];
-            renderer.SetPosition(0, fromCell.transform.position);
-            renderer.SetPosition(1, toCell.transform.position);
+            if (useBresenhamLine)
+            {
+                // 用Bresenham算法生成像素点
+                Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
+                Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
+                var pixelPoints = BresenhamLine(fromPixel, toPixel);
+                renderer.positionCount = pixelPoints.Count;
+                for (int i = 0; i < pixelPoints.Count; i++)
+                    renderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
+            }
+            else
+            {
+                renderer.SetPosition(0, fromCell.transform.position);
+                renderer.SetPosition(1, toCell.transform.position);
+            }
 
             Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
 
@@ -970,12 +991,25 @@ public class GameManager : MonoBehaviour
             lineObject.transform.SetParent(linesRoot);
             LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
             lineRenderer.material = _lineMaterial;
-            lineRenderer.startWidth = 0.1f;
-            lineRenderer.endWidth = 0.1f;
-            lineRenderer.positionCount = 2;
+            lineRenderer.startWidth = 0.05f;
+            lineRenderer.endWidth = 0.05f;
             lineRenderer.useWorldSpace = true;
-            lineRenderer.SetPosition(0, fromCell.transform.position);
-            lineRenderer.SetPosition(1, toCell.transform.position);
+            lineRenderer.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
+            if (useBresenhamLine)
+            {
+                Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
+                Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
+                var pixelPoints = BresenhamLine(fromPixel, toPixel);
+                lineRenderer.positionCount = pixelPoints.Count;
+                for (int i = 0; i < pixelPoints.Count; i++)
+                    lineRenderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
+            }
+            else
+            {
+                lineRenderer.positionCount = 2;
+                lineRenderer.SetPosition(0, fromCell.transform.position);
+                lineRenderer.SetPosition(1, toCell.transform.position);
+            }
 
             EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
             Vector2[] points = new Vector2[2];
@@ -1593,16 +1627,16 @@ public class GameManager : MonoBehaviour
     private void HighlightCutEdges(List<(Cell, Cell)> cutEdges, int cost = 0)
     {
         // 调试：打印cutEdges数量和内容
-        UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdges.Count = {cutEdges.Count}");
+        // UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdges.Count = {cutEdges.Count}");
         foreach (var edge in cutEdges)
         {
-            UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdge: {edge.Item1.Number}-{edge.Item2.Number}, InstanceID: {edge.Item1.GetInstanceID()}-{edge.Item2.GetInstanceID()}");
+            // UnityEngine.Debug.Log($"[HighlightCutEdges] cutEdge: {edge.Item1.Number}-{edge.Item2.Number}, InstanceID: {edge.Item1.GetInstanceID()}-{edge.Item2.GetInstanceID()}");
         }
         // 调试：打印_edges字典所有key
-        UnityEngine.Debug.Log($"[HighlightCutEdges] _edges.Keys.Count = {_edges.Keys.Count}");
+        // UnityEngine.Debug.Log($"[HighlightCutEdges] _edges.Keys.Count = {_edges.Keys.Count}");
         foreach (var key in _edges.Keys)
         {
-            UnityEngine.Debug.Log($"[HighlightCutEdges] _edges key: {key.Item1.Number}-{key.Item2.Number}, InstanceID: {key.Item1.GetInstanceID()}-{key.Item2.GetInstanceID()}");
+            // UnityEngine.Debug.Log($"[HighlightCutEdges] _edges key: {key.Item1.Number}-{key.Item2.Number}, InstanceID: {key.Item1.GetInstanceID()}-{key.Item2.GetInstanceID()}");
         }
         // 1. 先全部恢复成普通材质
         foreach (var edgeInfo in _edges.Values)
@@ -1613,7 +1647,7 @@ public class GameManager : MonoBehaviour
         // 2. 只把需要切割的边高亮
         foreach (var edge in cutEdges)
         {
-            UnityEngine.Debug.Log($"高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
+            // UnityEngine.Debug.Log($"高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
             if (_edges.TryGetValue(edge, out var edgeInfo))
             {
                 if (highlightEdgeMaterial != null)
@@ -1676,5 +1710,26 @@ public class GameManager : MonoBehaviour
         // 读取Python输出
         string resultJson = File.ReadAllText(outputPath);
         // 你可以用JsonUtility/Json.NET等解析resultJson
+    }
+
+    // 添加Bresenham算法实现
+    public static List<Vector2Int> BresenhamLine(Vector2Int p0, Vector2Int p1)
+    {
+        List<Vector2Int> points = new List<Vector2Int>();
+        int x0 = p0.x, y0 = p0.y;
+        int x1 = p1.x, y1 = p1.y;
+        int dx = Mathf.Abs(x1 - x0), dy = Mathf.Abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+        while (true)
+        {
+            points.Add(new Vector2Int(x0, y0));
+            if (x0 == x1 && y0 == y1) break;
+            int e2 = 2 * err;
+            if (e2 > -dy) { err -= dy; x0 += sx; }
+            if (e2 < dx) { err += dx; y0 += sy; }
+        }
+        return points;
     }
 }
