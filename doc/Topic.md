@@ -44,6 +44,7 @@ The goal of this project is to **implement a game** where the player **interacti
 
 ### Playful and Entertaining
 5. **Smooth and lag-free animations**
+   1. 
 6. **Colorful and eye-catching design**
 7. **Server-side high score lists**
 8. **Multiple game modes**, such as:

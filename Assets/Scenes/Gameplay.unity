@@ -860,7 +860,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cellPrefab: {fileID: 6881858341943397647, guid: 1e5365a7fe1679041a06f4f5adf12d3a, type: 3}
   hasgameFinished: 0
-  _cellNumbers: 32
+  _cellNumbers: 5
   previewEdgeMaterial: {fileID: 0}
   _lineMaterial: {fileID: 2100000, guid: 16cbc0bc854926742a848077d0f870f2, type: 2}
   _eraseLineMaterial: {fileID: 2100000, guid: a4ee59b374e0bcd4faea5b96e826c84b, type: 2}
@@ -1008,10 +1008,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1913357907}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -265, y: 196}
-  m_SizeDelta: {x: 250, y: 25}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 90, y: -22}
+  m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2011004355
 MonoBehaviour:
@@ -1060,7 +1060,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 16.65
+  m_fontSize: 13.3
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

@@ -1,0 +1,884 @@
+fileFormatVersion: 2
+guid: 7ee6ef8ab4cdc2a41a90d56e8d919439
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 9208983856281351008
+    second: roads_rivers-tileset_0
+  - first:
+      213: -7060605666697338097
+    second: roads_rivers-tileset_1
+  - first:
+      213: -3417888106098959956
+    second: roads_rivers-tileset_2
+  - first:
+      213: 8425487830815996698
+    second: roads_rivers-tileset_3
+  - first:
+      213: 1324010382517412414
+    second: roads_rivers-tileset_4
+  - first:
+      213: 812623765939938856
+    second: roads_rivers-tileset_5
+  - first:
+      213: 1689159569694285850
+    second: roads_rivers-tileset_6
+  - first:
+      213: -8021469029457821043
+    second: roads_rivers-tileset_7
+  - first:
+      213: 3278428952159754283
+    second: roads_rivers-tileset_8
+  - first:
+      213: 2964705722623433853
+    second: roads_rivers-tileset_9
+  - first:
+      213: 2346536716548698422
+    second: roads_rivers-tileset_10
+  - first:
+      213: -5732246325241847715
+    second: roads_rivers-tileset_11
+  - first:
+      213: 7146043980199025525
+    second: roads_rivers-tileset_12
+  - first:
+      213: 4885993343061756135
+    second: roads_rivers-tileset_13
+  - first:
+      213: -7096144498066323792
+    second: roads_rivers-tileset_14
+  - first:
+      213: 5481611485594261488
+    second: roads_rivers-tileset_15
+  - first:
+      213: 8992579179383426413
+    second: roads_rivers-tileset_16
+  - first:
+      213: 7031927430134327027
+    second: roads_rivers-tileset_17
+  - first:
+      213: -2893395643936220177
+    second: roads_rivers-tileset_18
+  - first:
+      213: -8022638606711756239
+    second: roads_rivers-tileset_19
+  - first:
+      213: 5848142791299102833
+    second: roads_rivers-tileset_20
+  - first:
+      213: -3421659046876530000
+    second: roads_rivers-tileset_21
+  - first:
+      213: -4922595201970356987
+    second: roads_rivers-tileset_22
+  - first:
+      213: 4334716717473750186
+    second: roads_rivers-tileset_23
+  - first:
+      213: 7001613247835691251
+    second: roads_rivers-tileset_24
+  - first:
+      213: -3873414003810877883
+    second: roads_rivers-tileset_25
+  - first:
+      213: 3671177838914501654
+    second: roads_rivers-tileset_26
+  - first:
+      213: -4495978295892357972
+    second: roads_rivers-tileset_27
+  - first:
+      213: -3828617809510541776
+    second: roads_rivers-tileset_28
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: roads_rivers-tileset_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 337
+        width: 29
+        height: 75
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 063f4f7a602eccf70800000000000000
+      internalID: 9208983856281351008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_1
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 404
+        width: 54
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f0325690e80b30e90800000000000000
+      internalID: -7060605666697338097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_2
+      rect:
+        serializedVersion: 2
+        x: 151
+        y: 344
+        width: 30
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca950f150e83190d0800000000000000
+      internalID: -3417888106098959956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_3
+      rect:
+        serializedVersion: 2
+        x: 216
+        y: 354
+        width: 30
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1bf92fba885de470800000000000000
+      internalID: 8425487830815996698
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_4
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 337
+        width: 30
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3221e09d64df5210800000000000000
+      internalID: 1324010382517412414
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_5
+      rect:
+        serializedVersion: 2
+        x: 68
+        y: 357
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 826e3e87205074b00800000000000000
+      internalID: 812623765939938856
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_6
+      rect:
+        serializedVersion: 2
+        x: 75
+        y: 344
+        width: 21
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a106498dda9117710800000000000000
+      internalID: 1689159569694285850
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_7
+      rect:
+        serializedVersion: 2
+        x: 106
+        y: 334
+        width: 20
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d828e52da640ea090800000000000000
+      internalID: -8021469029457821043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_8
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 337
+        width: 21
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2896da13c15f7d20800000000000000
+      internalID: 3278428952159754283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_9
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 337
+        width: 19
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7c9984a520c42920800000000000000
+      internalID: 2964705722623433853
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_10
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 346
+        width: 9
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 631fb4216b2909020800000000000000
+      internalID: 2346536716548698422
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_11
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 344
+        width: 8
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d50ebe28658f270b0800000000000000
+      internalID: -5732246325241847715
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_12
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 296
+        width: 28
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57bd41d7329db2360800000000000000
+      internalID: 7146043980199025525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_13
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 296
+        width: 27
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e88e14fe098ec340800000000000000
+      internalID: 4885993343061756135
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_14
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 296
+        width: 27
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0b60aed0d2e658d90800000000000000
+      internalID: -7096144498066323792
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_15
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 294
+        width: 13
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f71c837a98921c40800000000000000
+      internalID: 5481611485594261488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_16
+      rect:
+        serializedVersion: 2
+        x: 146
+        y: 296
+        width: 12
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6d09b17e1f0ccc70800000000000000
+      internalID: 8992579179383426413
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_17
+      rect:
+        serializedVersion: 2
+        x: 147
+        y: 206
+        width: 71
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f66b7fadbc669160800000000000000
+      internalID: 7031927430134327027
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_18
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 305
+        width: 26
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: febd480edf798d7d0800000000000000
+      internalID: -2893395643936220177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_19
+      rect:
+        serializedVersion: 2
+        x: 234
+        y: 306
+        width: 20
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 13a6c9561bcd9a090800000000000000
+      internalID: -8022638606711756239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_20
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 200
+        width: 36
+        height: 68
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 178f42742e6c82150800000000000000
+      internalID: 5848142791299102833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_21
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 247
+        width: 28
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ba3c60c933d380d0800000000000000
+      internalID: -3421659046876530000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_22
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 215
+        width: 27
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50db38daebd6fabb0800000000000000
+      internalID: -4922595201970356987
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_23
+      rect:
+        serializedVersion: 2
+        x: 66
+        y: 248
+        width: 27
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aac58f263e1082c30800000000000000
+      internalID: 4334716717473750186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_24
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 216
+        width: 28
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3f85aeb172aba2160800000000000000
+      internalID: 7001613247835691251
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_25
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 104
+        width: 14
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 54e34da5c7ede3ac0800000000000000
+      internalID: -3873414003810877883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_26
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 152
+        width: 11
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 61cf8c33bc4a2f230800000000000000
+      internalID: 3671177838914501654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_27
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 58
+        width: 27
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cac48738f831b91c0800000000000000
+      internalID: -4495978295892357972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: roads_rivers-tileset_28
+      rect:
+        serializedVersion: 2
+        x: 72
+        y: 56
+        width: 52
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 036d36b13640edac0800000000000000
+      internalID: -3828617809510541776
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      roads_rivers-tileset_0: 9208983856281351008
+      roads_rivers-tileset_1: -7060605666697338097
+      roads_rivers-tileset_10: 2346536716548698422
+      roads_rivers-tileset_11: -5732246325241847715
+      roads_rivers-tileset_12: 7146043980199025525
+      roads_rivers-tileset_13: 4885993343061756135
+      roads_rivers-tileset_14: -7096144498066323792
+      roads_rivers-tileset_15: 5481611485594261488
+      roads_rivers-tileset_16: 8992579179383426413
+      roads_rivers-tileset_17: 7031927430134327027
+      roads_rivers-tileset_18: -2893395643936220177
+      roads_rivers-tileset_19: -8022638606711756239
+      roads_rivers-tileset_2: -3417888106098959956
+      roads_rivers-tileset_20: 5848142791299102833
+      roads_rivers-tileset_21: -3421659046876530000
+      roads_rivers-tileset_22: -4922595201970356987
+      roads_rivers-tileset_23: 4334716717473750186
+      roads_rivers-tileset_24: 7001613247835691251
+      roads_rivers-tileset_25: -3873414003810877883
+      roads_rivers-tileset_26: 3671177838914501654
+      roads_rivers-tileset_27: -4495978295892357972
+      roads_rivers-tileset_28: -3828617809510541776
+      roads_rivers-tileset_3: 8425487830815996698
+      roads_rivers-tileset_4: 1324010382517412414
+      roads_rivers-tileset_5: 812623765939938856
+      roads_rivers-tileset_6: 1689159569694285850
+      roads_rivers-tileset_7: -8021469029457821043
+      roads_rivers-tileset_8: 3278428952159754283
+      roads_rivers-tileset_9: 2964705722623433853
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
