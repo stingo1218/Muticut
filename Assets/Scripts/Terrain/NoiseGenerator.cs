@@ -217,5 +217,32 @@ namespace TerrainSystem
         public float contourInterval_2 = 0.5f; // JS: contourInterval_2 = 0.5 (平地)
         public float contourInterval_3 = 0.7f; // JS: contourInterval_3 = 0.7 (丘陵)
         public float contourInterval_4 = 0.9f; // JS: contourInterval_4 = 0.9 (山地)
+        
+        /// <summary>
+        /// 导出为 Map Hash
+        /// </summary>
+        public string ToMapHash()
+        {
+            string json = JsonUtility.ToJson(this, true);
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(json);
+            return System.Convert.ToBase64String(bytes);
+        }
+        
+        /// <summary>
+        /// 从 Map Hash 导入
+        /// </summary>
+        public static TerrainSettings FromMapHash(string mapHash)
+        {
+            try
+            {
+                byte[] bytes = System.Convert.FromBase64String(mapHash);
+                string json = System.Text.Encoding.UTF8.GetString(bytes);
+                return JsonUtility.FromJson<TerrainSettings>(json) ?? new TerrainSettings();
+            }
+            catch
+            {
+                return new TerrainSettings();
+            }
+        }
     }
 } 

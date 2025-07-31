@@ -32,6 +32,9 @@ namespace TerrainSystem
         [SerializeField] private bool autoGenerateOnStart = false;
         [SerializeField] private bool showBiomeInfo = true;
         [SerializeField] private bool useColorMode = true;
+        
+        [Header("Map Hash")]
+        [SerializeField] [TextArea(3, 5)] private string mapHash = ""; // Map Hash 输入/输出
 
         // 核心组件
         private NoiseGenerator noiseGenerator;
@@ -197,7 +200,8 @@ namespace TerrainSystem
             {
                 for (int r = 0; r < settings.hexRows; r++)
                 {
-                    int index = r * settings.hexColumns + q;
+                    // 修正索引计算：外层循环是q（列），内层循环是r（行）
+                    int index = q * settings.hexRows + r;
                     HexCoordinateSystem.HexTile hex = hexTiles[index];
                     
                     hex.elevation = elevationMap[q, r];
@@ -316,9 +320,11 @@ namespace TerrainSystem
             int centerX = settings.hexColumns / 2;
             int centerY = settings.hexRows / 2;
             
+            // 修正：交换X和Y坐标以匹配预期的布局
+            // q应该对应Y轴（垂直），r应该对应X轴（水平）
             return new Vector3Int(
-                hex.coord.q - centerX, 
-                hex.coord.r - centerY, 
+                hex.coord.r - centerY,  // r坐标对应X轴（水平） 
+                hex.coord.q - centerX,  // q坐标对应Y轴（垂直）
                 0
             );
         }
@@ -560,6 +566,73 @@ namespace TerrainSystem
             
             // 重新初始化组件以应用新设置
             InitializeComponents();
+        }
+        
+        // ========== Map Hash 功能 ==========
+        
+        /// <summary>
+        /// 导出当前设置为 Map Hash
+        /// </summary>
+        [ContextMenu("导出 Map Hash")]
+        public void ExportMapHash()
+        {
+            mapHash = settings.ToMapHash();
+            GUIUtility.systemCopyBuffer = mapHash;
+            
+            Debug.Log("🔑 Map Hash 导出成功并复制到剪贴板！");
+            Debug.Log($"📄 Hash 长度: {mapHash.Length} 字符");
+            
+            #if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+            #endif
+        }
+        
+        /// <summary>
+        /// 从 Map Hash 导入设置
+        /// </summary>
+        [ContextMenu("导入 Map Hash")]
+        public void ImportMapHash()
+        {
+            if (string.IsNullOrEmpty(mapHash))
+            {
+                Debug.LogWarning("⚠️ Map Hash 为空！");
+                return;
+            }
+            
+            try
+            {
+                settings = TerrainSettings.FromMapHash(mapHash);
+                Debug.Log("✅ Map Hash 导入成功！");
+                
+                // 重新初始化并生成地形
+                InitializeComponents();
+                GenerateTerrain();
+                
+                #if UNITY_EDITOR
+                UnityEditor.EditorUtility.SetDirty(this);
+                #endif
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ Map Hash 导入失败: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 从剪贴板导入 Map Hash
+        /// </summary>
+        [ContextMenu("从剪贴板导入")]
+        public void ImportFromClipboard()
+        {
+            string clipboardText = GUIUtility.systemCopyBuffer;
+            if (string.IsNullOrEmpty(clipboardText))
+            {
+                Debug.LogWarning("⚠️ 剪贴板为空！");
+                return;
+            }
+            
+            mapHash = clipboardText;
+            ImportMapHash();
         }
 
         // 导出地形数据（供 multicut 游戏使用）
