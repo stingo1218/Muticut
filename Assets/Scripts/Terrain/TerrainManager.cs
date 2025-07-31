@@ -543,6 +543,25 @@ namespace TerrainSystem
             return settings;
         }
 
+        // 重置为 JavaScript 版本默认设置
+        [ContextMenu("重置为 JS 默认设置")]
+        public void ResetToJSDefaults()
+        {
+            Debug.Log("🔄 重置地形设置为 JavaScript 版本默认值...");
+            
+            settings = new TerrainSettings();
+            
+            Debug.Log("✅ 地形设置已重置为 JS 默认值：");
+            Debug.Log($"  - 网格大小: {settings.hexColumns} × {settings.hexRows}");
+            Debug.Log($"  - 六边形尺寸: {settings.hexSize}");
+            Debug.Log($"  - 高度频率: {settings.frequencyElevation}");
+            Debug.Log($"  - 湿度频率: {settings.frequencyMoisture}");
+            Debug.Log($"  - 轮廓间隔: {settings.contourInterval_0}, {settings.contourInterval_1}, {settings.contourInterval_2}, {settings.contourInterval_3}, {settings.contourInterval_4}");
+            
+            // 重新初始化组件以应用新设置
+            InitializeComponents();
+        }
+
         // 导出地形数据（供 multicut 游戏使用）
         public TerrainData ExportTerrainData()
         {
