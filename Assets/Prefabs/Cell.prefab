@@ -169,8 +169,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 9
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: df59b1a29dc8a6d4eb39af0935f36559, type: 2}
-  m_sharedMaterial: {fileID: 7771480172736886218, guid: df59b1a29dc8a6d4eb39af0935f36559, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 90d736cd238955b4f8f388f40a4ceaf8, type: 2}
+  m_sharedMaterial: {fileID: -7222517270147970332, guid: 90d736cd238955b4f8f388f40a4ceaf8, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -194,7 +194,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 1.4
+  m_fontSize: 1.3
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -267,7 +267,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0, y: 0.032, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 0.19999997, y: 0.19999997, z: 0.2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2326693630020355866}
@@ -296,7 +296,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -317,8 +317,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: bad959aaff6aeeb46b651a820b2a5db8, type: 3}
-  m_Color: {r: 0.99215686, g: 0.8862745, b: 0.9529412, a: 1}
+  m_Sprite: {fileID: -8423210857977765230, guid: 5018ab0446649404e9e259334f743bc1, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 1
@@ -364,9 +364,9 @@ BoxCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0.25, y: 0.25, z: 0.25, w: 0.25}
+    border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2, y: 2}
+    oldSize: {x: 0.125, y: 0.125}
     newSize: {x: 2, y: 2}
     adaptiveTilingThreshold: 0.5
     drawMode: 1
@@ -388,4 +388,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _numberText: {fileID: 624034172026017270}
   _cellSprite: {fileID: 5072761218065930179}
+  defaultCellSprite: {fileID: 0}
+  useColorTinting: 1
   colorPalette: []

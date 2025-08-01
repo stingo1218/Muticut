@@ -176,7 +176,7 @@ namespace TerrainSystem
                             if (!biomeSpriteMapping.ContainsKey(biomeType))
                             {
                                 biomeSpriteMapping[biomeType] = sprite;
-                                Debug.Log($"✅ 自动映射: {biomeType} -> {sprite.name}");
+                                // Debug.Log($"✅ 自动映射: {biomeType} -> {sprite.name}");
                                 autoMappedCount++;
                                 break; // 找到匹配后跳出内层循环
                             }

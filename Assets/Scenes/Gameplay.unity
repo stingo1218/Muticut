@@ -155,7 +155,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 338, y: -186.3}
+  m_AnchoredPosition: {x: 336, y: -168}
   m_SizeDelta: {x: 100, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &329642604
@@ -540,7 +540,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6309787929250543317, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -186.3
+      value: -168
       objectReference: {fileID: 0}
     - target: {fileID: 6309787929250543317, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -869,7 +869,6 @@ MonoBehaviour:
   useBresenhamLine: 0
   minEdgeWeight: -10
   maxEdgeWeight: 10
-  multicutAlgorithm: 1
   highlightEdgeMaterial: {fileID: 2100000, guid: 17d07b291fd33e64ba379a85d9407546, type: 2}
   pixelHintTogglePrefab: {fileID: 1836331237263063282, guid: cee28147380e2044184a46d2110b84de, type: 3}
 --- !u!1 &1913357903
