@@ -61,7 +61,7 @@ public class GameManager : MonoBehaviour
     }
 
     [SerializeField]
-    private MulticutAlgorithm multicutAlgorithm = MulticutAlgorithm.Greedy;
+    // private MulticutAlgorithm multicutAlgorithm = MulticutAlgorithm.Greedy;
 
     // Delaunay Triangulation Structures
     private struct DelaunayEdge

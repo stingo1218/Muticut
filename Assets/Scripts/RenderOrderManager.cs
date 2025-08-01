@@ -35,7 +35,7 @@ public class RenderOrderManager : MonoBehaviour
     [ContextMenu("设置渲染顺序")]
     public void SetupRenderOrder()
     {
-        SpriteRenderer[] renderers = FindObjectsOfType<SpriteRenderer>();
+        SpriteRenderer[] renderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         
         foreach (SpriteRenderer sr in renderers)
         {
@@ -93,7 +93,7 @@ public class RenderOrderManager : MonoBehaviour
     {
         if (!showDebugInfo) return;
         
-        SpriteRenderer[] renderers = FindObjectsOfType<SpriteRenderer>();
+        SpriteRenderer[] renderers = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
         foreach (SpriteRenderer sr in renderers)
         {
             string layerName = sr.sortingLayerName;

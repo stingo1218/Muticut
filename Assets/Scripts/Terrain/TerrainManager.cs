@@ -99,7 +99,7 @@ namespace TerrainSystem
         }
 
         // 生成地形（主函数）
-        [ContextMenu("生成地形")]
+
         public void GenerateTerrain()
         {
             Debug.Log("开始生成地形...");
@@ -132,7 +132,7 @@ namespace TerrainSystem
     }
 
     // 清理生成的地形
-    [ContextMenu("清空地形")]
+    
     public void ClearGeneratedTerrain()
     {
         int clearedCount = 0;
@@ -485,7 +485,7 @@ namespace TerrainSystem
         }
 
         // 清理地形
-        [ContextMenu("清理地形")]
+
         public void ClearTerrain()
         {
             if (terrainRoot != null)
@@ -504,7 +504,7 @@ namespace TerrainSystem
         }
 
         // 重新生成地形
-        [ContextMenu("重新生成地形")]
+
         public void RegenerateTerrain()
         {
             ClearTerrain();
@@ -550,7 +550,7 @@ namespace TerrainSystem
         }
 
         // 重置为 JavaScript 版本默认设置
-        [ContextMenu("重置为 JS 默认设置")]
+
         public void ResetToJSDefaults()
         {
             Debug.Log("🔄 重置地形设置为 JavaScript 版本默认值...");
@@ -573,7 +573,7 @@ namespace TerrainSystem
         /// <summary>
         /// 导出当前设置为 Map Hash
         /// </summary>
-        [ContextMenu("导出 Map Hash")]
+
         public void ExportMapHash()
         {
             mapHash = settings.ToMapHash();
@@ -590,7 +590,7 @@ namespace TerrainSystem
         /// <summary>
         /// 从 Map Hash 导入设置
         /// </summary>
-        [ContextMenu("导入 Map Hash")]
+
         public void ImportMapHash()
         {
             if (string.IsNullOrEmpty(mapHash))
@@ -621,7 +621,7 @@ namespace TerrainSystem
         /// <summary>
         /// 从剪贴板导入 Map Hash
         /// </summary>
-        [ContextMenu("从剪贴板导入")]
+
         public void ImportFromClipboard()
         {
             string clipboardText = GUIUtility.systemCopyBuffer;
