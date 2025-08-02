@@ -99,7 +99,7 @@ namespace TerrainSystem
         }
 
         // 生成地形（主函数）
-
+        [ContextMenu("生成地形")]
         public void GenerateTerrain()
         {
             Debug.Log("开始生成地形...");
@@ -132,7 +132,7 @@ namespace TerrainSystem
     }
 
     // 清理生成的地形
-    
+    [ContextMenu("清空地形")]
     public void ClearGeneratedTerrain()
     {
         int clearedCount = 0;
@@ -294,7 +294,7 @@ namespace TerrainSystem
                     if (hexTile != null)
                     {
                         terrainTilemap.SetTile(tilePosition, hexTile);
-                        Debug.Log($"🗺️ 设置地形瓦片 {tilePosition}: {hex.biome} (高度:{hex.elevation:F2}, 湿度:{hex.moisture:F2})");
+                        // Debug.Log($"🗺️ 设置地形瓦片 {tilePosition}: {hex.biome} (高度:{hex.elevation:F2}, 湿度:{hex.moisture:F2})");
                     }
                 }
                 
@@ -305,12 +305,12 @@ namespace TerrainSystem
                     if (riverTile != null)
                     {
                         riverTilemap.SetTile(tilePosition, riverTile);
-                        Debug.Log($"设置河流瓦片 {tilePosition}");
+                        // Debug.Log($"设置河流瓦片 {tilePosition}");
                     }
                 }
             }
             
-            Debug.Log("Tilemap 渲染完成");
+            // Debug.Log("Tilemap 渲染完成");
         }
 
         // 转换六边形坐标到瓦片位置
@@ -507,7 +507,7 @@ namespace TerrainSystem
 
         public void RegenerateTerrain()
         {
-            ClearTerrain();
+            ClearGeneratedTerrain();
             GenerateTerrain();
         }
 

@@ -105,7 +105,7 @@ namespace TerrainSystem
             // 首先尝试按名称自动映射
             if (biomeSprites != null && biomeSprites.Length > 0)
             {
-                Debug.Log("🎯 尝试按名称自动映射 Sprites...");
+                // Debug.Log("🎯 尝试按名称自动映射 Sprites...");
                 int autoMappedCount = 0;
                 
                 // 定义生物群系名称映射表（JS名称 -> Unity枚举）
@@ -176,7 +176,7 @@ namespace TerrainSystem
                             if (!biomeSpriteMapping.ContainsKey(biomeType))
                             {
                                 biomeSpriteMapping[biomeType] = sprite;
-                                Debug.Log($"✅ 自动映射: {biomeType} -> {sprite.name}");
+                                // Debug.Log($"✅ 自动映射: {biomeType} -> {sprite.name}");
                                 autoMappedCount++;
                                 break; // 找到匹配后跳出内层循环
                             }
@@ -184,13 +184,13 @@ namespace TerrainSystem
                     }
                 }
                 
-                Debug.Log($"📊 按名称自动映射: 成功 {autoMappedCount} 个");
+                // Debug.Log($"📊 按名称自动映射: 成功 {autoMappedCount} 个");
             }
             
             // 然后使用手动映射补充（如果有的话）
             if (manualBiomeMappings != null && manualBiomeMappings.Length > 0)
             {
-                Debug.Log("🔄 使用手动映射补充未匹配的生物群系...");
+                // Debug.Log("🔄 使用手动映射补充未匹配的生物群系...");
                 int manualMappedCount = 0;
                 
                 foreach (var mapping in manualBiomeMappings)
