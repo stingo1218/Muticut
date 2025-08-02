@@ -128,43 +128,43 @@ namespace TerrainSystem
             // 渲染地形
             RenderTerrain();
             
-                    Debug.Log($"地形生成完成！共生成 {hexTiles.Count} 个六边形");
-    }
-
-    // 清理生成的地形
-    [ContextMenu("清空地形")]
-    public void ClearGeneratedTerrain()
-    {
-        int clearedCount = 0;
-        
-        // 清理 Tilemap（如果使用）
-        if (useTilemap)
-        {
-            if (terrainTilemap != null)
-            {
-                terrainTilemap.SetTilesBlock(terrainTilemap.cellBounds, new TileBase[terrainTilemap.cellBounds.size.x * terrainTilemap.cellBounds.size.y * terrainTilemap.cellBounds.size.z]);
-            }
-            if (riverTilemap != null)
-            {
-                riverTilemap.SetTilesBlock(riverTilemap.cellBounds, new TileBase[riverTilemap.cellBounds.size.x * riverTilemap.cellBounds.size.y * riverTilemap.cellBounds.size.z]);
-            }
+            Debug.Log($"地形生成完成！共生成 {hexTiles.Count} 个六边形");
         }
-        
-        // 清理 GameObject 地形
-        if (terrainRoot != null)
+
+        // 清理生成的地形
+        [ContextMenu("清空地形")]
+        public void ClearGeneratedTerrain()
         {
-            foreach (Transform child in terrainRoot)
+            int clearedCount = 0;
+            
+            // 清理 Tilemap（如果使用）
+            if (useTilemap)
             {
-                if (child != null)
+                if (terrainTilemap != null)
                 {
-                    DestroyImmediate(child.gameObject);
-                    clearedCount++;
+                    terrainTilemap.SetTilesBlock(terrainTilemap.cellBounds, new TileBase[terrainTilemap.cellBounds.size.x * terrainTilemap.cellBounds.size.y * terrainTilemap.cellBounds.size.z]);
+                }
+                if (riverTilemap != null)
+                {
+                    riverTilemap.SetTilesBlock(riverTilemap.cellBounds, new TileBase[riverTilemap.cellBounds.size.x * riverTilemap.cellBounds.size.y * riverTilemap.cellBounds.size.z]);
                 }
             }
-        }
+            
+            // 清理 GameObject 地形
+            if (terrainRoot != null)
+            {
+                foreach (Transform child in terrainRoot)
+                {
+                    if (child != null)
+                    {
+                        DestroyImmediate(child.gameObject);
+                        clearedCount++;
+                    }
+                }
+            }
 
-        Debug.Log($"TerrainManager 清空完成！删除了 {clearedCount} 个对象");
-    }
+            Debug.Log($"TerrainManager 清空完成！删除了 {clearedCount} 个对象");
+        }
 
         // 生成噪声图
         private void GenerateNoiseMaps()
@@ -479,8 +479,7 @@ namespace TerrainSystem
                 textObj.transform.localPosition = Vector3.zero;
                 
                 // 这里可以添加 TextMesh 组件显示调试信息
-                // 为了简化，暂时用 Debug.Log
-                Debug.Log($"六边形 {hex.coord}: {hex.biome} - 高度: {hex.elevation:F2} - 湿度: {hex.moisture:F2}");
+                // 调试信息已移除以减少控制台输出
             }
         }
 
