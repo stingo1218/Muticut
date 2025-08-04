@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using System.Linq;
 using TerrainSystem;
+using TMPro;
 
 public class TilemapGameManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class TilemapGameManager : MonoBehaviour
     public TerrainManager terrainManager;
     public GameManager gameManager;
     public GameObject cellPrefab;
+    public GameObject weightLabelPrefab;
     public Material lineMaterial;
 
     [Header("节点生成设置")]
@@ -125,21 +127,44 @@ public class TilemapGameManager : MonoBehaviour
         ClearGeneratedContent();
 
         // 获取地形边界
-        var bounds = CalculateTerrainBounds(hexTiles);
+        var terrainBounds = CalculateTerrainBounds(hexTiles);
+        Debug.Log($"地形边界: {terrainBounds.min} 到 {terrainBounds.max}");
 
-        // 泊松圆盘采样生成节点
-        var nodePositions = PoissonDiskSampling(bounds, samplingRadius, maxNodes);
+        // 🎯 新方案：先生成点，找到外界矩形，拉伸到地图80%大小居中，调整点位置，然后连线
 
-        // 创建Cell对象
-        foreach (var position in nodePositions)
+        // 步骤1: 先生成点（使用较大的边界确保有足够的点）
+        var expandedBounds = terrainBounds;
+        expandedBounds.Expand(2.0f); // 扩大边界以获得更多点
+        var rawNodePositions = PoissonDiskSampling(expandedBounds, samplingRadius, maxNodes);
+        Debug.Log($"步骤1完成: 生成了 {rawNodePositions.Count} 个原始点");
+
+        // 步骤2: 找到外界矩形
+        var pointBounds = CalculatePointBounds(rawNodePositions);
+        Debug.Log($"步骤2完成: 点集边界: {pointBounds.min} 到 {pointBounds.max}");
+
+        // 步骤3: 计算目标边界（地形80%大小，居中）
+        var targetBounds = CalculateTargetBounds(terrainBounds, 0.9f);
+        Debug.Log($"步骤3完成: 目标边界: {targetBounds.min} 到 {targetBounds.max}");
+
+        // 步骤4: 调整点位置（拉伸和居中）
+        var adjustedPositions = AdjustPointPositions(rawNodePositions, pointBounds, targetBounds);
+        Debug.Log($"步骤4完成: 调整了 {adjustedPositions.Count} 个点的位置");
+
+        // 步骤5: 创建Cell对象
+        foreach (var position in adjustedPositions)
         {
             CreateCellAtPosition(position);
         }
 
-        // 生成Delaunay三角剖分
+        // 步骤6: 生成Delaunay三角剖分连线
         GenerateDelaunayTriangulation();
 
-        Debug.Log($"生成了 {generatedCells.Count} 个节点和 {generatedEdges.Count} 条边");
+        Debug.Log($"✅ 完成！生成了 {generatedCells.Count} 个节点和 {generatedEdges.Count} 条边");
+        
+        // 验证最终结果
+        var finalBounds = CalculatePointBounds(adjustedPositions);
+        Debug.Log($"最终点集边界: {finalBounds.min} 到 {finalBounds.max}");
+        Debug.Log($"覆盖率: X={finalBounds.size.x/terrainBounds.size.x:F2}, Y={finalBounds.size.y/terrainBounds.size.y:F2}");
     }
 
     private void CreateCellAtPosition(Vector3 worldPosition)
@@ -190,6 +215,83 @@ public class TilemapGameManager : MonoBehaviour
         bounds.Expand(1.0f);
         
         return bounds;
+    }
+
+    // 步骤2: 计算点集的边界矩形
+    private Bounds CalculatePointBounds(List<Vector2> points)
+    {
+        if (points.Count == 0) return new Bounds();
+
+        Vector2 minPos = Vector2.positiveInfinity;
+        Vector2 maxPos = Vector2.negativeInfinity;
+
+        foreach (var point in points)
+        {
+            minPos = Vector2.Min(minPos, point);
+            maxPos = Vector2.Max(maxPos, point);
+        }
+
+        Bounds bounds = new Bounds();
+        bounds.SetMinMax(new Vector3(minPos.x, minPos.y, 0), new Vector3(maxPos.x, maxPos.y, 0));
+        
+        return bounds;
+    }
+
+    // 步骤3: 计算目标边界（地形指定比例大小，居中）
+    private Bounds CalculateTargetBounds(Bounds terrainBounds, float scale)
+    {
+        Vector3 center = terrainBounds.center;
+        Vector3 size = terrainBounds.size * scale;
+        
+        Bounds targetBounds = new Bounds(center, size);
+        
+        Debug.Log($"目标边界计算: 中心={center}, 大小={size}, 比例={scale}");
+        
+        return targetBounds;
+    }
+
+    // 步骤4: 调整点位置（从原始边界拉伸到目标边界）
+    private List<Vector2> AdjustPointPositions(List<Vector2> originalPoints, Bounds sourceBounds, Bounds targetBounds)
+    {
+        var adjustedPoints = new List<Vector2>();
+        
+        if (originalPoints.Count == 0) return adjustedPoints;
+
+        // 计算缩放比例
+        Vector3 scaleRatio = new Vector3(
+            targetBounds.size.x / sourceBounds.size.x,
+            targetBounds.size.y / sourceBounds.size.y,
+            1.0f
+        );
+        
+        Debug.Log($"缩放比例: X={scaleRatio.x:F3}, Y={scaleRatio.y:F3}");
+
+        foreach (var point in originalPoints)
+        {
+            // 将点从原始坐标系转换到目标坐标系
+            Vector3 normalizedPoint = new Vector3(
+                (point.x - sourceBounds.min.x) / sourceBounds.size.x,
+                (point.y - sourceBounds.min.y) / sourceBounds.size.y,
+                0
+            );
+            
+            // 应用缩放和偏移
+            Vector3 adjustedPoint = new Vector3(
+                normalizedPoint.x * targetBounds.size.x + targetBounds.min.x,
+                normalizedPoint.y * targetBounds.size.y + targetBounds.min.y,
+                0
+            );
+            
+            adjustedPoints.Add(new Vector2(adjustedPoint.x, adjustedPoint.y));
+        }
+        
+        Debug.Log($"调整了 {adjustedPoints.Count} 个点的位置");
+        
+        // 验证调整后的边界
+        var adjustedBounds = CalculatePointBounds(adjustedPoints);
+        Debug.Log($"调整后点集边界: {adjustedBounds.min} 到 {adjustedBounds.max}");
+        
+        return adjustedPoints;
     }
 
     private List<Vector2> PoissonDiskSampling(Bounds bounds, float radius, int maxPoints)
@@ -617,7 +719,7 @@ public class TilemapGameManager : MonoBehaviour
         lineObj.transform.SetParent(linesRoot.transform);
 
         LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
-        lineRenderer.material = lineMaterial;
+        lineRenderer.material = new Material(lineMaterial); // 创建独立的材质实例
         
         // 根据权重调整线条样式（类似GameManager.cs）
         float lineWidth = Mathf.Clamp(Mathf.Abs(weight) * lineWidthMultiplier + 0.05f, 0.05f, 0.5f);
@@ -632,21 +734,21 @@ public class TilemapGameManager : MonoBehaviour
             // 正权重：实线，绿色系
             lineRenderer.startColor = Color.green;
             lineRenderer.endColor = new Color(0.5f, 1f, 0.5f); // 浅绿色
-            lineRenderer.material.mainTextureScale = new Vector2(1, 1); // 实线
+            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(1, 1); // 实线
         }
         else if (weight < 0)
         {
             // 负权重：虚线，红色系
             lineRenderer.startColor = Color.red;
             lineRenderer.endColor = new Color(1f, 0.5f, 0f); // 橙色
-            lineRenderer.material.mainTextureScale = new Vector2(5, 1); // 虚线
+            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(5, 1); // 虚线
         }
         else
         {
             // 零权重：点线，黄色
             lineRenderer.startColor = Color.yellow;
             lineRenderer.endColor = Color.yellow;
-            lineRenderer.material.mainTextureScale = new Vector2(10, 1); // 点线
+            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(10, 1); // 点线
         }
 
         lineRenderer.SetPosition(0, cellA.transform.position);
@@ -678,13 +780,198 @@ public class TilemapGameManager : MonoBehaviour
     private void CreateWeightLabel(Vector3 posA, Vector3 posB, int weight)
     {
         Vector3 midPoint = (posA + posB) * 0.5f;
+        
+        // 检查是否有权重标签预制件
+        if (weightLabelPrefab == null)
+        {
+            Debug.LogWarning("⚠️ 权重标签预制件未设置，将使用动态创建的TextMesh");
+            CreateDynamicWeightLabel(midPoint, weight);
+            return;
+        }
+        
+        Debug.Log($"🔍 使用权重标签预制件: {weightLabelPrefab.name}");
+        
+        // 实例化权重标签预制件
+        GameObject labelObj = Instantiate(weightLabelPrefab, midPoint, Quaternion.identity);
+        labelObj.hideFlags = HideFlags.DontSave;
+        labelObj.transform.SetParent(linesRoot.transform);
+        labelObj.name = $"EdgeWeightText_{weight}";
+        
+        // 尝试获取TextMeshProUGUI组件（UI版本，优先）
+        TextMeshProUGUI textMeshProUGUI = labelObj.GetComponent<TextMeshProUGUI>();
+        if (textMeshProUGUI == null)
+        {
+            textMeshProUGUI = labelObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (textMeshProUGUI != null)
+            {
+                Debug.Log($"✅ 在子对象中找到TextMeshProUGUI组件: {textMeshProUGUI.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ 在根对象中找到TextMeshProUGUI组件: {textMeshProUGUI.name}");
+        }
+        
+        // 如果找到TextMeshProUGUI，使用它
+        if (textMeshProUGUI != null)
+        {
+            textMeshProUGUI.text = weight.ToString();
+            
+            // 根据权重设置颜色
+            if (weight > 0)
+            {
+                textMeshProUGUI.color = new Color(0.5f, 1f, 0.5f);
+            }
+            else if (weight < 0)
+            {
+                textMeshProUGUI.color = new Color(1f, 0.5f, 0.5f);
+            }
+            else
+            {
+                textMeshProUGUI.color = Color.yellow;
+            }
+            
+            // 对于UI元素，通过Canvas设置渲染层级
+            Canvas canvas = labelObj.GetComponent<Canvas>();
+            if (canvas != null)
+            {
+                canvas.sortingOrder = 20;
+                canvas.sortingLayerName = "Default";
+            }
+            
+            // 稍微向上偏移，避免与线条重叠
+            labelObj.transform.position += Vector3.up * 0.3f;
+            return;
+        }
+        
+        // 尝试获取TextMeshPro组件（3D版本，作为备选）
+        TextMeshPro textMeshPro = labelObj.GetComponent<TextMeshPro>();
+        if (textMeshPro == null)
+        {
+            textMeshPro = labelObj.GetComponentInChildren<TextMeshPro>();
+            if (textMeshPro != null)
+            {
+                Debug.Log($"✅ 在子对象中找到TextMeshPro组件: {textMeshPro.name}");
+            }
+        }
+        else
+        {
+            Debug.Log($"✅ 在根对象中找到TextMeshPro组件: {textMeshPro.name}");
+        }
+        
+        // 如果找到TextMeshPro，使用它
+        if (textMeshPro != null)
+        {
+            textMeshPro.text = weight.ToString();
+            
+            // 根据权重设置颜色
+            if (weight > 0)
+            {
+                textMeshPro.color = new Color(0.5f, 1f, 0.5f);
+            }
+            else if (weight < 0)
+            {
+                textMeshPro.color = new Color(1f, 0.5f, 0.5f);
+            }
+            else
+            {
+                textMeshPro.color = Color.yellow;
+            }
+            
+            // 设置渲染层级
+            textMeshPro.sortingOrder = 20;
+            // TextMeshPro的sortingLayerName需要通过Renderer组件设置
+            Renderer renderer = textMeshPro.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                renderer.sortingLayerName = "Default";
+            }
+            
+            // 稍微向上偏移，避免与线条重叠
+            labelObj.transform.position += Vector3.up * 0.3f;
+            return;
+        }
+        
+        // 尝试获取TextMesh组件
+        TextMesh textMesh = labelObj.GetComponent<TextMesh>();
+        if (textMesh == null)
+        {
+            textMesh = labelObj.GetComponentInChildren<TextMesh>();
+        }
+        
+        // 如果找到TextMesh，使用它
+        if (textMesh != null)
+        {
+            textMesh.text = weight.ToString();
+            textMesh.fontSize = 20;
+            textMesh.characterSize = 0.1f;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            
+            // 根据权重设置颜色
+            if (weight > 0)
+            {
+                textMesh.color = new Color(0.5f, 1f, 0.5f);
+            }
+            else if (weight < 0)
+            {
+                textMesh.color = new Color(1f, 0.5f, 0.5f);
+            }
+            else
+            {
+                textMesh.color = Color.yellow;
+            }
+            
+            // 设置渲染层级
+            textMesh.GetComponent<MeshRenderer>().sortingOrder = 20;
+            textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
+            
+            // 稍微向上偏移，避免与线条重叠
+            labelObj.transform.position += Vector3.up * 0.3f;
+            return;
+        }
+        
+        // 如果预制件中没有找到文本组件，回退到动态创建
+        Debug.LogWarning("⚠️ 权重标签预制件中没有找到TextMesh、TextMeshPro或TextMeshProUGUI组件，将使用动态创建");
+        DestroyImmediate(labelObj);
+        CreateDynamicWeightLabel(midPoint, weight);
+    }
+    
+    private void CreateDynamicWeightLabel(Vector3 position, int weight)
+    {
         GameObject labelObj = new GameObject($"EdgeWeightText_{weight}");
         labelObj.hideFlags = HideFlags.DontSave;
         labelObj.transform.SetParent(linesRoot.transform);
-        labelObj.transform.position = midPoint;
+        labelObj.transform.position = position;
 
-        // 这里可以添加TextMesh组件来显示权重
-        // 简化版本，只记录权重信息
+        // 添加TextMesh组件来显示权重
+        TextMesh textMesh = labelObj.AddComponent<TextMesh>();
+        textMesh.text = weight.ToString();
+        textMesh.fontSize = 20;
+        textMesh.characterSize = 0.1f;
+        textMesh.alignment = TextAlignment.Center;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        
+        // 根据权重设置颜色
+        if (weight > 0)
+        {
+            textMesh.color = new Color(0.5f, 1f, 0.5f);
+        }
+        else if (weight < 0)
+        {
+            textMesh.color = new Color(1f, 0.5f, 0.5f);
+        }
+        else
+        {
+            textMesh.color = Color.yellow;
+        }
+        
+        // 设置渲染层级，确保文本显示在线条之上
+        textMesh.GetComponent<MeshRenderer>().sortingOrder = 20;
+        textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
+        
+        // 稍微向上偏移，避免与线条重叠
+        labelObj.transform.position += Vector3.up * 0.3f;
     }
 
     [ContextMenu("显示地形权重信息")]
@@ -916,6 +1203,224 @@ public class TilemapGameManager : MonoBehaviour
             Debug.Log($"边界范围: {bounds.size.x:F2} x {bounds.size.y:F2}");
         }
     }
+
+    [ContextMenu("删除场景内所有LineRenderer")]
+    public void DeleteAllLineRenderers()
+    {
+        Debug.Log("🧹 开始删除场景内所有LineRenderer...");
+        
+        // 查找场景内所有的LineRenderer组件
+        var allLineRenderers = FindObjectsByType<LineRenderer>(FindObjectsSortMode.None);
+        
+        if (allLineRenderers.Length == 0)
+        {
+            Debug.Log("✅ 场景内没有找到LineRenderer");
+            return;
+        }
+        
+        Debug.Log($"找到 {allLineRenderers.Length} 个LineRenderer");
+        
+        int deletedCount = 0;
+        foreach (var lineRenderer in allLineRenderers)
+        {
+            if (lineRenderer != null)
+            {
+                Debug.Log($"删除LineRenderer: {lineRenderer.name}");
+                DestroyImmediate(lineRenderer.gameObject);
+                deletedCount++;
+            }
+        }
+        
+        Debug.Log($"✅ 删除完成！共删除了 {deletedCount} 个LineRenderer");
+        
+        // 清理本地的边线缓存
+        edgeLines.Clear();
+        generatedEdges.Clear();
+        Debug.Log("🗑️ 已清理本地边线缓存");
+    }
+
+    [ContextMenu("检查权重标签预制件状态")]
+    public void CheckWeightLabelPrefabStatus()
+    {
+        Debug.Log("🔍 检查权重标签预制件状态...");
+        
+        if (weightLabelPrefab == null)
+        {
+            Debug.LogWarning("⚠️ 权重标签预制件未设置");
+            return;
+        }
+        
+        Debug.Log($"✅ 权重标签预制件已设置: {weightLabelPrefab.name}");
+        
+        // 检查预制件中的TextMeshPro组件
+        TextMeshPro textMeshPro = weightLabelPrefab.GetComponent<TextMeshPro>();
+        if (textMeshPro == null)
+        {
+            textMeshPro = weightLabelPrefab.GetComponentInChildren<TextMeshPro>();
+        }
+        
+        if (textMeshPro != null)
+        {
+            Debug.Log($"✅ 找到TextMeshPro组件: {textMeshPro.name}");
+            Debug.Log($"   字体大小: {textMeshPro.fontSize}");
+            Debug.Log($"   颜色: {textMeshPro.color}");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ 未找到TextMeshPro组件");
+        }
+        
+        // 检查预制件中的TextMesh组件
+        TextMesh textMesh = weightLabelPrefab.GetComponent<TextMesh>();
+        if (textMesh == null)
+        {
+            textMesh = weightLabelPrefab.GetComponentInChildren<TextMesh>();
+        }
+        
+        if (textMesh != null)
+        {
+            Debug.Log($"✅ 找到TextMesh组件: {textMesh.name}");
+            Debug.Log($"   字体大小: {textMesh.fontSize}");
+            Debug.Log($"   字符大小: {textMesh.characterSize}");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ 未找到TextMesh组件");
+        }
+        
+        if (textMeshPro == null && textMesh == null)
+        {
+            Debug.LogError("❌ 权重标签预制件中没有找到任何文本组件！");
+        }
+    }
+
+    [ContextMenu("删除场景内所有权重标签")]
+    public void DeleteAllWeightLabels()
+    {
+        Debug.Log("🧹 开始删除场景内所有权重标签...");
+        
+        // 查找场景内所有的TextMesh组件
+        var allTextMeshes = FindObjectsByType<TextMesh>(FindObjectsSortMode.None);
+        
+        // 查找场景内所有的TextMeshPro组件
+        var allTextMeshPros = FindObjectsByType<TextMeshPro>(FindObjectsSortMode.None);
+        
+        int totalFound = allTextMeshes.Length + allTextMeshPros.Length;
+        
+        if (totalFound == 0)
+        {
+            Debug.Log("✅ 场景内没有找到权重标签");
+            return;
+        }
+        
+        Debug.Log($"找到 {totalFound} 个权重标签 (TextMesh: {allTextMeshes.Length}, TextMeshPro: {allTextMeshPros.Length})");
+        
+        int deletedCount = 0;
+        
+        // 删除TextMesh权重标签
+        foreach (var textMesh in allTextMeshes)
+        {
+            if (textMesh != null && textMesh.name.StartsWith("EdgeWeightText_"))
+            {
+                Debug.Log($"删除TextMesh权重标签: {textMesh.name}");
+                DestroyImmediate(textMesh.gameObject);
+                deletedCount++;
+            }
+        }
+        
+        // 删除TextMeshPro权重标签
+        foreach (var textMeshPro in allTextMeshPros)
+        {
+            if (textMeshPro != null && textMeshPro.name.StartsWith("EdgeWeightText_"))
+            {
+                Debug.Log($"删除TextMeshPro权重标签: {textMeshPro.name}");
+                DestroyImmediate(textMeshPro.gameObject);
+                deletedCount++;
+            }
+        }
+        
+        Debug.Log($"✅ 删除完成！共删除了 {deletedCount} 个权重标签");
+    }
+
+    [ContextMenu("清空所有节点和边")]
+    public void ClearAllNodesAndEdges()
+    {
+        Debug.Log("🧹 开始清空所有节点和边...");
+        
+        // 清空节点
+        int cellCount = 0;
+        foreach (var cell in generatedCells)
+        {
+            if (cell != null)
+            {
+                DestroyImmediate(cell.gameObject);
+                cellCount++;
+            }
+        }
+        generatedCells.Clear();
+        
+        // 清空边
+        int edgeCount = 0;
+        foreach (var line in edgeLines.Values)
+        {
+            if (line != null)
+            {
+                DestroyImmediate(line.gameObject);
+                edgeCount++;
+            }
+        }
+        edgeLines.Clear();
+        generatedEdges.Clear();
+        
+        // 清空权重标签
+        var allTextMeshes = FindObjectsByType<TextMesh>(FindObjectsSortMode.None);
+        var allTextMeshPros = FindObjectsByType<TextMeshPro>(FindObjectsSortMode.None);
+        int labelCount = 0;
+        
+        // 删除TextMesh权重标签
+        foreach (var textMesh in allTextMeshes)
+        {
+            if (textMesh != null && textMesh.name.StartsWith("EdgeWeightText_"))
+            {
+                DestroyImmediate(textMesh.gameObject);
+                labelCount++;
+            }
+        }
+        
+        // 删除TextMeshPro权重标签
+        foreach (var textMeshPro in allTextMeshPros)
+        {
+            if (textMeshPro != null && textMeshPro.name.StartsWith("EdgeWeightText_"))
+            {
+                DestroyImmediate(textMeshPro.gameObject);
+                labelCount++;
+            }
+        }
+        
+        // 清空权重缓存
+        _edgeWeightCache.Clear();
+        
+        // 重新创建根对象
+        if (linesRoot != null)
+            DestroyImmediate(linesRoot);
+        
+        if (cellsRoot != null)
+            DestroyImmediate(cellsRoot);
+        
+        linesRoot = new GameObject("TilemapLinesRoot");
+        linesRoot.hideFlags = HideFlags.DontSave;
+        
+        cellsRoot = new GameObject("TilemapCellsRoot");
+        cellsRoot.hideFlags = HideFlags.DontSave;
+        
+        Debug.Log($"✅ 清空完成！");
+        Debug.Log($"🗑️ 清空了 {cellCount} 个节点");
+        Debug.Log($"🗑️ 清空了 {edgeCount} 条边");
+        Debug.Log($"🗑️ 清空了 {edgeCount} 条线条");
+        Debug.Log($"🗑️ 清空了 {labelCount} 个权重标签");
+    }
+
+
 
     void OnDestroy()
     {
