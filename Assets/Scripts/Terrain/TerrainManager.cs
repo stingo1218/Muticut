@@ -24,6 +24,9 @@ namespace TerrainSystem
         [Header("Tilemap 设置")]
         [SerializeField] private Grid targetGrid;
         [SerializeField] private UnityEngine.Tilemaps.Tilemap terrainTilemap;
+        
+        // 公共属性，供外部访问
+        public UnityEngine.Tilemaps.Tilemap tilemap => terrainTilemap;
         [SerializeField] private UnityEngine.Tilemaps.Tilemap riverTilemap;
         [SerializeField] private bool useTilemap = true;
 
@@ -314,7 +317,7 @@ namespace TerrainSystem
         }
 
         // 转换六边形坐标到瓦片位置
-        private Vector3Int ConvertHexToTilePosition(HexCoordinateSystem.HexTile hex)
+        public Vector3Int ConvertHexToTilePosition(HexCoordinateSystem.HexTile hex)
         {
             // 将坐标中心化，让地形以原点为中心
             int centerX = settings.hexColumns / 2;
