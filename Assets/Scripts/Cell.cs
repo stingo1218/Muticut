@@ -25,25 +25,13 @@ public class Cell : MonoBehaviour
     // Serialized fields (visible in Unity Inspector)
     [SerializeField] private TMP_Text _numberText;    // Text component for displaying number
     [SerializeField] private SpriteRenderer _cellSprite; // Background sprite renderer
-    [SerializeField]
-    private Color[] colorPalette = new Color[]
-    {
-        new Color(0.98f, 0.36f, 0.36f), // 红rgb(166, 27, 78)
-        new Color(0.99f, 0.80f, 0.36f), // 黄rgb(86, 81, 27)
-        new Color(0.56f, 0.89f, 0.56f), // 绿 #A6E22E
-        new Color(0.36f, 0.82f, 0.98f), // 蓝rgb(61, 127, 140)
-        new Color(0.82f, 0.36f, 0.98f), // 紫 #AE81FF
-        new Color(0.98f, 0.56f, 0.36f), // 橙 #FD971F
-        new Color(0.36f, 0.98f, 0.82f), // 青rgb(79, 119, 114)
-        new Color(0.36f, 0.36f, 0.36f), // 深灰 #595959
-    };
 
     private int _number; // Backing field for Number (note naming convention difference)
 
     // 新增：记录与其它Cell的权重
     public Dictionary<Cell, float> EdgeWeights = new Dictionary<Cell, float>();
 
-    public void Init(int number)
+    public void Init(int number, bool isWeightLabel = false)
     {
         // 设置单元格的数字
         Number = number;
@@ -51,14 +39,36 @@ public class Cell : MonoBehaviour
         // 设置单元格的名称为数字，方便调试
         gameObject.name = $"Cell {Number}";
 
-        // 从深色库中随机选一个颜色
-        if (colorPalette != null && colorPalette.Length > 0)
+        // 根据用途设置不同的渲染层级
+        if (_cellSprite != null)
         {
-            _cellSprite.color = colorPalette[UnityEngine.Random.Range(0, colorPalette.Length)];
+            if (isWeightLabel)
+            {
+                _cellSprite.sortingOrder = 20; // 权重标签背景层
+            }
+            else
+            {
+                _cellSprite.sortingOrder = 15; // 普通Cell背景层
+            }
+            _cellSprite.sortingLayerName = "Default";
         }
-        else
+
+        if (_numberText != null)
         {
-            _cellSprite.color = new Color(Random.value, Random.value, Random.value);
+            // 对于TMP_Text，需要通过其父级Canvas设置sortingOrder
+            var canvas = _numberText.GetComponentInParent<Canvas>();
+            if (canvas != null)
+            {
+                if (isWeightLabel)
+                {
+                    canvas.sortingOrder = 40; // 权重标签文本层
+                }
+                else
+                {
+                    canvas.sortingOrder = 35; // 普通Cell文本层
+                }
+                canvas.sortingLayerName = "Default";
+            }
         }
 
         // 确保Cell有Collider2D组件
@@ -111,6 +121,53 @@ public class Cell : MonoBehaviour
         if (EdgeWeights.TryGetValue(otherCell, out float w))
             return w;
         return 1f;
+    }
+
+    /// <summary>
+    /// 调整Cell的渲染顺序，确保TMP文本显示在背景之上
+    /// </summary>
+    [ContextMenu("调整渲染顺序")]
+    public void AdjustRenderingOrder()
+    {
+        // 判断是否为权重标签（通过名称或大小判断）
+        bool isWeightLabel = gameObject.name.Contains("Weight") || gameObject.name.Contains("EdgeWeight") || 
+                           (_cellSprite != null && _cellSprite.transform.localScale.x < 1f);
+
+        if (_cellSprite != null)
+        {
+            if (isWeightLabel)
+            {
+                _cellSprite.sortingOrder = 20; // 权重标签背景层
+            }
+            else
+            {
+                _cellSprite.sortingOrder = 15; // 普通Cell背景层
+            }
+            _cellSprite.sortingLayerName = "Default";
+        }
+
+        if (_numberText != null)
+        {
+            // 对于TMP_Text，需要通过其父级Canvas设置sortingOrder
+            var canvas = _numberText.GetComponentInParent<Canvas>();
+            if (canvas != null)
+            {
+                if (isWeightLabel)
+                {
+                    canvas.sortingOrder = 40; // 权重标签文本层
+                }
+                else
+                {
+                    canvas.sortingOrder = 35; // 普通Cell文本层
+                }
+                canvas.sortingLayerName = "Default";
+            }
+        }
+
+        string type = isWeightLabel ? "权重标签" : "Cell";
+        string backgroundOrder = isWeightLabel ? "20" : "15";
+        string textOrder = isWeightLabel ? "40" : "35";
+        Debug.Log($"✅ {type} {Number} 渲染顺序已调整：背景({backgroundOrder}) < 文本({textOrder})");
     }
 
     private void ChangeSpriteSize(SpriteRenderer sprite, float size)

@@ -5,6 +5,17 @@ using System.Linq;
 using TerrainSystem;
 using TMPro;
 
+/// <summary>
+/// TilemapGameManager - 地形节点生成管理器
+/// 
+/// 渲染顺序设置：
+/// - Edges (LineRenderer): sortingOrder = 5 (最底层)
+/// - Cell Background (SpriteRenderer): sortingOrder = 15 (中间层)
+/// - Cell Text (TMP_Text): sortingOrder = 35 (文本层)
+/// - Weights (TextMesh/TextMeshPro): sortingOrder = 25 (权重层)
+/// 
+/// 确保cells和weights始终显示在edges之上，cell文本显示在cell背景之上。
+/// </summary>
 public class TilemapGameManager : MonoBehaviour
 {
     [Header("组件引用")]
@@ -67,9 +78,6 @@ public class TilemapGameManager : MonoBehaviour
     [Header("可视化设置")]
     public bool showWeightLabels = true;
     public float lineWidthMultiplier = 0.02f; // 减小线条宽度倍数
-    public Color positiveWeightColor = Color.green;
-    public Color negativeWeightColor = Color.red;
-    public Color neutralWeightColor = Color.yellow;
 
     // 私有变量
     private List<Cell> generatedCells = new List<Cell>();
@@ -96,6 +104,25 @@ public class TilemapGameManager : MonoBehaviour
         
         cellsRoot = new GameObject("TilemapCellsRoot");
         cellsRoot.hideFlags = HideFlags.DontSave;
+        
+        // 检查并提示地形状态
+        if (terrainManager != null)
+        {
+            var hexTiles = terrainManager.GetHexTiles();
+            if (hexTiles == null || hexTiles.Count == 0)
+            {
+                Debug.LogWarning("⚠️ TilemapGameManager 初始化完成，但地形尚未生成");
+                Debug.Log("💡 提示：调用 GenerateNodesOnTerrain() 会自动尝试生成地形");
+            }
+            else
+            {
+                Debug.Log($"✅ TilemapGameManager 初始化完成，地形已就绪：{hexTiles.Count} 个六边形");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ 未找到 TerrainManager，请在 Inspector 中手动设置");
+        }
     }
 
     [ContextMenu("生成地形节点")]
@@ -111,8 +138,29 @@ public class TilemapGameManager : MonoBehaviour
         var hexTiles = terrainManager.GetHexTiles();
         if (hexTiles == null)
         {
-            Debug.LogError("❌ terrainManager.GetHexTiles() 返回 null！");
-            return;
+            Debug.LogWarning("⚠️ 地形数据为空，尝试自动生成地形...");
+            
+            // 尝试自动生成地形
+            try
+            {
+                terrainManager.GenerateTerrain();
+                hexTiles = terrainManager.GetHexTiles();
+                
+                if (hexTiles == null || hexTiles.Count == 0)
+                {
+                    Debug.LogError("❌ 自动生成地形失败！");
+                    Debug.Log("💡 解决方案：请手动在 TerrainManager 组件上右键选择'生成地形'");
+                    return;
+                }
+                
+                Debug.Log($"✅ 自动生成地形成功！生成了 {hexTiles.Count} 个六边形");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"❌ 自动生成地形时发生错误：{e.Message}");
+                Debug.Log("💡 解决方案：请手动在 TerrainManager 组件上右键选择'生成地形'");
+                return;
+            }
         }
         
         if (hexTiles.Count == 0)
@@ -161,6 +209,9 @@ public class TilemapGameManager : MonoBehaviour
 
         Debug.Log($"✅ 完成！生成了 {generatedCells.Count} 个节点和 {generatedEdges.Count} 条边");
         
+        // 自动调整渲染顺序，确保cells和weights显示在edges之上
+        AdjustRenderingOrder();
+        
         // 验证最终结果
         var finalBounds = CalculatePointBounds(adjustedPositions);
         Debug.Log($"最终点集边界: {finalBounds.min} 到 {finalBounds.max}");
@@ -184,7 +235,8 @@ public class TilemapGameManager : MonoBehaviour
         Cell cell = cellObj.GetComponent<Cell>();
         if (cell != null)
         {
-            cell.Number = generatedCells.Count;
+            // 调用Cell的Init方法，传入false表示这是普通Cell而不是权重标签
+            cell.Init(generatedCells.Count, false);
             generatedCells.Add(cell);
         }
     }
@@ -728,26 +780,20 @@ public class TilemapGameManager : MonoBehaviour
         lineRenderer.positionCount = 2;
         lineRenderer.useWorldSpace = true;
 
-        // 根据权重选择线条样式
+        // 根据权重选择线条样式（不设置颜色）
         if (weight > 0)
         {
-            // 正权重：实线，绿色系
-            lineRenderer.startColor = Color.green;
-            lineRenderer.endColor = new Color(0.5f, 1f, 0.5f); // 浅绿色
+            // 正权重：实线
             lineRenderer.sharedMaterial.mainTextureScale = new Vector2(1, 1); // 实线
         }
         else if (weight < 0)
         {
-            // 负权重：虚线，红色系
-            lineRenderer.startColor = Color.red;
-            lineRenderer.endColor = new Color(1f, 0.5f, 0f); // 橙色
+            // 负权重：虚线
             lineRenderer.sharedMaterial.mainTextureScale = new Vector2(5, 1); // 虚线
         }
         else
         {
-            // 零权重：点线，黄色
-            lineRenderer.startColor = Color.yellow;
-            lineRenderer.endColor = Color.yellow;
+            // 零权重：点线
             lineRenderer.sharedMaterial.mainTextureScale = new Vector2(10, 1); // 点线
         }
 
@@ -757,8 +803,8 @@ public class TilemapGameManager : MonoBehaviour
         // 设置线条在第三层的Edge层
         lineObj.layer = 2; // 第三层（索引为2）
         
-        // 设置渲染层级，确保线条显示在地形之上
-        lineRenderer.sortingOrder = 10; // 设置较高的排序顺序
+        // 设置渲染层级，确保线条显示在地形之上，但在cells和weights之下
+        lineRenderer.sortingOrder = 5; // 降低排序顺序，让cells和weights显示在上方
         lineRenderer.sortingLayerName = "Default"; // 确保在正确的排序层
 
         edgeLines[(cellA, cellB)] = lineRenderer;
@@ -768,13 +814,6 @@ public class TilemapGameManager : MonoBehaviour
         {
             CreateWeightLabel(cellA.transform.position, cellB.transform.position, weight);
         }
-    }
-
-    private Color GetWeightColor(int weight)
-    {
-        if (weight > 0) return positiveWeightColor;
-        if (weight < 0) return negativeWeightColor;
-        return neutralWeightColor;
     }
 
     private void CreateWeightLabel(Vector3 posA, Vector3 posB, int weight)
@@ -797,6 +836,15 @@ public class TilemapGameManager : MonoBehaviour
         labelObj.transform.SetParent(linesRoot.transform);
         labelObj.name = $"EdgeWeightText_{weight}";
         
+        // 如果权重标签预制件使用的是Cell脚本，需要正确初始化
+        Cell cellComponent = labelObj.GetComponent<Cell>();
+        if (cellComponent != null)
+        {
+            // 调用Cell的Init方法，传入true表示这是权重标签
+            cellComponent.Init(weight, true);
+            cellComponent.Number = weight; // 设置权重值作为数字
+        }
+        
         // 尝试获取TextMeshProUGUI组件（UI版本，优先）
         TextMeshProUGUI textMeshProUGUI = labelObj.GetComponent<TextMeshProUGUI>();
         if (textMeshProUGUI == null)
@@ -817,25 +865,11 @@ public class TilemapGameManager : MonoBehaviour
         {
             textMeshProUGUI.text = weight.ToString();
             
-            // 根据权重设置颜色
-            if (weight > 0)
-            {
-                textMeshProUGUI.color = new Color(0.5f, 1f, 0.5f);
-            }
-            else if (weight < 0)
-            {
-                textMeshProUGUI.color = new Color(1f, 0.5f, 0.5f);
-            }
-            else
-            {
-                textMeshProUGUI.color = Color.yellow;
-            }
-            
             // 对于UI元素，通过Canvas设置渲染层级
             Canvas canvas = labelObj.GetComponent<Canvas>();
             if (canvas != null)
             {
-                canvas.sortingOrder = 20;
+                canvas.sortingOrder = 25; // 提高排序顺序，确保显示在最上层
                 canvas.sortingLayerName = "Default";
             }
             
@@ -864,22 +898,8 @@ public class TilemapGameManager : MonoBehaviour
         {
             textMeshPro.text = weight.ToString();
             
-            // 根据权重设置颜色
-            if (weight > 0)
-            {
-                textMeshPro.color = new Color(0.5f, 1f, 0.5f);
-            }
-            else if (weight < 0)
-            {
-                textMeshPro.color = new Color(1f, 0.5f, 0.5f);
-            }
-            else
-            {
-                textMeshPro.color = Color.yellow;
-            }
-            
             // 设置渲染层级
-            textMeshPro.sortingOrder = 20;
+            textMeshPro.sortingOrder = 25; // 提高排序顺序，确保显示在最上层
             // TextMeshPro的sortingLayerName需要通过Renderer组件设置
             Renderer renderer = textMeshPro.GetComponent<Renderer>();
             if (renderer != null)
@@ -908,22 +928,8 @@ public class TilemapGameManager : MonoBehaviour
             textMesh.alignment = TextAlignment.Center;
             textMesh.anchor = TextAnchor.MiddleCenter;
             
-            // 根据权重设置颜色
-            if (weight > 0)
-            {
-                textMesh.color = new Color(0.5f, 1f, 0.5f);
-            }
-            else if (weight < 0)
-            {
-                textMesh.color = new Color(1f, 0.5f, 0.5f);
-            }
-            else
-            {
-                textMesh.color = Color.yellow;
-            }
-            
             // 设置渲染层级
-            textMesh.GetComponent<MeshRenderer>().sortingOrder = 20;
+            textMesh.GetComponent<MeshRenderer>().sortingOrder = 25; // 提高排序顺序，确保显示在最上层
             textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
             
             // 稍微向上偏移，避免与线条重叠
@@ -952,22 +958,8 @@ public class TilemapGameManager : MonoBehaviour
         textMesh.alignment = TextAlignment.Center;
         textMesh.anchor = TextAnchor.MiddleCenter;
         
-        // 根据权重设置颜色
-        if (weight > 0)
-        {
-            textMesh.color = new Color(0.5f, 1f, 0.5f);
-        }
-        else if (weight < 0)
-        {
-            textMesh.color = new Color(1f, 0.5f, 0.5f);
-        }
-        else
-        {
-            textMesh.color = Color.yellow;
-        }
-        
         // 设置渲染层级，确保文本显示在线条之上
-        textMesh.GetComponent<MeshRenderer>().sortingOrder = 20;
+        textMesh.GetComponent<MeshRenderer>().sortingOrder = 25; // 提高排序顺序，确保显示在最上层
         textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
         
         // 稍微向上偏移，避免与线条重叠
@@ -1058,6 +1050,37 @@ public class TilemapGameManager : MonoBehaviour
         cellsRoot.hideFlags = HideFlags.DontSave;
     }
 
+    [ContextMenu("强制生成地形")]
+    public void ForceGenerateTerrain()
+    {
+        Debug.Log("🔧 强制生成地形...");
+        
+        if (terrainManager == null)
+        {
+            Debug.LogError("❌ terrainManager 引用为空");
+            return;
+        }
+        
+        try
+        {
+            terrainManager.GenerateTerrain();
+            var hexTiles = terrainManager.GetHexTiles();
+            
+            if (hexTiles != null && hexTiles.Count > 0)
+            {
+                Debug.Log($"✅ 地形生成成功！生成了 {hexTiles.Count} 个六边形");
+            }
+            else
+            {
+                Debug.LogError("❌ 地形生成失败");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ 生成地形时发生错误：{e.Message}");
+        }
+    }
+
     [ContextMenu("检查TerrainManager状态")]
     public void CheckTerrainManagerStatus()
     {
@@ -1075,7 +1098,11 @@ public class TilemapGameManager : MonoBehaviour
         var hexTiles = terrainManager.GetHexTiles();
         if (hexTiles == null)
         {
-            Debug.LogError("❌ GetHexTiles() 返回 null");
+            Debug.LogWarning("⚠️ GetHexTiles() 返回 null - 地形尚未生成");
+            Debug.Log("💡 解决方案：");
+            Debug.Log("   1. 在 TerrainManager 组件上右键选择'生成地形'");
+            Debug.Log("   2. 或者设置 TerrainManager 的 autoGenerateOnStart = true");
+            Debug.Log("   3. 或者调用 GenerateNodesOnTerrain() 会自动尝试生成地形");
             return;
         }
         
@@ -1094,6 +1121,13 @@ public class TilemapGameManager : MonoBehaviour
         else
         {
             Debug.Log($"✅ tilemap 引用正常");
+        }
+        
+        // 检查 TerrainManager 的设置
+        var settings = terrainManager.GetTerrainSettings();
+        if (settings != null)
+        {
+            Debug.Log($"✅ 地形设置：{settings.hexColumns} × {settings.hexRows} 网格");
         }
     }
 
@@ -1421,6 +1455,78 @@ public class TilemapGameManager : MonoBehaviour
     }
 
 
+
+    [ContextMenu("调整渲染顺序")]
+    public void AdjustRenderingOrder()
+    {
+        Debug.Log("🎨 调整渲染顺序...");
+        
+        // 调整所有edges的渲染顺序
+        if (edgeLines != null)
+        {
+            foreach (var kvp in edgeLines)
+            {
+                if (kvp.Value != null)
+                {
+                    kvp.Value.sortingOrder = 5; // 设置较低的排序顺序
+                    kvp.Value.sortingLayerName = "Default";
+                }
+            }
+            Debug.Log($"✅ 调整了 {edgeLines.Count} 个edges的渲染顺序");
+        }
+        
+        // 调整所有cells的渲染顺序
+        if (generatedCells != null)
+        {
+            foreach (var cell in generatedCells)
+            {
+                if (cell != null)
+                {
+                    // 调用Cell的渲染顺序调整方法，确保TMP文本显示在背景之上
+                    cell.AdjustRenderingOrder();
+                }
+            }
+            Debug.Log($"✅ 调整了 {generatedCells.Count} 个cells的渲染顺序");
+        }
+        
+        // 调整所有权重标签的渲染顺序
+        var weightLabels = linesRoot.GetComponentsInChildren<TextMesh>();
+        foreach (var textMesh in weightLabels)
+        {
+            if (textMesh != null)
+            {
+                textMesh.GetComponent<MeshRenderer>().sortingOrder = 25;
+                textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
+            }
+        }
+        
+        var weightLabelsPro = linesRoot.GetComponentsInChildren<TextMeshPro>();
+        foreach (var textMeshPro in weightLabelsPro)
+        {
+            if (textMeshPro != null)
+            {
+                textMeshPro.sortingOrder = 25;
+                Renderer renderer = textMeshPro.GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.sortingLayerName = "Default";
+                }
+            }
+        }
+        
+        // 处理使用Cell脚本的权重标签
+        var weightLabelCells = linesRoot.GetComponentsInChildren<Cell>();
+        foreach (var cell in weightLabelCells)
+        {
+            if (cell != null && cell.gameObject.name.Contains("EdgeWeight"))
+            {
+                cell.AdjustRenderingOrder();
+            }
+        }
+        
+        Debug.Log($"✅ 调整了 {weightLabels.Length + weightLabelsPro.Length + weightLabelCells.Length} 个权重标签的渲染顺序");
+        Debug.Log("🎨 渲染顺序调整完成：Edges(5) < Cell背景(15) < Weights(20/25) < Cell文本(35/40)");
+    }
 
     void OnDestroy()
     {
