@@ -99,9 +99,8 @@ public class Cell : MonoBehaviour
     {
         // 记录权重
         EdgeWeights[otherCell] = weight;
-        // 只调用原有的CreateOrUpdateEdge（暂不传权重）
+        // 只调用一次CreateOrUpdateEdge，避免重复创建
         GameManager.Instance.CreateOrUpdateEdge(this, otherCell);
-        GameManager.Instance.CreateOrUpdateEdge(otherCell, this);
     }
 
     // 保留原有无权重AddEdge（兼容旧代码）
@@ -116,7 +115,6 @@ public class Cell : MonoBehaviour
         if (EdgeWeights.ContainsKey(otherCell))
             EdgeWeights.Remove(otherCell);
         GameManager.Instance.RemoveEdge(this, otherCell);
-        GameManager.Instance.RemoveEdge(otherCell, this);
     }
 
     public void RemoveAllEdges()

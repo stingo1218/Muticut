@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
     [SerializeField] private Cell _cellPrefab; // 单元格预制体
+    [SerializeField] private MonoBehaviour terrainManager; // 地形管理器引用
 
     [HideInInspector] public bool hasgameFinished;
 
@@ -27,8 +28,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Material previewEdgeMaterial; // 预览线材质
     [SerializeField] private Material _lineMaterial; // 用于连线的材质
+    [SerializeField] private float lineWidth = 0.1f; // 线条宽度
     [SerializeField] private Material _eraseLineMaterial; // 用于擦除线的材质
-    [SerializeField] private GameObject bgPrefab; // 用于权重背景的BG prefab
+    [SerializeField] private GameObject WeightPrefab; // 用于权重背景的BG prefab
     private Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshPro tmp, GameObject bg)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshPro, GameObject)>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
@@ -40,7 +42,7 @@ public class GameManager : MonoBehaviour
     private const float EPSILON = 1e-6f; // 用于浮点数比较
 
     [SerializeField]
-    private bool useWeightedEdges = false; // 这个就是一个开关
+    private bool useWeightedEdges = true; // 控制是否显示边的权重
     [SerializeField]
     private bool useBresenhamLine = false; // 是否启用Bresenham像素线
 
@@ -156,6 +158,17 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        
+        // 调试信息
+        UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellPrefab: {(_cellPrefab != null ? "已设置" : "为 null")}");
+        UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellNumbers: {_cellNumbers}");
+        
+        // 生成地形
+        GenerateTerrainIfNeeded();
+        
+        // 设置Camera渲染
+        SetupCameraForLineRenderer();
+        
         linesRoot = new GameObject("LinesRoot").transform;
         linesRoot.SetParent(transform);
         SpawnLevel(_cellNumbers);
@@ -437,12 +450,20 @@ public class GameManager : MonoBehaviour
                 (pos.x - center.x) * scaleX,
                 (pos.y - center.y) * scaleY
             ) + screenCenter;
-            cell.transform.position = new Vector3(newPos.x, newPos.y, cell.transform.position.z);
+            // 确保Cell的Z轴为0，避免渲染顺序问题
+            cell.transform.position = new Vector3(newPos.x, newPos.y, 0);
         }
     }
 
     private void SpawnLevel(int numberOfPoints)
     {
+        // 检查 _cellPrefab 是否为 null
+        if (_cellPrefab == null)
+        {
+            UnityEngine.Debug.LogError("❌ _cellPrefab 为 null！请在 Inspector 中设置 Cell Prefab。");
+            return;
+        }
+
         // 检查当前场景名，如果是Level1则不生成关卡
         if (SceneManager.GetActiveScene().name == "Level1")
         {
@@ -468,7 +489,9 @@ public class GameManager : MonoBehaviour
         {
             Vector2 position = cellPositions[i];
 
-            Cell newCell = Instantiate(_cellPrefab, position, Quaternion.identity, transform);
+            // 确保Cell的Z轴为0，避免渲染顺序问题
+            Vector3 cellPosition = new Vector3(position.x, position.y, 0);
+            Cell newCell = Instantiate(_cellPrefab, cellPosition, Quaternion.identity, transform);
             newCell.Number = i + 1; // Cell.Number is 1-indexed for display/logic
             newCell.Init(i + 1);
             newCell.gameObject.name = $"Cell {newCell.Number}";
@@ -903,11 +926,16 @@ public class GameManager : MonoBehaviour
             previewEdge.positionCount = 2;
             previewEdge.useWorldSpace = true;
             previewEdge.startColor = Color.black;
-            previewEdge.endColor = Color.black;
-            previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
+                            previewEdge.endColor = Color.black;
+                previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
+                previewEdge.sortingOrder = 50; // 设置合适的排序顺序
+                previewEdge.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
+                previewEdge.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI
         }
-        previewEdge.SetPosition(0, startPosition);
-        previewEdge.SetPosition(1, startPosition);
+        // 确保预览线的Z轴为0，避免渲染顺序问题
+        Vector3 startPos = new Vector3(startPosition.x, startPosition.y, 0);
+        previewEdge.SetPosition(0, startPos);
+        previewEdge.SetPosition(1, startPos);
         previewEdge.enabled = true;
     }
 
@@ -965,8 +993,11 @@ public class GameManager : MonoBehaviour
             {
                 tmp.gameObject.SetActive(true);
                 bg.SetActive(true);
-                tmp.transform.position = midPoint;
-                bg.transform.position = midPoint;
+                // 确保权重文本和背景的Z轴为0，避免渲染顺序问题
+                Vector3 textPos = new Vector3(midPoint.x, midPoint.y, 0);
+                Vector3 bgPos = new Vector3(midPoint.x, midPoint.y, 0);
+                tmp.transform.position = textPos;
+                bg.transform.position = bgPos;
                 tmp.text = weight.ToString();
                 Vector2 textSize = tmp.GetPreferredValues(tmp.text);
                 float baseWidth = bg.GetComponent<SpriteRenderer>().size.x;
@@ -979,10 +1010,12 @@ public class GameManager : MonoBehaviour
                 bg.SetActive(false);
             }
 
-            _edges[key] = (renderer, weight, tmp, bg);
-            renderer.sortingOrder = 0;
-            if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
-                bgRenderer.sortingOrder = renderer.sortingOrder + 1;
+                                            _edges[key] = (renderer, weight, tmp, bg);
+                renderer.sortingOrder = 50; // 设置合适的排序顺序
+                renderer.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
+                renderer.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI
+                if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
+                    bgRenderer.sortingOrder = renderer.sortingOrder + 1;
             tmp.sortingOrder = bgRenderer.sortingOrder + 1;
         }
         else
@@ -991,8 +1024,9 @@ public class GameManager : MonoBehaviour
             lineObject.transform.SetParent(linesRoot);
             LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
             lineRenderer.material = _lineMaterial;
-            lineRenderer.startWidth = 0.05f;
-            lineRenderer.endWidth = 0.05f;
+            // 设置线条宽度
+            lineRenderer.startWidth = lineWidth;
+            lineRenderer.endWidth = lineWidth;
             lineRenderer.useWorldSpace = true;
             lineRenderer.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
             if (useBresenhamLine)
@@ -1007,8 +1041,11 @@ public class GameManager : MonoBehaviour
             else
             {
                 lineRenderer.positionCount = 2;
-                lineRenderer.SetPosition(0, fromCell.transform.position);
-                lineRenderer.SetPosition(1, toCell.transform.position);
+                // 确保LineRenderer的Z轴为0，避免渲染顺序问题
+                Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
+                Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
+                lineRenderer.SetPosition(0, fromPos);
+                lineRenderer.SetPosition(1, toPos);
             }
 
             EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
@@ -1020,6 +1057,8 @@ public class GameManager : MonoBehaviour
             edgeCollider.isTrigger = true;
             lineObject.layer = LayerMask.NameToLayer("Edge");
 
+            // 暂时注释掉权重文本创建，避免重复生成
+            /*
             // 创建TextMeshPro
             GameObject textObj = new GameObject("EdgeWeightText");
             textObj.transform.SetParent(lineObject.transform);
@@ -1028,28 +1067,50 @@ public class GameManager : MonoBehaviour
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
             tmp.text = weight.ToString();
+            
+            // 设置TextMeshPro的RectTransform
+            var rectTransform = tmp.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.sizeDelta = new Vector2(2f, 1f); // 设置更合适的尺寸
+            }
+            
             Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
-            textObj.transform.position = midPoint;
+            // 确保权重文本的Z轴为0，避免渲染顺序问题
+            Vector3 textPos = new Vector3(midPoint.x, midPoint.y, 0);
+            textObj.transform.position = textPos;
             textObj.transform.rotation = Quaternion.identity;
 
             // 实例化BG prefab作为背景
             GameObject bg = Instantiate(bgPrefab, lineObject.transform);
-            bg.transform.position = midPoint;
-            Vector2 textSize = tmp.GetPreferredValues(tmp.text);
-            float baseWidth = bg.GetComponent<SpriteRenderer>().size.x;
-            float baseHeight = bg.GetComponent<SpriteRenderer>().size.y;
-            bg.transform.localScale = new Vector3((textSize.x + 0.1f) / baseWidth, (textSize.y + 0.1f) / baseHeight, 1f);
+            // 确保背景的Z轴为0，避免渲染顺序问题
+            Vector3 bgPos = new Vector3(midPoint.x, midPoint.y, 0);
+            bg.transform.position = bgPos;
+            // 使用固定的背景大小，而不是基于文本大小
+            var bgSprite = bg.GetComponent<SpriteRenderer>();
+            if (bgSprite != null)
+            {
+                bgSprite.size = new Vector2(2f, 1f); // 设置固定大小
+                bg.transform.localScale = Vector3.one; // 重置缩放
+            }
 
             // 根据开关决定是否显示权重
             tmp.gameObject.SetActive(useWeightedEdges);
             bg.SetActive(useWeightedEdges);
+            */
 
-            _edges[key] = (lineRenderer, weight, tmp, bg);
+            // 暂时不创建权重文本，只存储LineRenderer
+            _edges[key] = (lineRenderer, weight, null, null);
 
-            lineRenderer.sortingOrder = 0;
+            lineRenderer.sortingOrder = 100; // 大幅提高排序顺序
+            lineRenderer.sortingLayerName = "Default"; // 改为Default层，与Tilemap保持一致
+            lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
+            // 暂时注释掉背景和文本的排序设置
+            /*
             if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
                 bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
             tmp.sortingOrder = bgRenderer.sortingOrder + 1;
+            */
         }
 
         // 新增：记录添加后的连通分量数量
@@ -1064,13 +1125,67 @@ public class GameManager : MonoBehaviour
             {
                 if (allCells.Contains(edge.Item1) && allCells.Contains(edge.Item2))
                 {
-                    if (!_edges.ContainsKey(GetCanonicalEdgeKey(edge.Item1, edge.Item2)))
+                    var canonicalKey = GetCanonicalEdgeKey(edge.Item1, edge.Item2);
+                    if (!_edges.ContainsKey(canonicalKey))
                     {
-                        CreateOrUpdateEdge(edge.Item1, edge.Item2);
+                        // 避免递归调用，直接创建边而不调用CreateOrUpdateEdge
+                        CreateEdgeDirectly(edge.Item1, edge.Item2);
                     }
                 }
             }
         }
+    }
+
+    // 直接创建边的方法，避免递归调用
+    private void CreateEdgeDirectly(Cell fromCell, Cell toCell)
+    {
+        var key = GetCanonicalEdgeKey(fromCell, toCell);
+        int weight = GetOrCreateEdgeWeight(fromCell, toCell);
+        
+        // 直接创建边，不调用CreateOrUpdateEdge避免递归
+        GameObject lineObject = new GameObject($"Line_{fromCell.Number}_to_{toCell.Number}");
+        lineObject.transform.SetParent(linesRoot);
+        LineRenderer lineRenderer = lineObject.AddComponent<LineRenderer>();
+        lineRenderer.material = _lineMaterial;
+        lineRenderer.startWidth = lineWidth;
+        lineRenderer.endWidth = lineWidth;
+        lineRenderer.useWorldSpace = true;
+        lineRenderer.textureMode = LineTextureMode.Tile;
+        
+        if (useBresenhamLine)
+        {
+            Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
+            Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
+            var pixelPoints = BresenhamLine(fromPixel, toPixel);
+            lineRenderer.positionCount = pixelPoints.Count;
+            for (int i = 0; i < pixelPoints.Count; i++)
+                lineRenderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
+        }
+        else
+        {
+            lineRenderer.positionCount = 2;
+            Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
+            Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
+            lineRenderer.SetPosition(0, fromPos);
+            lineRenderer.SetPosition(1, toPos);
+        }
+
+        EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
+        Vector2[] points = new Vector2[2];
+        points[0] = lineObject.transform.InverseTransformPoint(fromCell.transform.position);
+        points[1] = lineObject.transform.InverseTransformPoint(toCell.transform.position);
+        edgeCollider.points = points;
+        edgeCollider.edgeRadius = 0.1f;
+        edgeCollider.isTrigger = true;
+        lineObject.layer = LayerMask.NameToLayer("Edge");
+
+        // 不创建权重文本，避免重复生成
+        // 只存储LineRenderer，权重文本由CreateOrUpdateEdge处理
+        _edges[key] = (lineRenderer, weight, null, null);
+
+        lineRenderer.sortingOrder = 100;
+        lineRenderer.sortingLayerName = "Default";
+        lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default");
     }
 
     public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
@@ -1126,14 +1241,18 @@ public class GameManager : MonoBehaviour
             GameObject obj = new GameObject("EraseLine");
             eraseLineRenderer = obj.AddComponent<LineRenderer>();
             eraseLineRenderer.material = _eraseLineMaterial;
-            eraseLineRenderer.startWidth = 0.2f;
-            eraseLineRenderer.endWidth = 0.2f;
-            eraseLineRenderer.useWorldSpace = true;
-            eraseLineRenderer.textureMode = LineTextureMode.Tile; 
-            eraseLineRenderer.sortingOrder = 10; 
+                            eraseLineRenderer.startWidth = 0.2f;
+                eraseLineRenderer.endWidth = 0.2f;
+                eraseLineRenderer.useWorldSpace = true;
+                eraseLineRenderer.textureMode = LineTextureMode.Tile;
+                eraseLineRenderer.sortingOrder = 50; // 设置合适的排序顺序
+                eraseLineRenderer.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
+                eraseLineRenderer.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI 
         }
         eraseLineRenderer.positionCount = 1;
-        eraseLineRenderer.SetPosition(0, start);
+        // 确保擦除线的Z轴为0，避免渲染顺序问题
+        Vector3 startPos = new Vector3(start.x, start.y, 0);
+        eraseLineRenderer.SetPosition(0, startPos);
         eraseLineRenderer.enabled = true;
     }
 
@@ -1143,7 +1262,9 @@ public class GameManager : MonoBehaviour
         eraseLineRenderer.positionCount = path.Count;
         for (int i = 0; i < path.Count; i++)
         {
-            eraseLineRenderer.SetPosition(i, path[i]);
+            // 确保擦除线的Z轴为0，避免渲染顺序问题
+            Vector3 pathPos = new Vector3(path[i].x, path[i].y, 0);
+            eraseLineRenderer.SetPosition(i, pathPos);
         }
     }
 
@@ -1731,5 +1852,154 @@ public class GameManager : MonoBehaviour
             if (e2 < dx) { err += dx; y0 += sy; }
         }
         return points;
+    }
+
+    // 生成地形（如果需要）
+    private void GenerateTerrainIfNeeded()
+    {
+        UnityEngine.Debug.Log("🌍 GameManager: 开始检查地形生成...");
+        
+        // 如果Inspector中设置了terrainManager，直接使用
+        if (terrainManager != null)
+        {
+            UnityEngine.Debug.Log($"✅ 使用Inspector中设置的TerrainManager: {terrainManager.GetType().Name}");
+            // 通过反射调用GenerateTerrain方法
+            var generateTerrainMethod = terrainManager.GetType().GetMethod("GenerateTerrain");
+            if (generateTerrainMethod != null)
+            {
+                UnityEngine.Debug.Log("✅ 找到GenerateTerrain方法，开始调用...");
+                try
+                {
+                    generateTerrainMethod.Invoke(terrainManager, null);
+                    UnityEngine.Debug.Log("✅ 地形生成完成");
+                    
+                    // 检查Tilemap的渲染设置
+                    var tilemapComponent = terrainManager.GetType().GetProperty("tilemap")?.GetValue(terrainManager) as UnityEngine.Tilemaps.Tilemap;
+                    if (tilemapComponent != null)
+                    {
+                        UnityEngine.Debug.Log($"🔍 Tilemap渲染设置:");
+                        var renderer = tilemapComponent.GetComponent<UnityEngine.Renderer>();
+                        if (renderer != null)
+                        {
+                            UnityEngine.Debug.Log($"  - Sorting Layer: {renderer.sortingLayerName}");
+                            UnityEngine.Debug.Log($"  - Order in Layer: {renderer.sortingOrder}");
+                        }
+                        UnityEngine.Debug.Log($"  - GameObject Layer: {tilemapComponent.gameObject.layer}");
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    UnityEngine.Debug.LogError($"❌ 调用GenerateTerrain方法时出错: {ex.Message}");
+                    UnityEngine.Debug.LogError($"❌ 错误详情: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogError("❌ TerrainManager中没有找到GenerateTerrain方法");
+                // 列出所有可用的方法
+                var methods = terrainManager.GetType().GetMethods();
+                UnityEngine.Debug.Log($"🔍 TerrainManager中的方法列表:");
+                foreach (var method in methods)
+                {
+                    if (method.IsPublic)
+                    {
+                        UnityEngine.Debug.Log($"  - {method.Name}");
+                    }
+                }
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.Log("🔍 在场景中查找TerrainManager...");
+            // 在场景中查找TerrainManager
+            var allMonoBehaviours = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            UnityEngine.Debug.Log($"🔍 场景中找到 {allMonoBehaviours.Length} 个MonoBehaviour组件");
+            
+            MonoBehaviour terrainManagerInScene = null;
+            foreach (var mb in allMonoBehaviours)
+            {
+                UnityEngine.Debug.Log($"🔍 检查组件: {mb.GetType().Name}");
+                if (mb.GetType().Name == "TerrainManager")
+                {
+                    terrainManagerInScene = mb;
+                    UnityEngine.Debug.Log($"✅ 找到TerrainManager: {mb.name}");
+                    break;
+                }
+            }
+            
+            if (terrainManagerInScene != null)
+            {
+                UnityEngine.Debug.Log("✅ 在场景中找到TerrainManager");
+                // 通过反射调用GenerateTerrain方法
+                var generateTerrainMethod = terrainManagerInScene.GetType().GetMethod("GenerateTerrain");
+                if (generateTerrainMethod != null)
+                {
+                    UnityEngine.Debug.Log("✅ 找到GenerateTerrain方法，开始调用...");
+                    try
+                    {
+                        generateTerrainMethod.Invoke(terrainManagerInScene, null);
+                        UnityEngine.Debug.Log("✅ 地形生成完成");
+                        
+                        // 检查Tilemap的渲染设置
+                        var tilemapComponent = terrainManagerInScene.GetType().GetProperty("tilemap")?.GetValue(terrainManagerInScene) as UnityEngine.Tilemaps.Tilemap;
+                        if (tilemapComponent != null)
+                        {
+                            UnityEngine.Debug.Log($"🔍 Tilemap渲染设置:");
+                            var renderer = tilemapComponent.GetComponent<UnityEngine.Renderer>();
+                            if (renderer != null)
+                            {
+                                UnityEngine.Debug.Log($"  - Sorting Layer: {renderer.sortingLayerName}");
+                                UnityEngine.Debug.Log($"  - Order in Layer: {renderer.sortingOrder}");
+                            }
+                            UnityEngine.Debug.Log($"  - GameObject Layer: {tilemapComponent.gameObject.layer}");
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        UnityEngine.Debug.LogError($"❌ 调用GenerateTerrain方法时出错: {ex.Message}");
+                        UnityEngine.Debug.LogError($"❌ 错误详情: {ex.StackTrace}");
+                    }
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError("❌ TerrainManager中没有找到GenerateTerrain方法");
+                    // 列出所有可用的方法
+                    var methods = terrainManagerInScene.GetType().GetMethods();
+                    UnityEngine.Debug.Log($"🔍 TerrainManager中的方法列表:");
+                    foreach (var method in methods)
+                    {
+                        if (method.IsPublic)
+                        {
+                            UnityEngine.Debug.Log($"  - {method.Name}");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning("⚠️ 场景中没有找到TerrainManager，跳过地形生成");
+                UnityEngine.Debug.LogWarning("⚠️ 请确保场景中有TerrainManager组件，或者在GameManager的Inspector中设置terrainManager字段");
+            }
+        }
+    }
+    
+    // 设置Camera渲染设置，确保LineRenderer可见
+    private void SetupCameraForLineRenderer()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera != null)
+        {
+            // 确保UI层和Default层都被渲染
+            int uiLayer = LayerMask.NameToLayer("UI");
+            int defaultLayer = LayerMask.NameToLayer("Default");
+            
+            // 设置culling mask包含UI和Default层
+            mainCamera.cullingMask |= (1 << uiLayer) | (1 << defaultLayer);
+            
+            UnityEngine.Debug.Log($"🔍 Camera设置完成:");
+            UnityEngine.Debug.Log($"  - Culling Mask: {mainCamera.cullingMask}");
+            UnityEngine.Debug.Log($"  - UI Layer: {uiLayer}");
+            UnityEngine.Debug.Log($"  - Default Layer: {defaultLayer}");
+        }
     }
 }

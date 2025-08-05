@@ -30,6 +30,8 @@ public class TilemapGameManager : MonoBehaviour
     public int maxNodes = 50;
     public float samplingRadius = 2.0f;
 
+    [Header("调试设置")]
+    [SerializeField] private bool enableGlobalClickDetection = true; // 全局点击检测开关
 
 
     [System.Serializable]
@@ -128,116 +130,15 @@ public class TilemapGameManager : MonoBehaviour
     [ContextMenu("生成地形节点")]
     public void GenerateNodesOnTerrain()
     {
-        // 详细的调试信息
-        if (terrainManager == null)
-        {
-            Debug.LogError("❌ TerrainManager 为 null！请检查组件引用。");
-            return;
-        }
-        
-        var hexTiles = terrainManager.GetHexTiles();
-        if (hexTiles == null)
-        {
-            Debug.LogWarning("⚠️ 地形数据为空，尝试自动生成地形...");
-            
-            // 尝试自动生成地形
-            try
-            {
-                terrainManager.GenerateTerrain();
-                hexTiles = terrainManager.GetHexTiles();
-                
-                if (hexTiles == null || hexTiles.Count == 0)
-                {
-                    Debug.LogError("❌ 自动生成地形失败！");
-                    Debug.Log("💡 解决方案：请手动在 TerrainManager 组件上右键选择'生成地形'");
-                    return;
-                }
-                
-                Debug.Log($"✅ 自动生成地形成功！生成了 {hexTiles.Count} 个六边形");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"❌ 自动生成地形时发生错误：{e.Message}");
-                Debug.Log("💡 解决方案：请手动在 TerrainManager 组件上右键选择'生成地形'");
-                return;
-            }
-        }
-        
-        if (hexTiles.Count == 0)
-        {
-            Debug.LogError("❌ 地形数据为空！请先生成地形。");
-            Debug.Log("💡 提示：右键点击 TerrainManager 组件，选择'生成地形'");
-            return;
-        }
-        
-        Debug.Log($"✅ 找到地形数据：{hexTiles.Count} 个六边形");
-
-        ClearGeneratedContent();
-
-        // 获取地形边界
-        var terrainBounds = CalculateTerrainBounds(hexTiles);
-        Debug.Log($"地形边界: {terrainBounds.min} 到 {terrainBounds.max}");
-
-        // 🎯 新方案：先生成点，找到外界矩形，拉伸到地图80%大小居中，调整点位置，然后连线
-
-        // 步骤1: 先生成点（使用较大的边界确保有足够的点）
-        var expandedBounds = terrainBounds;
-        expandedBounds.Expand(2.0f); // 扩大边界以获得更多点
-        var rawNodePositions = PoissonDiskSampling(expandedBounds, samplingRadius, maxNodes);
-        Debug.Log($"步骤1完成: 生成了 {rawNodePositions.Count} 个原始点");
-
-        // 步骤2: 找到外界矩形
-        var pointBounds = CalculatePointBounds(rawNodePositions);
-        Debug.Log($"步骤2完成: 点集边界: {pointBounds.min} 到 {pointBounds.max}");
-
-        // 步骤3: 计算目标边界（地形80%大小，居中）
-        var targetBounds = CalculateTargetBounds(terrainBounds, 0.9f);
-        Debug.Log($"步骤3完成: 目标边界: {targetBounds.min} 到 {targetBounds.max}");
-
-        // 步骤4: 调整点位置（拉伸和居中）
-        var adjustedPositions = AdjustPointPositions(rawNodePositions, pointBounds, targetBounds);
-        Debug.Log($"步骤4完成: 调整了 {adjustedPositions.Count} 个点的位置");
-
-        // 步骤5: 创建Cell对象
-        foreach (var position in adjustedPositions)
-        {
-            CreateCellAtPosition(position);
-        }
-
-        // 步骤6: 生成Delaunay三角剖分连线
-        GenerateDelaunayTriangulation();
-
-        Debug.Log($"✅ 完成！生成了 {generatedCells.Count} 个节点和 {generatedEdges.Count} 条边");
-        
-        // 自动调整渲染顺序，确保cells和weights显示在edges之上
-        // AdjustRenderingOrder(); // 已删除，无需再调用
-        
-        // 验证最终结果
-        var finalBounds = CalculatePointBounds(adjustedPositions);
-        Debug.Log($"最终点集边界: {finalBounds.min} 到 {finalBounds.max}");
-        Debug.Log($"覆盖率: X={finalBounds.size.x/terrainBounds.size.x:F2}, Y={finalBounds.size.y/terrainBounds.size.y:F2}");
+        Debug.Log("⚠️ TilemapGameManager 的cell生成功能已禁用，只使用 GameManager 生成的cells");
+        Debug.Log("💡 请使用 GameManager 来生成和管理cells");
+        return;
     }
 
     private void CreateCellAtPosition(Vector3 worldPosition)
     {
-        if (cellPrefab == null)
-        {
-            Debug.LogError("Cell预制体未设置！");
-            return;
-        }
-
-        GameObject cellObj = Instantiate(cellPrefab, worldPosition, Quaternion.identity);
-        
-        // 将Cell对象设置为TilemapCellsRoot的子对象
-        cellObj.transform.SetParent(cellsRoot.transform);
-        
-        Cell cell = cellObj.GetComponent<Cell>();
-        if (cell != null)
-        {
-            // 调用Cell的Init方法，传入false表示这是普通Cell而不是权重标签
-            cell.Init(generatedCells.Count, false);
-            generatedCells.Add(cell);
-        }
+        Debug.Log("⚠️ CreateCellAtPosition 已禁用，只使用 GameManager 生成的cells");
+        return;
     }
 
     private Bounds CalculateTerrainBounds(List<HexCoordinateSystem.HexTile> hexTiles)
@@ -466,43 +367,8 @@ public class TilemapGameManager : MonoBehaviour
 
     private void GenerateDelaunayTriangulation()
     {
-        if (generatedCells.Count < 3) 
-        {
-            Debug.LogWarning("节点数量不足，无法生成三角剖分");
-            return;
-        }
-
-        Debug.Log($"开始生成Delaunay三角剖分，节点数: {generatedCells.Count}");
-
-        // 简化的三角剖分
-        var points = generatedCells.Select(c => new Vector2(c.transform.position.x, c.transform.position.y)).ToList();
-        var triangles = DelaunayTriangulation(points);
-
-        Debug.Log($"生成了 {triangles.Count} 个三角形");
-
-        // 创建边
-        int edgesCreated = 0;
-        foreach (var triangle in triangles)
-        {
-            Debug.Log($"处理三角形: ({triangle.Item1}, {triangle.Item2}, {triangle.Item3})");
-            
-            // 安全检查
-            if (triangle.Item1 >= 0 && triangle.Item1 < generatedCells.Count &&
-                triangle.Item2 >= 0 && triangle.Item2 < generatedCells.Count &&
-                triangle.Item3 >= 0 && triangle.Item3 < generatedCells.Count)
-            {
-                CreateEdge(generatedCells[triangle.Item1], generatedCells[triangle.Item2]);
-                CreateEdge(generatedCells[triangle.Item2], generatedCells[triangle.Item3]);
-                CreateEdge(generatedCells[triangle.Item3], generatedCells[triangle.Item1]);
-                edgesCreated += 3;
-            }
-            else
-            {
-                Debug.LogError($"三角形索引越界: {triangle.Item1}, {triangle.Item2}, {triangle.Item3}, 节点数: {generatedCells.Count}");
-            }
-        }
-        
-        Debug.Log($"成功创建了 {edgesCreated} 条边");
+        Debug.Log("⚠️ GenerateDelaunayTriangulation 已禁用，只使用 GameManager 生成的cells和edges");
+        return;
     }
 
     private List<(int, int, int)> DelaunayTriangulation(List<Vector2> points)
@@ -671,29 +537,11 @@ public class TilemapGameManager : MonoBehaviour
         return count > 0;
     }
 
+    // 已禁用：边的创建
     private void CreateEdge(Cell cellA, Cell cellB)
     {
-        if (cellA == cellB) 
-        {
-            Debug.LogWarning("尝试创建自环边，跳过");
-            return;
-        }
-
-        var edge = GetCanonicalEdge(cellA, cellB);
-        if (generatedEdges.Contains(edge)) 
-        {
-            Debug.Log($"边已存在: {cellA.Number} - {cellB.Number}");
-            return;
-        }
-
-        generatedEdges.Add(edge);
-        Debug.Log($"创建新边: {cellA.Number} - {cellB.Number}");
-
-        // 获取或创建权重（类似GameManager.cs）
-        int weight = GetOrCreateEdgeWeight(cellA, cellB);
-
-        // 创建可视化线条
-        CreateEdgeLine(cellA, cellB, weight);
+        Debug.Log("⚠️ CreateEdge 已禁用，只使用 GameManager 生成的edges");
+        return;
     }
     
     private int GetOrCreateEdgeWeight(Cell a, Cell b)
@@ -758,81 +606,10 @@ public class TilemapGameManager : MonoBehaviour
         return totalWeight;
     }
 
+    // 已禁用：边的创建
     private void CreateEdgeLine(Cell cellA, Cell cellB, int weight)
     {
-        GameObject lineObj = new GameObject($"Line_{cellA.Number}_{cellB.Number}");
-        lineObj.transform.SetParent(linesRoot.transform);
-
-        LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
-        lineRenderer.material = new Material(lineMaterial); // 创建独立的材质实例
-        
-        // 使用固定线条粗细
-        float lineWidth = 0.1f; // 固定粗细
-        lineRenderer.startWidth = lineWidth;
-        lineRenderer.endWidth = lineWidth;
-        lineRenderer.positionCount = 2;
-        lineRenderer.useWorldSpace = true;
-
-        // 根据权重选择线条样式（不设置颜色）
-        if (weight > 0)
-        {
-            // 正权重：实线
-            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(1, 1); // 实线
-        }
-        else if (weight < 0)
-        {
-            // 负权重：虚线
-            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(5, 1); // 虚线
-        }
-        else
-        {
-            // 零权重：点线
-            lineRenderer.sharedMaterial.mainTextureScale = new Vector2(10, 1); // 点线
-        }
-
-        lineRenderer.SetPosition(0, cellA.transform.position);
-        lineRenderer.SetPosition(1, cellB.transform.position);
-
-        // 设置线条在第三层的Edge层
-        lineObj.layer = 2; // 第三层（索引为2）
-        
-        // 设置渲染层级，确保线条显示在地形之上，但在cells和weights之下
-        lineRenderer.sortingOrder = 5; // 降低排序顺序，让cells和weights显示在上方
-        lineRenderer.sortingLayerName = "Default"; // 确保在正确的排序层
-
-        // 添加碰撞器以支持点击检测
-        BoxCollider2D collider = lineObj.AddComponent<BoxCollider2D>();
-        collider.isTrigger = true;
-        
-        // 计算碰撞器大小和位置
-        Vector3 direction = cellB.transform.position - cellA.transform.position;
-        float distance = direction.magnitude;
-        
-        // 设置碰撞器大小
-        collider.size = new Vector2(distance, lineWidth); // 宽度和线条粗细一样
-        
-        // 设置碰撞器旋转
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        lineObj.transform.rotation = Quaternion.Euler(0, 0, angle);
-        
-        // 将GameObject移动到两点之间的中点，这样碰撞器就自然居中了
-        Vector3 midPoint = (cellA.transform.position + cellB.transform.position) * 0.5f;
-        lineObj.transform.position = midPoint;
-        
-        // 设置碰撞器偏移为0，让它自然回到原位
-        collider.offset = Vector2.zero;
-        
-        // 移除edge的点击检测，改为点击weight标签
-        // EdgeClickHandler clickHandler = lineObj.AddComponent<EdgeClickHandler>();
-        // clickHandler.Initialize(cellA, cellB, this);
-
-        edgeLines[(cellA, cellB)] = lineRenderer;
-
-        // 添加权重标签
-        if (showWeightLabels)
-        {
-            CreateWeightLabel(cellA.transform.position, cellB.transform.position, weight, cellA, cellB);
-        }
+        // 已禁用
     }
 
 
@@ -907,151 +684,10 @@ public class TilemapGameManager : MonoBehaviour
         Debug.Log("---");
     }
 
+    // 已禁用：权重标签创建
     private void CreateWeightLabel(Vector3 posA, Vector3 posB, int weight, Cell cellA = null, Cell cellB = null)
     {
-        Vector3 midPoint = (posA + posB) * 0.5f;
-        
-        Debug.Log($"🔍 CreateWeightLabel被调用: weight={weight}, cellA={cellA?.Number}, cellB={cellB?.Number}");
-        
-        // 检查是否有权重标签预制件
-        if (weightLabelPrefab == null)
-        {
-            Debug.LogWarning("⚠️ 权重标签预制件未设置，将使用动态创建的TextMesh");
-            CreateDynamicWeightLabel(midPoint, weight, cellA, cellB);
-            return;
-        }
-        
-        Debug.Log($"🔍 使用权重标签预制件: {weightLabelPrefab.name}");
-        
-        // 实例化权重标签预制件
-        GameObject labelObj = Instantiate(weightLabelPrefab, midPoint, Quaternion.identity);
-        labelObj.transform.SetParent(linesRoot.transform);
-        labelObj.name = $"EdgeWeightText_{weight}";
-        
-        Debug.Log($"✅ 创建了权重标签对象: {labelObj.name}");
-        
-        // 如果权重标签预制件使用的是Cell脚本，需要正确初始化
-        Cell cellComponent = labelObj.GetComponent<Cell>();
-        if (cellComponent != null)
-        {
-            Debug.Log($"✅ 找到Cell组件，调用Init方法");
-            // 调用Cell的Init方法，传入true表示这是权重标签
-            cellComponent.Init(weight, true);
-            cellComponent.Number = weight; // 设置权重值作为数字
-        }
-        else
-        {
-            Debug.Log($"⚠️ 权重标签预制件中没有Cell组件");
-        }
-        
-        // 尝试获取TextMeshProUGUI组件（UI版本，优先）
-        TextMeshProUGUI textMeshProUGUI = labelObj.GetComponent<TextMeshProUGUI>();
-        if (textMeshProUGUI == null)
-        {
-            textMeshProUGUI = labelObj.GetComponentInChildren<TextMeshProUGUI>();
-            if (textMeshProUGUI != null)
-            {
-                Debug.Log($"✅ 在子对象中找到TextMeshProUGUI组件: {textMeshProUGUI.name}");
-            }
-        }
-        else
-        {
-            Debug.Log($"✅ 在根对象中找到TextMeshProUGUI组件: {textMeshProUGUI.name}");
-        }
-        
-        // 如果找到TextMeshProUGUI，使用它
-        if (textMeshProUGUI != null)
-        {
-            textMeshProUGUI.text = weight.ToString();
-            
-            // 对于UI元素，通过Canvas设置渲染层级
-            Canvas canvas = labelObj.GetComponent<Canvas>();
-            if (canvas != null)
-            {
-                canvas.sortingOrder = 25; // 提高排序顺序，确保显示在最上层
-                canvas.sortingLayerName = "Default";
-            }
-            
-            // 稍微向上偏移，避免与线条重叠
-            labelObj.transform.position += Vector3.up * 0.3f;
-            
-            // 添加点击检测组件
-            Debug.Log($"🔍 准备添加WeightClickHandler到TextMeshProUGUI对象");
-            AddWeightClickHandler(labelObj, cellA, cellB);
-            return;
-        }
-        
-        // 尝试获取TextMeshPro组件（3D版本，作为备选）
-        TextMeshPro textMeshPro = labelObj.GetComponent<TextMeshPro>();
-        if (textMeshPro == null)
-        {
-            textMeshPro = labelObj.GetComponentInChildren<TextMeshPro>();
-            if (textMeshPro != null)
-            {
-                Debug.Log($"✅ 在子对象中找到TextMeshPro组件: {textMeshPro.name}");
-            }
-        }
-        else
-        {
-            Debug.Log($"✅ 在根对象中找到TextMeshPro组件: {textMeshPro.name}");
-        }
-        
-        // 如果找到TextMeshPro，使用它
-        if (textMeshPro != null)
-        {
-            textMeshPro.text = weight.ToString();
-            
-            // 设置渲染层级
-            textMeshPro.sortingOrder = 25; // 提高排序顺序，确保显示在最上层
-            // TextMeshPro的sortingLayerName需要通过Renderer组件设置
-            Renderer renderer = textMeshPro.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.sortingLayerName = "Default";
-            }
-            
-            // 稍微向上偏移，避免与线条重叠
-            labelObj.transform.position += Vector3.up * 0.3f;
-            
-            // 添加点击检测组件
-            Debug.Log($"🔍 准备添加WeightClickHandler到TextMeshPro对象");
-            AddWeightClickHandler(labelObj, cellA, cellB);
-            return;
-        }
-        
-        // 尝试获取TextMesh组件
-        TextMesh textMesh = labelObj.GetComponent<TextMesh>();
-        if (textMesh == null)
-        {
-            textMesh = labelObj.GetComponentInChildren<TextMesh>();
-        }
-        
-        // 如果找到TextMesh，使用它
-        if (textMesh != null)
-        {
-            textMesh.text = weight.ToString();
-            textMesh.fontSize = 20;
-            textMesh.characterSize = 0.1f;
-            textMesh.alignment = TextAlignment.Center;
-            textMesh.anchor = TextAnchor.MiddleCenter;
-            
-            // 设置渲染层级
-            textMesh.GetComponent<MeshRenderer>().sortingOrder = 25; // 提高排序顺序，确保显示在最上层
-            textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
-            
-            // 稍微向上偏移，避免与线条重叠
-            labelObj.transform.position += Vector3.up * 0.3f;
-            
-            // 添加点击检测组件
-            Debug.Log($"🔍 准备添加WeightClickHandler到TextMesh对象");
-            AddWeightClickHandler(labelObj, cellA, cellB);
-            return;
-        }
-        
-        // 如果预制件中没有找到文本组件，回退到动态创建
-        Debug.LogWarning("⚠️ 权重标签预制件中没有找到TextMesh、TextMeshPro或TextMeshProUGUI组件，将使用动态创建");
-        DestroyImmediate(labelObj);
-        CreateDynamicWeightLabel(midPoint, weight, cellA, cellB);
+        // 已禁用
     }
     
     private void AddWeightClickHandler(GameObject labelObj, Cell cellA, Cell cellB)
@@ -1096,32 +732,10 @@ public class TilemapGameManager : MonoBehaviour
         }
     }
     
+    // 已禁用：动态权重标签创建
     private void CreateDynamicWeightLabel(Vector3 position, int weight, Cell cellA = null, Cell cellB = null)
     {
-        GameObject labelObj = new GameObject($"EdgeWeightText_{weight}");
-        labelObj.transform.SetParent(linesRoot.transform);
-        labelObj.transform.position = position;
-
-        // 添加TextMesh组件来显示权重
-        TextMesh textMesh = labelObj.AddComponent<TextMesh>();
-        textMesh.text = weight.ToString();
-        textMesh.fontSize = 20;
-        textMesh.characterSize = 0.1f;
-        textMesh.alignment = TextAlignment.Center;
-        textMesh.anchor = TextAnchor.MiddleCenter;
-        
-        // 设置渲染层级，确保文本显示在线条之上
-        textMesh.GetComponent<MeshRenderer>().sortingOrder = 25; // 提高排序顺序，确保显示在最上层
-        textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
-        
-        // 稍微向上偏移，避免与线条重叠
-        labelObj.transform.position += Vector3.up * 0.3f;
-        
-        // 添加点击检测组件（如果提供了Cell引用）
-        if (cellA != null && cellB != null)
-        {
-            AddWeightClickHandler(labelObj, cellA, cellB);
-        }
+        // 已禁用
     }
 
 
@@ -1155,9 +769,9 @@ public class TilemapGameManager : MonoBehaviour
         if (cellsRoot != null)
             DestroyImmediate(cellsRoot);
         
-        linesRoot = new GameObject("TilemapLinesRoot");
-        
-        cellsRoot = new GameObject("TilemapCellsRoot");
+        // 重置为null，避免在OnDestroy时重新创建
+        linesRoot = null;
+        cellsRoot = null;
     }
 
 
@@ -1165,6 +779,34 @@ public class TilemapGameManager : MonoBehaviour
     void OnDestroy()
     {
         ClearGeneratedContent();
+    }
+
+    // 全局点击检测功能
+    private void Update()
+    {
+        if (!enableGlobalClickDetection) return;
+
+        if (Input.GetMouseButtonDown(0)) // 左键点击
+        {
+            HandleGlobalMouseClick();
+        }
+    }
+
+    private void HandleGlobalMouseClick()
+    {
+        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 mousePos2D = new Vector2(mouseWorld.x, mouseWorld.y);
+
+        // 检测所有碰撞器
+        Collider2D[] allColliders = Physics2D.OverlapPointAll(mousePos2D);
+        
+        if (allColliders.Length == 0)
+        {
+            Debug.Log($"🖱️ 点击位置: ({mouseWorld.x:F2}, {mouseWorld.y:F2}) - 未检测到任何对象");
+            return;
+        }
+
+        Debug.Log($"🖱️ 点击位置: ({mouseWorld.x:F2}, {mouseWorld.y:F2}) - 点击到的对象: {allColliders[0].gameObject.name}");
     }
 
     // 处理Inspector中的按钮点击
