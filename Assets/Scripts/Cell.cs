@@ -78,10 +78,19 @@ public class Cell : MonoBehaviour
             collider = gameObject.AddComponent<BoxCollider2D>();
         }
 
-        // 根据SpriteRenderer的尺寸设置Collider的size
-        if (_cellSprite != null)
+        // 根据用途设置不同的碰撞器大小
+        if (isWeightLabel)
         {
-            collider.size = _cellSprite.bounds.size * 5f;
+            // Weight标签使用与Cell预制件一致的大小
+            // Cell预制件的Sprite大小是2x2，缩放是0.82，所以实际大小是1.64x1.64
+            float cellSize = 2f * 0.82f; // 1.64
+            collider.size = new Vector2(cellSize, cellSize);
+            collider.isTrigger = true;
+        }
+        else
+        {
+            // 普通Cell也使用2x2的碰撞器大小
+            collider.size = new Vector2(2f, 2f);
         }
     }
 

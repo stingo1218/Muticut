@@ -30,6 +30,8 @@ public class TilemapGameManager : MonoBehaviour
     public int maxNodes = 50;
     public float samplingRadius = 2.0f;
 
+
+
     [System.Serializable]
     public class TerrainWeights
     {
@@ -100,10 +102,8 @@ public class TilemapGameManager : MonoBehaviour
 
         // 创建根对象
         linesRoot = new GameObject("TilemapLinesRoot");
-        linesRoot.hideFlags = HideFlags.DontSave;
         
         cellsRoot = new GameObject("TilemapCellsRoot");
-        cellsRoot.hideFlags = HideFlags.DontSave;
         
         // 检查并提示地形状态
         if (terrainManager != null)
@@ -210,7 +210,7 @@ public class TilemapGameManager : MonoBehaviour
         Debug.Log($"✅ 完成！生成了 {generatedCells.Count} 个节点和 {generatedEdges.Count} 条边");
         
         // 自动调整渲染顺序，确保cells和weights显示在edges之上
-        AdjustRenderingOrder();
+        // AdjustRenderingOrder(); // 已删除，无需再调用
         
         // 验证最终结果
         var finalBounds = CalculatePointBounds(adjustedPositions);
@@ -227,7 +227,6 @@ public class TilemapGameManager : MonoBehaviour
         }
 
         GameObject cellObj = Instantiate(cellPrefab, worldPosition, Quaternion.identity);
-        cellObj.hideFlags = HideFlags.DontSave;
         
         // 将Cell对象设置为TilemapCellsRoot的子对象
         cellObj.transform.SetParent(cellsRoot.transform);
@@ -747,34 +746,28 @@ public class TilemapGameManager : MonoBehaviour
 
         if (crossedBiomes.Count == 0) return terrainWeights.defaultWeight;
 
+        // 简单累加所有地形的权重
         int totalWeight = 0;
-        int minWeight = int.MaxValue;
-
         foreach (var biome in crossedBiomes)
         {
             int biomeWeight = terrainWeights.GetWeightForBiome(biome);
             totalWeight += biomeWeight;
-            minWeight = Mathf.Min(minWeight, biomeWeight);
         }
-
-        int avgWeight = totalWeight / crossedBiomes.Count;
-        int finalWeight = Mathf.RoundToInt(0.7f * minWeight + 0.3f * avgWeight);
         
-        // 限制权重范围，避免过大的负值
-        return Mathf.Clamp(finalWeight, -20, 10);
+        // 返回累加的权重，不进行范围限制，让权重自然反映地形的累积效果
+        return totalWeight;
     }
 
     private void CreateEdgeLine(Cell cellA, Cell cellB, int weight)
     {
         GameObject lineObj = new GameObject($"Line_{cellA.Number}_{cellB.Number}");
-        lineObj.hideFlags = HideFlags.DontSave;
         lineObj.transform.SetParent(linesRoot.transform);
 
         LineRenderer lineRenderer = lineObj.AddComponent<LineRenderer>();
         lineRenderer.material = new Material(lineMaterial); // 创建独立的材质实例
         
-        // 根据权重调整线条样式（类似GameManager.cs）
-        float lineWidth = Mathf.Clamp(Mathf.Abs(weight) * lineWidthMultiplier + 0.05f, 0.05f, 0.5f);
+        // 使用固定线条粗细
+        float lineWidth = 0.1f; // 固定粗细
         lineRenderer.startWidth = lineWidth;
         lineRenderer.endWidth = lineWidth;
         lineRenderer.positionCount = 2;
@@ -807,24 +800,124 @@ public class TilemapGameManager : MonoBehaviour
         lineRenderer.sortingOrder = 5; // 降低排序顺序，让cells和weights显示在上方
         lineRenderer.sortingLayerName = "Default"; // 确保在正确的排序层
 
+        // 添加碰撞器以支持点击检测
+        BoxCollider2D collider = lineObj.AddComponent<BoxCollider2D>();
+        collider.isTrigger = true;
+        
+        // 计算碰撞器大小和位置
+        Vector3 direction = cellB.transform.position - cellA.transform.position;
+        float distance = direction.magnitude;
+        
+        // 设置碰撞器大小
+        collider.size = new Vector2(distance, lineWidth); // 宽度和线条粗细一样
+        
+        // 设置碰撞器旋转
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        lineObj.transform.rotation = Quaternion.Euler(0, 0, angle);
+        
+        // 将GameObject移动到两点之间的中点，这样碰撞器就自然居中了
+        Vector3 midPoint = (cellA.transform.position + cellB.transform.position) * 0.5f;
+        lineObj.transform.position = midPoint;
+        
+        // 设置碰撞器偏移为0，让它自然回到原位
+        collider.offset = Vector2.zero;
+        
+        // 移除edge的点击检测，改为点击weight标签
+        // EdgeClickHandler clickHandler = lineObj.AddComponent<EdgeClickHandler>();
+        // clickHandler.Initialize(cellA, cellB, this);
+
         edgeLines[(cellA, cellB)] = lineRenderer;
 
         // 添加权重标签
         if (showWeightLabels)
         {
-            CreateWeightLabel(cellA.transform.position, cellB.transform.position, weight);
+            CreateWeightLabel(cellA.transform.position, cellB.transform.position, weight, cellA, cellB);
         }
     }
 
-    private void CreateWeightLabel(Vector3 posA, Vector3 posB, int weight)
+
+    
+
+
+    // 新增：显示edge经过的tile信息
+    public void ShowEdgeTileInfo(Cell cellA, Cell cellB)
+    {
+        Debug.Log($"🔍 分析Edge: Cell {cellA.Number} -> Cell {cellB.Number}");
+        
+        var crossedBiomes = new List<HexCoordinateSystem.BiomeType>();
+        var crossedTiles = new List<(Vector3Int position, HexCoordinateSystem.BiomeType biome)>();
+
+        // 沿线段采样
+        float distance = Vector3.Distance(cellA.transform.position, cellB.transform.position);
+        int sampleCount = Mathf.Max(3, Mathf.RoundToInt(distance / 0.5f));
+
+        Debug.Log($"📏 Edge长度: {distance:F2} 单位，采样点数量: {sampleCount + 1}");
+
+        for (int i = 0; i <= sampleCount; i++)
+        {
+            float t = (float)i / sampleCount;
+            Vector3 samplePos = Vector3.Lerp(cellA.transform.position, cellB.transform.position, t);
+
+            Vector3Int cellPos = terrainManager.tilemap.WorldToCell(samplePos);
+            var hex = terrainManager.GetHexTiles().FirstOrDefault(h => {
+                Vector3Int hexPos = terrainManager.ConvertHexToTilePosition(h);
+                return hexPos.x == cellPos.x && hexPos.y == cellPos.y;
+            });
+
+            if (hex != null)
+            {
+                crossedBiomes.Add(hex.biome);
+                crossedTiles.Add((cellPos, hex.biome));
+                
+                Debug.Log($"📍 采样点 {i + 1}/{sampleCount + 1}: 位置 {samplePos:F2} -> Tile坐标 ({cellPos.x}, {cellPos.y}) -> 生物群系: {hex.biome}");
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ 采样点 {i + 1}/{sampleCount + 1}: 位置 {samplePos:F2} -> Tile坐标 ({cellPos.x}, {cellPos.y}) -> 未找到对应的HexTile");
+            }
+        }
+
+        if (crossedTiles.Count == 0)
+        {
+            Debug.LogWarning("❌ 未找到任何经过的tile！");
+            return;
+        }
+
+        // 统计信息
+        var biomeCounts = crossedBiomes.GroupBy(b => b).ToDictionary(g => g.Key, g => g.Count());
+        
+        Debug.Log("📊 Edge经过的Tile统计:");
+        Debug.Log($"   总Tile数量: {crossedTiles.Count}");
+        
+        foreach (var kvp in biomeCounts)
+        {
+            int biomeWeight = terrainWeights.GetWeightForBiome(kvp.Key);
+            Debug.Log($"   {kvp.Key}: {kvp.Value} 个tile (权重: {biomeWeight})");
+        }
+
+        // 计算总权重
+        int totalWeight = 0;
+        foreach (var biome in crossedBiomes)
+        {
+            int biomeWeight = terrainWeights.GetWeightForBiome(biome);
+            totalWeight += biomeWeight;
+        }
+        
+        Debug.Log($"🎯 Edge最终权重: {totalWeight}");
+        Debug.Log("---");
+    }
+
+    private void CreateWeightLabel(Vector3 posA, Vector3 posB, int weight, Cell cellA = null, Cell cellB = null)
     {
         Vector3 midPoint = (posA + posB) * 0.5f;
+        
+        Debug.Log($"🔍 CreateWeightLabel被调用: weight={weight}, cellA={cellA?.Number}, cellB={cellB?.Number}");
         
         // 检查是否有权重标签预制件
         if (weightLabelPrefab == null)
         {
             Debug.LogWarning("⚠️ 权重标签预制件未设置，将使用动态创建的TextMesh");
-            CreateDynamicWeightLabel(midPoint, weight);
+            CreateDynamicWeightLabel(midPoint, weight, cellA, cellB);
             return;
         }
         
@@ -832,17 +925,23 @@ public class TilemapGameManager : MonoBehaviour
         
         // 实例化权重标签预制件
         GameObject labelObj = Instantiate(weightLabelPrefab, midPoint, Quaternion.identity);
-        labelObj.hideFlags = HideFlags.DontSave;
         labelObj.transform.SetParent(linesRoot.transform);
         labelObj.name = $"EdgeWeightText_{weight}";
+        
+        Debug.Log($"✅ 创建了权重标签对象: {labelObj.name}");
         
         // 如果权重标签预制件使用的是Cell脚本，需要正确初始化
         Cell cellComponent = labelObj.GetComponent<Cell>();
         if (cellComponent != null)
         {
+            Debug.Log($"✅ 找到Cell组件，调用Init方法");
             // 调用Cell的Init方法，传入true表示这是权重标签
             cellComponent.Init(weight, true);
             cellComponent.Number = weight; // 设置权重值作为数字
+        }
+        else
+        {
+            Debug.Log($"⚠️ 权重标签预制件中没有Cell组件");
         }
         
         // 尝试获取TextMeshProUGUI组件（UI版本，优先）
@@ -875,6 +974,10 @@ public class TilemapGameManager : MonoBehaviour
             
             // 稍微向上偏移，避免与线条重叠
             labelObj.transform.position += Vector3.up * 0.3f;
+            
+            // 添加点击检测组件
+            Debug.Log($"🔍 准备添加WeightClickHandler到TextMeshProUGUI对象");
+            AddWeightClickHandler(labelObj, cellA, cellB);
             return;
         }
         
@@ -909,6 +1012,10 @@ public class TilemapGameManager : MonoBehaviour
             
             // 稍微向上偏移，避免与线条重叠
             labelObj.transform.position += Vector3.up * 0.3f;
+            
+            // 添加点击检测组件
+            Debug.Log($"🔍 准备添加WeightClickHandler到TextMeshPro对象");
+            AddWeightClickHandler(labelObj, cellA, cellB);
             return;
         }
         
@@ -934,19 +1041,64 @@ public class TilemapGameManager : MonoBehaviour
             
             // 稍微向上偏移，避免与线条重叠
             labelObj.transform.position += Vector3.up * 0.3f;
+            
+            // 添加点击检测组件
+            Debug.Log($"🔍 准备添加WeightClickHandler到TextMesh对象");
+            AddWeightClickHandler(labelObj, cellA, cellB);
             return;
         }
         
         // 如果预制件中没有找到文本组件，回退到动态创建
         Debug.LogWarning("⚠️ 权重标签预制件中没有找到TextMesh、TextMeshPro或TextMeshProUGUI组件，将使用动态创建");
         DestroyImmediate(labelObj);
-        CreateDynamicWeightLabel(midPoint, weight);
+        CreateDynamicWeightLabel(midPoint, weight, cellA, cellB);
     }
     
-    private void CreateDynamicWeightLabel(Vector3 position, int weight)
+    private void AddWeightClickHandler(GameObject labelObj, Cell cellA, Cell cellB)
+    {
+        Debug.Log($"🔍 AddWeightClickHandler被调用: labelObj={labelObj.name}, cellA={cellA?.Number}, cellB={cellB?.Number}");
+        
+        if (cellA == null || cellB == null)
+        {
+            Debug.LogWarning("⚠️ 无法添加WeightClickHandler：Cell引用为空");
+            return;
+        }
+        
+        // 检查是否已经有WeightClickHandler组件
+        WeightClickHandler existingHandler = labelObj.GetComponent<WeightClickHandler>();
+        if (existingHandler != null)
+        {
+            Debug.LogWarning($"⚠️ 对象 {labelObj.name} 已经有WeightClickHandler组件");
+            return;
+        }
+        
+        // 添加点击检测组件
+        WeightClickHandler clickHandler = labelObj.AddComponent<WeightClickHandler>();
+        if (clickHandler == null)
+        {
+            Debug.LogError($"❌ 无法添加WeightClickHandler组件到 {labelObj.name}");
+            return;
+        }
+        
+        clickHandler.Initialize(cellA, cellB, this);
+        
+        Debug.Log($"✅ 为Weight标签添加了点击检测: Cell {cellA.Number} -> Cell {cellB.Number}");
+        
+        // 验证组件是否真的被添加了
+        WeightClickHandler verifyHandler = labelObj.GetComponent<WeightClickHandler>();
+        if (verifyHandler != null)
+        {
+            Debug.Log($"✅ 验证成功: {labelObj.name} 现在有WeightClickHandler组件");
+        }
+        else
+        {
+            Debug.LogError($"❌ 验证失败: {labelObj.name} 没有WeightClickHandler组件");
+        }
+    }
+    
+    private void CreateDynamicWeightLabel(Vector3 position, int weight, Cell cellA = null, Cell cellB = null)
     {
         GameObject labelObj = new GameObject($"EdgeWeightText_{weight}");
-        labelObj.hideFlags = HideFlags.DontSave;
         labelObj.transform.SetParent(linesRoot.transform);
         labelObj.transform.position = position;
 
@@ -964,55 +1116,15 @@ public class TilemapGameManager : MonoBehaviour
         
         // 稍微向上偏移，避免与线条重叠
         labelObj.transform.position += Vector3.up * 0.3f;
-    }
-
-    [ContextMenu("显示地形权重信息")]
-    public void ShowTerrainWeightInfo()
-    {
-        Debug.Log($"地形权重配置:");
-        Debug.Log($"草地: {terrainWeights.grassWeight}");
-        Debug.Log($"平原: {terrainWeights.plainsWeight}");
-        Debug.Log($"浅水: {terrainWeights.shallowWaterWeight}");
-        Debug.Log($"森林: {terrainWeights.forestWeight}");
-        Debug.Log($"深水: {terrainWeights.deepWaterWeight}");
-        Debug.Log($"山地: {terrainWeights.mountainWeight}");
-        Debug.Log($"高山: {terrainWeights.highMountainWeight}");
-        Debug.Log($"火山: {terrainWeights.volcanoWeight}");
-        Debug.Log($"河流: {terrainWeights.riverWeight}");
-    }
-
-    [ContextMenu("切换权重标签显示")]
-    public void ToggleWeightLabels()
-    {
-        showWeightLabels = !showWeightLabels;
-        Debug.Log($"权重标签显示: {(showWeightLabels ? "开启" : "关闭")}");
-    }
-
-    [ContextMenu("分析边权重分布")]
-    public void AnalyzeEdgeWeightDistribution()
-    {
-        if (generatedEdges.Count == 0)
+        
+        // 添加点击检测组件（如果提供了Cell引用）
+        if (cellA != null && cellB != null)
         {
-            Debug.Log("没有生成的边可以分析");
-            return;
+            AddWeightClickHandler(labelObj, cellA, cellB);
         }
-
-        var weights = new List<int>();
-        foreach (var edge in generatedEdges)
-        {
-            int weight = CalculateTerrainBasedWeight(edge.Item1.transform.position, edge.Item2.transform.position);
-            weights.Add(weight);
-        }
-
-        Debug.Log($"边权重分布分析:");
-        Debug.Log($"总边数: {weights.Count}");
-        Debug.Log($"平均权重: {weights.Average():F2}");
-        Debug.Log($"最大权重: {weights.Max()}");
-        Debug.Log($"最小权重: {weights.Min()}");
-        Debug.Log($"正权重边数: {weights.Count(w => w > 0)}");
-        Debug.Log($"负权重边数: {weights.Count(w => w < 0)}");
-        Debug.Log($"零权重边数: {weights.Count(w => w == 0)}");
     }
+
+
 
     private void ClearGeneratedContent()
     {
@@ -1044,492 +1156,41 @@ public class TilemapGameManager : MonoBehaviour
             DestroyImmediate(cellsRoot);
         
         linesRoot = new GameObject("TilemapLinesRoot");
-        linesRoot.hideFlags = HideFlags.DontSave;
         
         cellsRoot = new GameObject("TilemapCellsRoot");
-        cellsRoot.hideFlags = HideFlags.DontSave;
-    }
-
-    [ContextMenu("强制生成地形")]
-    public void ForceGenerateTerrain()
-    {
-        Debug.Log("🔧 强制生成地形...");
-        
-        if (terrainManager == null)
-        {
-            Debug.LogError("❌ terrainManager 引用为空");
-            return;
-        }
-        
-        try
-        {
-            terrainManager.GenerateTerrain();
-            var hexTiles = terrainManager.GetHexTiles();
-            
-            if (hexTiles != null && hexTiles.Count > 0)
-            {
-                Debug.Log($"✅ 地形生成成功！生成了 {hexTiles.Count} 个六边形");
-            }
-            else
-            {
-                Debug.LogError("❌ 地形生成失败");
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"❌ 生成地形时发生错误：{e.Message}");
-        }
-    }
-
-    [ContextMenu("检查TerrainManager状态")]
-    public void CheckTerrainManagerStatus()
-    {
-        Debug.Log("🔍 检查 TerrainManager 状态...");
-        
-        if (terrainManager == null)
-        {
-            Debug.LogError("❌ terrainManager 引用为空");
-            Debug.Log("💡 解决方案：在 Inspector 中拖入 TerrainManager 组件");
-            return;
-        }
-        
-        Debug.Log($"✅ terrainManager 引用正常：{terrainManager.name}");
-        
-        var hexTiles = terrainManager.GetHexTiles();
-        if (hexTiles == null)
-        {
-            Debug.LogWarning("⚠️ GetHexTiles() 返回 null - 地形尚未生成");
-            Debug.Log("💡 解决方案：");
-            Debug.Log("   1. 在 TerrainManager 组件上右键选择'生成地形'");
-            Debug.Log("   2. 或者设置 TerrainManager 的 autoGenerateOnStart = true");
-            Debug.Log("   3. 或者调用 GenerateNodesOnTerrain() 会自动尝试生成地形");
-            return;
-        }
-        
-        Debug.Log($"✅ 地形数据：{hexTiles.Count} 个六边形");
-        
-        if (hexTiles.Count > 0)
-        {
-            var firstHex = hexTiles[0];
-            Debug.Log($"✅ 第一个六边形：坐标({firstHex.coord.q}, {firstHex.coord.r}), 生物群系：{firstHex.biome}");
-        }
-        
-        if (terrainManager.tilemap == null)
-        {
-            Debug.LogError("❌ terrainManager.tilemap 为空");
-        }
-        else
-        {
-            Debug.Log($"✅ tilemap 引用正常");
-        }
-        
-        // 检查 TerrainManager 的设置
-        var settings = terrainManager.GetTerrainSettings();
-        if (settings != null)
-        {
-            Debug.Log($"✅ 地形设置：{settings.hexColumns} × {settings.hexRows} 网格");
-        }
-    }
-
-    [ContextMenu("检查边界计算")]
-    public void CheckBoundsCalculation()
-    {
-        if (terrainManager == null || terrainManager.GetHexTiles() == null)
-        {
-            Debug.LogError("❌ TerrainManager 不可用");
-            return;
-        }
-
-        var hexTiles = terrainManager.GetHexTiles();
-        var bounds = CalculateTerrainBounds(hexTiles);
-        
-        Debug.Log($"🔍 边界计算结果:");
-        Debug.Log($"边界中心: {bounds.center}");
-        Debug.Log($"边界大小: {bounds.size}");
-        Debug.Log($"边界最小值: {bounds.min}");
-        Debug.Log($"边界最大值: {bounds.max}");
-        
-        // 检查几个样本点的世界坐标
-        for (int i = 0; i < Mathf.Min(5, hexTiles.Count); i++)
-        {
-            var hex = hexTiles[i];
-            Vector3Int tilePos = terrainManager.ConvertHexToTilePosition(hex);
-            Vector3 worldPos = terrainManager.tilemap.CellToWorld(tilePos);
-            Debug.Log($"样本{i}: 六边形({hex.coord.q},{hex.coord.r}) -> 瓦片({tilePos.x},{tilePos.y}) -> 世界({worldPos.x:F2},{worldPos.y:F2})");
-        }
-    }
-
-    [ContextMenu("检查地形分布")]
-    public void CheckTerrainDistribution()
-    {
-        if (terrainManager == null || terrainManager.GetHexTiles() == null)
-        {
-            Debug.LogError("❌ TerrainManager 不可用");
-            return;
-        }
-
-        var hexTiles = terrainManager.GetHexTiles();
-        
-        // 统计地形分布
-        var biomeCounts = new Dictionary<HexCoordinateSystem.BiomeType, int>();
-        var coordRanges = new Dictionary<string, (int min, int max)>();
-        
-        foreach (var hex in hexTiles)
-        {
-            // 统计生物群系
-            if (!biomeCounts.ContainsKey(hex.biome))
-                biomeCounts[hex.biome] = 0;
-            biomeCounts[hex.biome]++;
-            
-            // 统计坐标范围
-            if (!coordRanges.ContainsKey("q"))
-                coordRanges["q"] = (hex.coord.q, hex.coord.q);
-            else
-                coordRanges["q"] = (Mathf.Min(coordRanges["q"].min, hex.coord.q), Mathf.Max(coordRanges["q"].max, hex.coord.q));
-                
-            if (!coordRanges.ContainsKey("r"))
-                coordRanges["r"] = (hex.coord.r, hex.coord.r);
-            else
-                coordRanges["r"] = (Mathf.Min(coordRanges["r"].min, hex.coord.r), Mathf.Max(coordRanges["r"].max, hex.coord.r));
-        }
-        
-        Debug.Log($"🔍 地形分布分析:");
-        Debug.Log($"总六边形数: {hexTiles.Count}");
-        Debug.Log($"Q坐标范围: {coordRanges["q"].min} 到 {coordRanges["q"].max}");
-        Debug.Log($"R坐标范围: {coordRanges["r"].min} 到 {coordRanges["r"].max}");
-        
-        Debug.Log($"生物群系分布:");
-        foreach (var kvp in biomeCounts.OrderByDescending(x => x.Value))
-        {
-            Debug.Log($"  {kvp.Key}: {kvp.Value} 个");
-        }
-    }
-
-    [ContextMenu("检查采样点分布")]
-    public void CheckSamplingDistribution()
-    {
-        if (terrainManager == null || terrainManager.GetHexTiles() == null)
-        {
-            Debug.LogError("❌ TerrainManager 不可用");
-            return;
-        }
-
-        var hexTiles = terrainManager.GetHexTiles();
-        var bounds = CalculateTerrainBounds(hexTiles);
-        var nodePositions = PoissonDiskSampling(bounds, samplingRadius, maxNodes);
-        
-        Debug.Log($"🔍 采样点分布分析:");
-        Debug.Log($"边界: {bounds.min} 到 {bounds.max}");
-        Debug.Log($"采样半径: {samplingRadius}");
-        Debug.Log($"最大节点数: {maxNodes}");
-        Debug.Log($"实际生成节点数: {nodePositions.Count}");
-        
-        if (nodePositions.Count > 0)
-        {
-            var minX = nodePositions.Min(p => p.x);
-            var maxX = nodePositions.Max(p => p.x);
-            var minY = nodePositions.Min(p => p.y);
-            var maxY = nodePositions.Max(p => p.y);
-            
-            Debug.Log($"节点X范围: {minX:F2} 到 {maxX:F2}");
-            Debug.Log($"节点Y范围: {minY:F2} 到 {maxY:F2}");
-            Debug.Log($"节点分布范围: {maxX - minX:F2} x {maxY - minY:F2}");
-            Debug.Log($"边界范围: {bounds.size.x:F2} x {bounds.size.y:F2}");
-        }
-    }
-
-    [ContextMenu("删除场景内所有LineRenderer")]
-    public void DeleteAllLineRenderers()
-    {
-        Debug.Log("🧹 开始删除场景内所有LineRenderer...");
-        
-        // 查找场景内所有的LineRenderer组件
-        var allLineRenderers = FindObjectsByType<LineRenderer>(FindObjectsSortMode.None);
-        
-        if (allLineRenderers.Length == 0)
-        {
-            Debug.Log("✅ 场景内没有找到LineRenderer");
-            return;
-        }
-        
-        Debug.Log($"找到 {allLineRenderers.Length} 个LineRenderer");
-        
-        int deletedCount = 0;
-        foreach (var lineRenderer in allLineRenderers)
-        {
-            if (lineRenderer != null)
-            {
-                Debug.Log($"删除LineRenderer: {lineRenderer.name}");
-                DestroyImmediate(lineRenderer.gameObject);
-                deletedCount++;
-            }
-        }
-        
-        Debug.Log($"✅ 删除完成！共删除了 {deletedCount} 个LineRenderer");
-        
-        // 清理本地的边线缓存
-        edgeLines.Clear();
-        generatedEdges.Clear();
-        Debug.Log("🗑️ 已清理本地边线缓存");
-    }
-
-    [ContextMenu("检查权重标签预制件状态")]
-    public void CheckWeightLabelPrefabStatus()
-    {
-        Debug.Log("🔍 检查权重标签预制件状态...");
-        
-        if (weightLabelPrefab == null)
-        {
-            Debug.LogWarning("⚠️ 权重标签预制件未设置");
-            return;
-        }
-        
-        Debug.Log($"✅ 权重标签预制件已设置: {weightLabelPrefab.name}");
-        
-        // 检查预制件中的TextMeshPro组件
-        TextMeshPro textMeshPro = weightLabelPrefab.GetComponent<TextMeshPro>();
-        if (textMeshPro == null)
-        {
-            textMeshPro = weightLabelPrefab.GetComponentInChildren<TextMeshPro>();
-        }
-        
-        if (textMeshPro != null)
-        {
-            Debug.Log($"✅ 找到TextMeshPro组件: {textMeshPro.name}");
-            Debug.Log($"   字体大小: {textMeshPro.fontSize}");
-            Debug.Log($"   颜色: {textMeshPro.color}");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ 未找到TextMeshPro组件");
-        }
-        
-        // 检查预制件中的TextMesh组件
-        TextMesh textMesh = weightLabelPrefab.GetComponent<TextMesh>();
-        if (textMesh == null)
-        {
-            textMesh = weightLabelPrefab.GetComponentInChildren<TextMesh>();
-        }
-        
-        if (textMesh != null)
-        {
-            Debug.Log($"✅ 找到TextMesh组件: {textMesh.name}");
-            Debug.Log($"   字体大小: {textMesh.fontSize}");
-            Debug.Log($"   字符大小: {textMesh.characterSize}");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ 未找到TextMesh组件");
-        }
-        
-        if (textMeshPro == null && textMesh == null)
-        {
-            Debug.LogError("❌ 权重标签预制件中没有找到任何文本组件！");
-        }
-    }
-
-    [ContextMenu("删除场景内所有权重标签")]
-    public void DeleteAllWeightLabels()
-    {
-        Debug.Log("🧹 开始删除场景内所有权重标签...");
-        
-        // 查找场景内所有的TextMesh组件
-        var allTextMeshes = FindObjectsByType<TextMesh>(FindObjectsSortMode.None);
-        
-        // 查找场景内所有的TextMeshPro组件
-        var allTextMeshPros = FindObjectsByType<TextMeshPro>(FindObjectsSortMode.None);
-        
-        int totalFound = allTextMeshes.Length + allTextMeshPros.Length;
-        
-        if (totalFound == 0)
-        {
-            Debug.Log("✅ 场景内没有找到权重标签");
-            return;
-        }
-        
-        Debug.Log($"找到 {totalFound} 个权重标签 (TextMesh: {allTextMeshes.Length}, TextMeshPro: {allTextMeshPros.Length})");
-        
-        int deletedCount = 0;
-        
-        // 删除TextMesh权重标签
-        foreach (var textMesh in allTextMeshes)
-        {
-            if (textMesh != null && textMesh.name.StartsWith("EdgeWeightText_"))
-            {
-                Debug.Log($"删除TextMesh权重标签: {textMesh.name}");
-                DestroyImmediate(textMesh.gameObject);
-                deletedCount++;
-            }
-        }
-        
-        // 删除TextMeshPro权重标签
-        foreach (var textMeshPro in allTextMeshPros)
-        {
-            if (textMeshPro != null && textMeshPro.name.StartsWith("EdgeWeightText_"))
-            {
-                Debug.Log($"删除TextMeshPro权重标签: {textMeshPro.name}");
-                DestroyImmediate(textMeshPro.gameObject);
-                deletedCount++;
-            }
-        }
-        
-        Debug.Log($"✅ 删除完成！共删除了 {deletedCount} 个权重标签");
-    }
-
-    [ContextMenu("清空所有节点和边")]
-    public void ClearAllNodesAndEdges()
-    {
-        Debug.Log("🧹 开始清空所有节点和边...");
-        
-        // 清空节点
-        int cellCount = 0;
-        foreach (var cell in generatedCells)
-        {
-            if (cell != null)
-            {
-                DestroyImmediate(cell.gameObject);
-                cellCount++;
-            }
-        }
-        generatedCells.Clear();
-        
-        // 清空边
-        int edgeCount = 0;
-        foreach (var line in edgeLines.Values)
-        {
-            if (line != null)
-            {
-                DestroyImmediate(line.gameObject);
-                edgeCount++;
-            }
-        }
-        edgeLines.Clear();
-        generatedEdges.Clear();
-        
-        // 清空权重标签
-        var allTextMeshes = FindObjectsByType<TextMesh>(FindObjectsSortMode.None);
-        var allTextMeshPros = FindObjectsByType<TextMeshPro>(FindObjectsSortMode.None);
-        int labelCount = 0;
-        
-        // 删除TextMesh权重标签
-        foreach (var textMesh in allTextMeshes)
-        {
-            if (textMesh != null && textMesh.name.StartsWith("EdgeWeightText_"))
-            {
-                DestroyImmediate(textMesh.gameObject);
-                labelCount++;
-            }
-        }
-        
-        // 删除TextMeshPro权重标签
-        foreach (var textMeshPro in allTextMeshPros)
-        {
-            if (textMeshPro != null && textMeshPro.name.StartsWith("EdgeWeightText_"))
-            {
-                DestroyImmediate(textMeshPro.gameObject);
-                labelCount++;
-            }
-        }
-        
-        // 清空权重缓存
-        _edgeWeightCache.Clear();
-        
-        // 重新创建根对象
-        if (linesRoot != null)
-            DestroyImmediate(linesRoot);
-        
-        if (cellsRoot != null)
-            DestroyImmediate(cellsRoot);
-        
-        linesRoot = new GameObject("TilemapLinesRoot");
-        linesRoot.hideFlags = HideFlags.DontSave;
-        
-        cellsRoot = new GameObject("TilemapCellsRoot");
-        cellsRoot.hideFlags = HideFlags.DontSave;
-        
-        Debug.Log($"✅ 清空完成！");
-        Debug.Log($"🗑️ 清空了 {cellCount} 个节点");
-        Debug.Log($"🗑️ 清空了 {edgeCount} 条边");
-        Debug.Log($"🗑️ 清空了 {edgeCount} 条线条");
-        Debug.Log($"🗑️ 清空了 {labelCount} 个权重标签");
     }
 
 
-
-    [ContextMenu("调整渲染顺序")]
-    public void AdjustRenderingOrder()
-    {
-        Debug.Log("🎨 调整渲染顺序...");
-        
-        // 调整所有edges的渲染顺序
-        if (edgeLines != null)
-        {
-            foreach (var kvp in edgeLines)
-            {
-                if (kvp.Value != null)
-                {
-                    kvp.Value.sortingOrder = 5; // 设置较低的排序顺序
-                    kvp.Value.sortingLayerName = "Default";
-                }
-            }
-            Debug.Log($"✅ 调整了 {edgeLines.Count} 个edges的渲染顺序");
-        }
-        
-        // 调整所有cells的渲染顺序
-        if (generatedCells != null)
-        {
-            foreach (var cell in generatedCells)
-            {
-                if (cell != null)
-                {
-                    // 调用Cell的渲染顺序调整方法，确保TMP文本显示在背景之上
-                    cell.AdjustRenderingOrder();
-                }
-            }
-            Debug.Log($"✅ 调整了 {generatedCells.Count} 个cells的渲染顺序");
-        }
-        
-        // 调整所有权重标签的渲染顺序
-        var weightLabels = linesRoot.GetComponentsInChildren<TextMesh>();
-        foreach (var textMesh in weightLabels)
-        {
-            if (textMesh != null)
-            {
-                textMesh.GetComponent<MeshRenderer>().sortingOrder = 25;
-                textMesh.GetComponent<MeshRenderer>().sortingLayerName = "Default";
-            }
-        }
-        
-        var weightLabelsPro = linesRoot.GetComponentsInChildren<TextMeshPro>();
-        foreach (var textMeshPro in weightLabelsPro)
-        {
-            if (textMeshPro != null)
-            {
-                textMeshPro.sortingOrder = 25;
-                Renderer renderer = textMeshPro.GetComponent<Renderer>();
-                if (renderer != null)
-                {
-                    renderer.sortingLayerName = "Default";
-                }
-            }
-        }
-        
-        // 处理使用Cell脚本的权重标签
-        var weightLabelCells = linesRoot.GetComponentsInChildren<Cell>();
-        foreach (var cell in weightLabelCells)
-        {
-            if (cell != null && cell.gameObject.name.Contains("EdgeWeight"))
-            {
-                cell.AdjustRenderingOrder();
-            }
-        }
-        
-        Debug.Log($"✅ 调整了 {weightLabels.Length + weightLabelsPro.Length + weightLabelCells.Length} 个权重标签的渲染顺序");
-        Debug.Log("🎨 渲染顺序调整完成：Edges(5) < Cell背景(15) < Weights(20/25) < Cell文本(35/40)");
-    }
 
     void OnDestroy()
     {
         ClearGeneratedContent();
     }
+
+    // 处理Inspector中的按钮点击
+    // void OnValidate()
+    // {
+    //     if (testWeightClick)
+    //     {
+    //         testWeightClick = false; // 重置按钮
+    //         TestWeightClickFunction();
+    //     }
+    //     if (testBasicMouseClick)
+    //     {
+    //         testBasicMouseClick = false; // 重置按钮
+    //         TestBasicMouseClick();
+    //     }
+    //     if (startDebugMouseClick)
+    //     {
+    //         startDebugMouseClick = false; // 重置按钮
+    //         enableDebugMouseClick = true;
+    //         DebugMouseClickDetection();
+    //     }
+    //     if (stopDebugMouseClick)
+    //     {
+    //         stopDebugMouseClick = false; // 重置按钮
+    //         enableDebugMouseClick = false;
+    //         StopDebugMouseClickDetection();
+    //     }
+    // }
 } 
