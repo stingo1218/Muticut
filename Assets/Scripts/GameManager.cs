@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float lineWidth = 0.1f; // 线条宽度
     [SerializeField] private Material _eraseLineMaterial; // 用于擦除线的材质
     [SerializeField] private GameObject WeightPrefab; // 用于权重背景的BG prefab
-    private Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshPro tmp, GameObject bg)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshPro, GameObject)>(); // 存储所有的连线
+    private Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshProUGUI tmp, GameObject bg)> _edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshProUGUI, GameObject)>(); // 存储所有的连线
     private Transform linesRoot; // 用于组织所有连线的父物体
 
     private bool isErasing = false;
@@ -159,6 +159,9 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
         
+        // 确保在重新开始时清理旧的边缘
+        RemoveAllEdges();
+        
         // 调试信息
         UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellPrefab: {(_cellPrefab != null ? "已设置" : "为 null")}");
         UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellNumbers: {_cellNumbers}");
@@ -172,6 +175,18 @@ public class GameManager : MonoBehaviour
         linesRoot = new GameObject("LinesRoot").transform;
         linesRoot.SetParent(transform);
         SpawnLevel(_cellNumbers);
+    }
+
+    private void OnDestroy()
+    {
+        // 确保在GameManager销毁时清理所有边缘
+        RemoveAllEdges();
+    }
+
+    private void OnApplicationQuit()
+    {
+        // 确保在应用退出时也清理所有边缘
+        RemoveAllEdges();
     }
 
     private void Start()
@@ -1016,7 +1031,7 @@ public class GameManager : MonoBehaviour
                 renderer.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI
                 if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
                     bgRenderer.sortingOrder = renderer.sortingOrder + 1;
-            tmp.sortingOrder = bgRenderer.sortingOrder + 1;
+                // TextMeshProUGUI的渲染顺序通过Canvas控制，这里不需要设置sortingOrder
         }
         else
         {
@@ -1057,50 +1072,39 @@ public class GameManager : MonoBehaviour
             edgeCollider.isTrigger = true;
             lineObject.layer = LayerMask.NameToLayer("Edge");
 
-            // 暂时注释掉权重文本创建，避免重复生成
-            /*
-            // 创建TextMeshPro
-            GameObject textObj = new GameObject("EdgeWeightText");
-            textObj.transform.SetParent(lineObject.transform);
-            TextMeshPro tmp = textObj.AddComponent<TextMeshPro>();
-            tmp.fontSize = 2;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
+            // 创建权重标签：使用WeightPrefab中已有的TextMeshPro
+            Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
+            
+            // 实例化WeightPrefab
+            GameObject weightPrefab = Instantiate(WeightPrefab, lineObject.transform);
+            
+                    // 获取WeightPrefab中的TextMeshProUGUI组件（UI版本）
+        TextMeshProUGUI tmp = weightPrefab.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp == null)
+        {
+            UnityEngine.Debug.LogError("❌ WeightPrefab中没有找到TextMeshProUGUI组件！");
+            DestroyImmediate(weightPrefab);
+            _edges[key] = (lineRenderer, weight, null, null);
+            return;
+        }
+            
+            // 设置文本内容
             tmp.text = weight.ToString();
             
-            // 设置TextMeshPro的RectTransform
-            var rectTransform = tmp.GetComponent<RectTransform>();
-            if (rectTransform != null)
-            {
-                rectTransform.sizeDelta = new Vector2(2f, 1f); // 设置更合适的尺寸
-            }
+            // 确保权重标签的Z轴为0，避免渲染顺序问题
+            Vector3 weightPos = new Vector3(midPoint.x, midPoint.y, 0);
+            weightPrefab.transform.position = weightPos;
+            weightPrefab.transform.rotation = Quaternion.identity;
             
-            Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
-            // 确保权重文本的Z轴为0，避免渲染顺序问题
-            Vector3 textPos = new Vector3(midPoint.x, midPoint.y, 0);
-            textObj.transform.position = textPos;
-            textObj.transform.rotation = Quaternion.identity;
-
-            // 实例化BG prefab作为背景
-            GameObject bg = Instantiate(bgPrefab, lineObject.transform);
-            // 确保背景的Z轴为0，避免渲染顺序问题
-            Vector3 bgPos = new Vector3(midPoint.x, midPoint.y, 0);
-            bg.transform.position = bgPos;
-            // 使用固定的背景大小，而不是基于文本大小
-            var bgSprite = bg.GetComponent<SpriteRenderer>();
-            if (bgSprite != null)
-            {
-                bgSprite.size = new Vector2(2f, 1f); // 设置固定大小
-                bg.transform.localScale = Vector3.one; // 重置缩放
-            }
-
             // 根据开关决定是否显示权重
-            tmp.gameObject.SetActive(useWeightedEdges);
-            bg.SetActive(useWeightedEdges);
-            */
-
-            // 暂时不创建权重文本，只存储LineRenderer
-            _edges[key] = (lineRenderer, weight, null, null);
+            weightPrefab.SetActive(useWeightedEdges);
+            
+                    // 设置排序顺序
+        if (weightPrefab.TryGetComponent<SpriteRenderer>(out var bgRenderer))
+            bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
+        // TextMeshProUGUI的渲染顺序通过Canvas控制，这里不需要设置sortingOrder
+            
+            _edges[key] = (lineRenderer, weight, tmp, weightPrefab);
 
             lineRenderer.sortingOrder = 100; // 大幅提高排序顺序
             lineRenderer.sortingLayerName = "Default"; // 改为Default层，与Tilemap保持一致
@@ -1179,9 +1183,39 @@ public class GameManager : MonoBehaviour
         edgeCollider.isTrigger = true;
         lineObject.layer = LayerMask.NameToLayer("Edge");
 
-        // 不创建权重文本，避免重复生成
-        // 只存储LineRenderer，权重文本由CreateOrUpdateEdge处理
-        _edges[key] = (lineRenderer, weight, null, null);
+        // 创建权重标签：使用WeightPrefab中已有的TextMeshPro
+        Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
+        
+        // 实例化WeightPrefab
+        GameObject weightPrefab = Instantiate(WeightPrefab, lineObject.transform);
+        
+        // 获取WeightPrefab中的TextMeshProUGUI组件（UI版本）
+        TextMeshProUGUI tmp = weightPrefab.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp == null)
+        {
+            UnityEngine.Debug.LogError("❌ WeightPrefab中没有找到TextMeshProUGUI组件！");
+            DestroyImmediate(weightPrefab);
+            _edges[key] = (lineRenderer, weight, null, null);
+            return;
+        }
+        
+        // 设置文本内容
+        tmp.text = weight.ToString();
+        
+        // 确保权重标签的Z轴为0，避免渲染顺序问题
+        Vector3 weightPos = new Vector3(midPoint.x, midPoint.y, 0);
+        weightPrefab.transform.position = weightPos;
+        weightPrefab.transform.rotation = Quaternion.identity;
+        
+        // 根据开关决定是否显示权重
+        weightPrefab.SetActive(useWeightedEdges);
+        
+        // 设置排序顺序
+        if (weightPrefab.TryGetComponent<SpriteRenderer>(out var bgRenderer))
+            bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
+        // TextMeshProUGUI的渲染顺序通过Canvas控制，这里不需要设置sortingOrder
+        
+        _edges[key] = (lineRenderer, weight, tmp, weightPrefab);
 
         lineRenderer.sortingOrder = 100;
         lineRenderer.sortingLayerName = "Default";
@@ -1201,7 +1235,17 @@ public class GameManager : MonoBehaviour
         {
             // 记录玩家切割的边
             playerCutEdges.Add(key);
-            Destroy(edge.renderer.gameObject); // 这会同时销毁所有子物体（包括文本和BG）
+            
+            // 确保销毁所有相关对象
+            if (edge.renderer != null && edge.renderer.gameObject != null)
+            {
+                DestroyImmediate(edge.renderer.gameObject);
+            }
+            if (edge.bg != null)
+            {
+                DestroyImmediate(edge.bg);
+            }
+            
             _edges.Remove(key);
             UpdateCostText(); // 每次切割后刷新
         }
@@ -1212,7 +1256,15 @@ public class GameManager : MonoBehaviour
         foreach (var edge in _edges.Values)
         {
             var (renderer, _, tmp, bg) = edge;
-            Destroy(renderer.gameObject);
+            // 确保销毁所有相关对象
+            if (renderer != null && renderer.gameObject != null)
+            {
+                DestroyImmediate(renderer.gameObject);
+            }
+            if (bg != null)
+            {
+                DestroyImmediate(bg);
+            }
         }
         _edges.Clear();
     }
