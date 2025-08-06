@@ -49,6 +49,14 @@ namespace TerrainSystem
         private List<HexCoordinateSystem.HexTile> hexTiles;
         private float[,] elevationMap;
         private float[,] moistureMap;
+        
+        // 瓦片到生物群系的映射表 (X,Y,Z) -> biome
+        private Dictionary<Vector3Int, int> tileBiomeMap;
+        
+        // 瓦片编号系统
+        private Dictionary<Vector3Int, int> tileIndexMap;  // 坐标 -> 编号
+        private Dictionary<int, Vector3Int> indexTileMap;  // 编号 -> 坐标
+        private int nextTileIndex = 0;
 
         // 渲染对象
         private Transform terrainRoot;
@@ -285,10 +293,16 @@ namespace TerrainSystem
                 return;
             }
 
+            // 初始化映射表
+            tileBiomeMap = new Dictionary<Vector3Int, int>();
+
             foreach (HexCoordinateSystem.HexTile hex in hexTiles)
             {
                 // 转换六边形坐标到瓦片坐标
                 Vector3Int tilePosition = ConvertHexToTilePosition(hex);
+                
+                // 构建映射表：瓦片坐标 -> 生物群系
+                tileBiomeMap[tilePosition] = (int)hex.biome;
                 
                 // 创建地形瓦片
                 if (terrainTilemap != null)
@@ -313,7 +327,7 @@ namespace TerrainSystem
                 }
             }
             
-            // Debug.Log("Tilemap 渲染完成");
+            Debug.Log($"映射表构建完成，共 {tileBiomeMap.Count} 个瓦片");
         }
 
         // 转换六边形坐标到瓦片位置
@@ -502,6 +516,9 @@ namespace TerrainSystem
             CreateRenderRoots();
             hexTiles?.Clear();
             
+            // 清理映射表
+            tileBiomeMap?.Clear();
+            
             Debug.Log("地形已清理");
         }
 
@@ -536,6 +553,42 @@ namespace TerrainSystem
             
             HexCoordinateSystem.AxialCoord coord = hexSystem.WorldToAxial(worldPos);
             return GetHexAt(coord.q, coord.r);
+        }
+        
+        /// <summary>
+        /// 通过瓦片坐标获取生物群系（使用映射表）
+        /// </summary>
+        /// <param name="tilePos">瓦片坐标 (X,Y,Z)</param>
+        /// <returns>生物群系类型，如果未找到返回-1</returns>
+        public int GetBiomeAtTile(Vector3Int tilePos)
+        {
+            if (tileBiomeMap != null && tileBiomeMap.TryGetValue(tilePos, out int biome))
+            {
+                return biome;
+            }
+            return -1;
+        }
+        
+        /// <summary>
+        /// 通过世界坐标获取生物群系（使用映射表）
+        /// </summary>
+        /// <param name="worldPos">世界坐标</param>
+        /// <returns>生物群系类型，如果未找到返回-1</returns>
+        public int GetBiomeAtWorldPosition(Vector3 worldPos)
+        {
+            if (terrainTilemap == null) return -1;
+            
+            Vector3Int tilePos = terrainTilemap.WorldToCell(worldPos);
+            return GetBiomeAtTile(tilePos);
+        }
+        
+        /// <summary>
+        /// 检查映射表是否已构建
+        /// </summary>
+        /// <returns>映射表是否可用</returns>
+        public bool IsBiomeMapReady()
+        {
+            return tileBiomeMap != null && tileBiomeMap.Count > 0;
         }
 
         // 设置地形设置

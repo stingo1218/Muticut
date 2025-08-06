@@ -33,51 +33,51 @@ public class TilemapGameManager : MonoBehaviour
     [Header("调试设置")]
     [SerializeField] private bool enableGlobalClickDetection = true; // 全局点击检测开关
 
+    // 移除重复的TerrainWeights定义，使用GameManager的权重设置
+    // [System.Serializable]
+    // public class TerrainWeights
+    // {
+    //     public int grassWeight = 5;
+    //     public int plainsWeight = 4;
+    //     public int shallowWaterWeight = 3;
+    //     public int forestWeight = -6;
+    //     public int deepWaterWeight = -8;
+    //     public int mountainWeight = -10;
+    //     public int highMountainWeight = -15;
+    //     public int volcanoWeight = -20;
+    //     public int riverWeight = -12;
+    //     public int defaultWeight = 0;
 
-    [System.Serializable]
-    public class TerrainWeights
-    {
-        public int grassWeight = 5;
-        public int plainsWeight = 4;
-        public int shallowWaterWeight = 3;
-        public int forestWeight = -6;
-        public int deepWaterWeight = -8;
-        public int mountainWeight = -10;
-        public int highMountainWeight = -15;
-        public int volcanoWeight = -20;
-        public int riverWeight = -12;
-        public int defaultWeight = 0;
-
-        public int GetWeightForBiome(HexCoordinateSystem.BiomeType biome)
-        {
-            switch (biome)
-            {
-                case HexCoordinateSystem.BiomeType.FlatGrass: return grassWeight;
-                case HexCoordinateSystem.BiomeType.FlatDesert1: 
-                case HexCoordinateSystem.BiomeType.FlatDesert2: return plainsWeight;
-                case HexCoordinateSystem.BiomeType.ShallowWater: return shallowWaterWeight;
-                case HexCoordinateSystem.BiomeType.FlatForest: 
-                case HexCoordinateSystem.BiomeType.FlatForestSwampy: return forestWeight;
-                case HexCoordinateSystem.BiomeType.DeepWater: return deepWaterWeight;
-                case HexCoordinateSystem.BiomeType.MountainDesert:
-                case HexCoordinateSystem.BiomeType.MountainShrubland1:
-                case HexCoordinateSystem.BiomeType.MountainShrubland2:
-                case HexCoordinateSystem.BiomeType.MountainAlpine1:
-                case HexCoordinateSystem.BiomeType.MountainAlpine2:
-                case HexCoordinateSystem.BiomeType.MountainImpassable1:
-                case HexCoordinateSystem.BiomeType.MountainImpassable2: return mountainWeight;
-                case HexCoordinateSystem.BiomeType.HillDesert:
-                case HexCoordinateSystem.BiomeType.HillGrass:
-                case HexCoordinateSystem.BiomeType.HillForest:
-                case HexCoordinateSystem.BiomeType.HillForestNeedleleaf: return highMountainWeight;
-                case HexCoordinateSystem.BiomeType.Volcano: return volcanoWeight;
-                case HexCoordinateSystem.BiomeType.FlatSparseTrees1:
-                case HexCoordinateSystem.BiomeType.FlatSparseTrees2: return riverWeight; // 临时用河流权重
-                default: return defaultWeight;
-            }
-        }
-    }
-    public TerrainWeights terrainWeights = new TerrainWeights();
+    //     public int GetWeightForBiome(HexCoordinateSystem.BiomeType biome)
+    //     {
+    //         switch (biome)
+    //         {
+    //             case HexCoordinateSystem.BiomeType.FlatGrass: return grassWeight;
+    //             case HexCoordinateSystem.BiomeType.FlatDesert1: 
+    //             case HexCoordinateSystem.BiomeType.FlatDesert2: return plainsWeight;
+    //             case HexCoordinateSystem.BiomeType.ShallowWater: return shallowWaterWeight;
+    //             case HexCoordinateSystem.BiomeType.FlatForest: 
+    //             case HexCoordinateSystem.BiomeType.FlatForestSwampy: return forestWeight;
+    //             case HexCoordinateSystem.BiomeType.DeepWater: return deepWaterWeight;
+    //             case HexCoordinateSystem.BiomeType.MountainDesert:
+    //             case HexCoordinateSystem.BiomeType.MountainShrubland1:
+    //             case HexCoordinateSystem.BiomeType.MountainShrubland2:
+    //             case HexCoordinateSystem.BiomeType.MountainAlpine1:
+    //             case HexCoordinateSystem.BiomeType.MountainAlpine2:
+    //             case HexCoordinateSystem.BiomeType.MountainImpassable1:
+    //             case HexCoordinateSystem.BiomeType.MountainImpassable2: return mountainWeight;
+    //             case HexCoordinateSystem.BiomeType.HillDesert:
+    //             case HexCoordinateSystem.BiomeType.HillGrass:
+    //             case HexCoordinateSystem.BiomeType.HillForest:
+    //             case HexCoordinateSystem.BiomeType.HillForestNeedleleaf: return highMountainWeight;
+    //             case HexCoordinateSystem.BiomeType.Volcano: return volcanoWeight;
+    //             case HexCoordinateSystem.BiomeType.FlatSparseTrees1:
+    //             case HexCoordinateSystem.BiomeType.FlatSparseTrees2: return riverWeight; // 临时用河流权重
+    //             default: return defaultWeight;
+    //         }
+    //     }
+    // }
+    // public TerrainWeights terrainWeights = new TerrainWeights();
 
     [Header("可视化设置")]
     public bool showWeightLabels = true;
@@ -592,13 +592,13 @@ public class TilemapGameManager : MonoBehaviour
             }
         }
 
-        if (crossedBiomes.Count == 0) return terrainWeights.defaultWeight;
+        if (crossedBiomes.Count == 0) return gameManager.GetBiomeWeight(-1); // 使用GameManager的默认权重
 
         // 简单累加所有地形的权重
         int totalWeight = 0;
         foreach (var biome in crossedBiomes)
         {
-            int biomeWeight = terrainWeights.GetWeightForBiome(biome);
+            int biomeWeight = gameManager.GetBiomeWeight((int)biome); // 使用GameManager的权重
             totalWeight += biomeWeight;
         }
         
@@ -668,7 +668,7 @@ public class TilemapGameManager : MonoBehaviour
         
         foreach (var kvp in biomeCounts)
         {
-            int biomeWeight = terrainWeights.GetWeightForBiome(kvp.Key);
+            int biomeWeight = gameManager.GetBiomeWeight((int)kvp.Key); // 使用GameManager的权重
             Debug.Log($"   {kvp.Key}: {kvp.Value} 个tile (权重: {biomeWeight})");
         }
 
@@ -676,7 +676,7 @@ public class TilemapGameManager : MonoBehaviour
         int totalWeight = 0;
         foreach (var biome in crossedBiomes)
         {
-            int biomeWeight = terrainWeights.GetWeightForBiome(biome);
+            int biomeWeight = gameManager.GetBiomeWeight((int)biome); // 使用GameManager的权重
             totalWeight += biomeWeight;
         }
         
@@ -802,7 +802,7 @@ public class TilemapGameManager : MonoBehaviour
         
         if (allColliders.Length == 0)
         {
-            Debug.Log($"🖱️ 点击位置: ({mouseWorld.x:F2}, {mouseWorld.y:F2}) - 未检测到任何对象");
+            // Debug.Log($"🖱️ 点击位置: ({mouseWorld.x:F2}, {mouseWorld.y:F2}) - 未检测到任何对象");
             return;
         }
 

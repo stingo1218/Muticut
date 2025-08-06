@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine.SceneManagement;
+using UnityEngine.Tilemaps;
 
 public class GameManager : MonoBehaviour
 {
@@ -155,6 +156,82 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI costText;
     private int optimalCost = 0;
 
+    [System.Serializable]
+    public class TerrainWeights
+    {
+        [Header("平地地形")]
+        public int grassWeight = 5;           // 平地草原
+        public int plainsWeight = 4;          // 平地沙漠1/2
+        public int sparseTreesWeight = -12;   // 平地稀疏树木1/2
+        public int forestWeight = -6;         // 平地森林/沼泽森林
+        
+        [Header("水域")]
+        public int shallowWaterWeight = 3;    // 浅水
+        public int deepWaterWeight = -8;      // 深水
+        public int lakeWeight = -8;           // 湖泊1-4
+        
+        [Header("丘陵地形")]
+        public int hillWeight = -15;          // 丘陵沙漠/草原/森林/针叶林
+        
+        [Header("山地地形")]
+        public int mountainWeight = -10;      // 山地沙漠/灌木丛/高山/不可通行
+        
+        [Header("特殊地形")]
+        public int volcanoWeight = -20;       // 火山
+        public int lairWeight = 0;            // 巢穴/雪地巢穴/沙漠巢穴
+        
+        [Header("默认")]
+        public int defaultWeight = 0;         // 默认权重
+
+        public int GetWeightForBiome(int biomeType)
+        {
+            switch (biomeType)
+            {
+                case 0: return deepWaterWeight;   // 深水
+                case 1: return shallowWaterWeight; // 浅水
+                case 2: return plainsWeight;       // 平地沙漠1
+                case 3: return plainsWeight;       // 平地沙漠2
+                case 4: return grassWeight;        // 平地草原
+                case 5: return sparseTreesWeight;  // 平地稀疏树木1
+                case 6: return sparseTreesWeight;  // 平地稀疏树木2
+                case 7: return forestWeight;       // 平地森林
+                case 8: return forestWeight;       // 平地沼泽森林
+                case 9: return hillWeight;         // 丘陵沙漠
+                case 10: return hillWeight;        // 丘陵草原
+                case 11: return hillWeight;        // 丘陵森林
+                case 12: return hillWeight;        // 丘陵针叶林
+                case 13: return mountainWeight;    // 山地沙漠
+                case 14: return mountainWeight;    // 山地灌木丛1
+                case 15: return mountainWeight;    // 山地灌木丛2
+                case 16: return mountainWeight;    // 山地高山1
+                case 17: return mountainWeight;    // 山地高山2
+                case 18: return mountainWeight;    // 山地不可通行1
+                case 19: return mountainWeight;    // 山地不可通行2
+                case 20: return lakeWeight;        // 湖泊1
+                case 21: return lakeWeight;        // 湖泊2
+                case 22: return lakeWeight;        // 湖泊3
+                case 23: return lakeWeight;        // 湖泊4
+                case 24: return volcanoWeight;     // 火山
+                case 25: return lairWeight;        // 巢穴
+                case 26: return lairWeight;        // 雪地巢穴
+                case 27: return lairWeight;        // 沙漠巢穴
+                default: return defaultWeight;     // 默认权重
+            }
+        }
+    }
+    [Header("地形权重设置")]
+    public TerrainWeights terrainWeights = new TerrainWeights();
+
+    /// <summary>
+    /// 获取指定生物群系的权重
+    /// </summary>
+    /// <param name="biomeType">生物群系类型ID</param>
+    /// <returns>权重值</returns>
+    public int GetBiomeWeight(int biomeType)
+    {
+        return terrainWeights.GetWeightForBiome(biomeType);
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -163,8 +240,8 @@ public class GameManager : MonoBehaviour
         RemoveAllEdges();
         
         // 调试信息
-        UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellPrefab: {(_cellPrefab != null ? "已设置" : "为 null")}");
-        UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellNumbers: {_cellNumbers}");
+        // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellPrefab: {(_cellPrefab != null ? "已设置" : "为 null")}");
+        // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellNumbers: {_cellNumbers}");
         
         // 生成地形
         GenerateTerrainIfNeeded();
@@ -201,6 +278,14 @@ public class GameManager : MonoBehaviour
             UnityEngine.Debug.LogError("找不到UICanvas下的CostText！");
 
         UpdateOptimalCostByPython();
+        // 自动输出cell1和cell2连线的地形权重
+        if (_cells != null && _cells.Count >= 2)
+        {
+            var cell1 = _cells[0];
+            var cell2 = _cells[1];
+            int weight = GetOrCreateEdgeWeight(cell1, cell2);
+            // UnityEngine.Debug.Log($"Cell1({cell1.Number})-Cell2({cell2.Number}) 连线地形权重: {weight}");
+        }
     }
 
     // 新增：公开方法，供HintToggle绑定
@@ -811,7 +896,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            UnityEngine.Debug.Log("Raycast 未命中 Cell");
+            // UnityEngine.Debug.Log("Raycast 未命中 Cell");
         }
         return false; // 没命中cell
     }
@@ -847,7 +932,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            UnityEngine.Debug.Log("Raycast 未命中 Line");
+            // UnityEngine.Debug.Log("Raycast 未命中 Line");
         }
     }
 
@@ -1441,13 +1526,131 @@ public class GameManager : MonoBehaviour
         var key = GetCanonicalEdgeKey(a, b);
         if (!_edgeWeightCache.TryGetValue(key, out int weight))
         {
-            // 生成正数权重：表示边的"重要性"
-            // 权重越大，表示边越重要，越不应该被切割
-            // 权重越小，表示边越不重要，越容易被切割
-            weight = UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
+            // 使用地形权重计算，而不是随机权重
+            weight = CalculateTerrainBasedWeight(a, b);
             _edgeWeightCache[key] = weight;
         }
         return weight;
+    }
+
+    // 计算基于地形的边权重
+    private int CalculateTerrainBasedWeight(Cell a, Cell b)
+    {
+        // 如果没有地形管理器，使用随机权重作为后备
+        if (terrainManager == null)
+        {
+            return UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
+        }
+
+        // 获取Tilemap
+        var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+        Tilemap tilemap = null;
+        if (tilemapProperty != null)
+        {
+            tilemap = tilemapProperty.GetValue(terrainManager) as UnityEngine.Tilemaps.Tilemap;
+        }
+
+        if (tilemap == null)
+        {
+            UnityEngine.Debug.LogWarning("无法获取Tilemap，使用随机权重");
+            return UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
+        }
+
+        // 使用SimpleEdgeTileTest的方法获取穿过的瓦片
+        var crossedTiles = GetTilesCrossedByLine(a.transform.position, b.transform.position, tilemap);
+        
+        int totalWeight = 0;
+        
+        // 遍历每个瓦片，获取其生物群系并累加权重
+        foreach (Vector3Int tilePos in crossedTiles)
+        {
+            int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
+            int tileWeight = terrainWeights.GetWeightForBiome(biomeType);
+            totalWeight += tileWeight;
+        }
+        
+        return totalWeight;
+    }
+    
+    /// <summary>
+    /// 使用映射表获取生物群系（照搬SimpleEdgeTileTest的方法）
+    /// </summary>
+    private int GetBiomeUsingMap(MonoBehaviour terrainManager, Vector3Int tilePos)
+    {
+        try
+        {
+            // 调用TerrainManager的GetBiomeAtTile方法
+            var getBiomeMethod = terrainManager.GetType().GetMethod("GetBiomeAtTile");
+            if (getBiomeMethod != null)
+            {
+                var result = getBiomeMethod.Invoke(terrainManager, new object[] { tilePos });
+                if (result != null)
+                {
+                    return (int)result;
+                }
+            }
+            
+            // 如果映射表方法不可用，返回-1
+            UnityEngine.Debug.LogWarning($"无法使用映射表获取瓦片 {tilePos} 的生物群系");
+            return -1;
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"获取生物群系时出错: {ex.Message}");
+            return -1;
+        }
+    }
+    
+    /// <summary>
+    /// 获取线段经过的瓦片（照搬SimpleEdgeTileTest的方法）
+    /// </summary>
+    private HashSet<Vector3Int> GetTilesCrossedByLine(Vector2 start, Vector2 end, Tilemap tilemap)
+    {
+        HashSet<Vector3Int> crossedTiles = new HashSet<Vector3Int>();
+        
+        if (tilemap == null) return crossedTiles;
+        
+        // 分段检测
+        Vector2 direction = (end - start).normalized;
+        float distance = Vector2.Distance(start, end);
+        
+        // 每0.5单位一个检测点
+        int segments = Mathf.Max(1, Mathf.CeilToInt(distance / 0.5f));
+        float segmentLength = distance / segments;
+        
+        for (int i = 0; i <= segments; i++)
+        {
+            Vector2 checkPoint = start + direction * (segmentLength * i);
+            Vector3Int tilePos = tilemap.WorldToCell(checkPoint);
+            
+            // 使用(X,Y,Z)格式，与TerrainManager的ConvertHexToTilePosition保持一致
+            Vector3Int adjustedTilePos = new Vector3Int(tilePos.x, tilePos.y, tilePos.z);
+            
+            if (tilemap.HasTile(tilePos))
+            {
+                crossedTiles.Add(adjustedTilePos);
+            }
+        }
+        
+        // 额外使用Physics2D.LinecastAll进行更精确的检测
+        RaycastHit2D[] hits = Physics2D.LinecastAll(start, end, -1); // 使用默认LayerMask
+        
+        foreach (var hit in hits)
+        {
+            if (hit.collider != null)
+            {
+                Vector3Int tilePos = tilemap.WorldToCell(hit.point);
+                // 使用(X,Y,Z)格式，与TerrainManager的ConvertHexToTilePosition保持一致
+                Vector3Int adjustedTilePos = new Vector3Int(tilePos.x, tilePos.y, tilePos.z);
+                
+                if (tilemap.HasTile(tilePos))
+                {
+                    crossedTiles.Add(adjustedTilePos);
+                }
+            }
+        }
+        
+        return crossedTiles;
     }
 
     // 获取与指定cell连通的所有cell
@@ -2053,5 +2256,120 @@ public class GameManager : MonoBehaviour
             UnityEngine.Debug.Log($"  - UI Layer: {uiLayer}");
             UnityEngine.Debug.Log($"  - Default Layer: {defaultLayer}");
         }
+    }
+
+    /// <summary>
+    /// 公开方法：获取或计算两个Cell之间的edge权重
+    /// </summary>
+    /// <param name="a">第一个Cell</param>
+    /// <param name="b">第二个Cell</param>
+    /// <returns>权重值</returns>
+    public int GetEdgeWeight(Cell a, Cell b)
+    {
+        return GetOrCreateEdgeWeight(a, b);
+    }
+    
+    /// <summary>
+    /// 调试方法：验证权重计算
+    /// </summary>
+    [ContextMenu("验证权重计算")]
+    public void DebugWeightCalculation()
+    {
+        UnityEngine.Debug.Log("🔍 开始验证权重计算...");
+        
+        if (_cells == null || _cells.Count < 2)
+        {
+            UnityEngine.Debug.LogWarning("⚠️ 没有足够的Cell进行测试");
+            return;
+        }
+        
+        Cell cellA = _cells[0];
+        Cell cellB = _cells[1];
+        
+        UnityEngine.Debug.Log($"🔗 测试Edge: Cell {cellA.Number} -> Cell {cellB.Number}");
+        
+        // 获取穿过的瓦片
+        var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+        Tilemap tilemap = null;
+        if (tilemapProperty != null)
+        {
+            tilemap = tilemapProperty.GetValue(terrainManager) as UnityEngine.Tilemaps.Tilemap;
+        }
+        
+        if (tilemap == null)
+        {
+            UnityEngine.Debug.LogError("❌ 无法获取Tilemap");
+            return;
+        }
+        
+        var crossedTiles = GetTilesCrossedByLine(cellA.transform.position, cellB.transform.position, tilemap);
+        UnityEngine.Debug.Log($"📊 穿过的瓦片数量: {crossedTiles.Count}");
+        
+        int totalWeight = 0;
+        foreach (Vector3Int tilePos in crossedTiles)
+        {
+            int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
+            int tileWeight = terrainWeights.GetWeightForBiome(biomeType);
+            totalWeight += tileWeight;
+            
+            UnityEngine.Debug.Log($"  🎯 瓦片{tilePos}: 生物群系{biomeType}, 权重{tileWeight}");
+        }
+        
+        UnityEngine.Debug.Log($"✅ 总权重: {totalWeight}");
+        
+        // 对比缓存中的权重
+        int cachedWeight = GetOrCreateEdgeWeight(cellA, cellB);
+        UnityEngine.Debug.Log($"💾 缓存中的权重: {cachedWeight}");
+        
+        if (totalWeight == cachedWeight)
+        {
+            UnityEngine.Debug.Log("✅ 权重计算正确！");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning($"⚠️ 权重不匹配！计算值: {totalWeight}, 缓存值: {cachedWeight}");
+        }
+    }
+    
+    /// <summary>
+    /// 重新计算所有edges的权重
+    /// </summary>
+    [ContextMenu("重新计算所有Edges权重")]
+    public void RecalculateAllEdgeWeights()
+    {
+        UnityEngine.Debug.Log("🔄 开始重新计算所有Edges权重...");
+        
+        if (_edges == null || _edges.Count == 0)
+        {
+            UnityEngine.Debug.LogWarning("⚠️ 没有找到edges");
+            return;
+        }
+        
+        int updatedCount = 0;
+        foreach (var edgePair in _edges)
+        {
+            var edgeKey = edgePair.Key;
+            Cell cellA = edgeKey.Item1;
+            Cell cellB = edgeKey.Item2;
+            
+            if (cellA == null || cellB == null) continue;
+            
+            // 清除缓存，强制重新计算
+            var key = GetCanonicalEdgeKey(cellA, cellB);
+            if (_edgeWeightCache.ContainsKey(key))
+            {
+                _edgeWeightCache.Remove(key);
+            }
+            
+            // 重新计算权重
+            int newWeight = GetOrCreateEdgeWeight(cellA, cellB);
+            
+            // 更新edge显示
+            CreateOrUpdateEdge(cellA, cellB, newWeight);
+            
+            updatedCount++;
+        }
+        
+        UnityEngine.Debug.Log($"✅ 完成重新计算，更新了 {updatedCount} 个edges");
     }
 }
