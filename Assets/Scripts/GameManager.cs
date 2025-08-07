@@ -49,13 +49,43 @@ public class GameManager : MonoBehaviour
 
     // 唯一权重缓存
     private Dictionary<(Cell, Cell), int> _edgeWeightCache = new Dictionary<(Cell, Cell), int>();
-    [SerializeField] private int minEdgeWeight = 1;
-    [SerializeField] private int maxEdgeWeight = 10;
+    [SerializeField] private int maxEdgeWeight = 10; // 最大权重值
 
     private Button debugButton;
 
     private HashSet<(Cell, Cell)> _initialEdges = new HashSet<(Cell, Cell)>(); // 记录初始边
     private HashSet<(Cell, Cell)> playerCutEdges = new HashSet<(Cell, Cell)>();
+    
+    // 回退功能相关
+    [System.Serializable]
+    public class GameState
+    {
+        public HashSet<(Cell, Cell)> cutEdges;
+        public Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshProUGUI tmp, GameObject bg)> edges;
+        public int currentCost;
+        
+        public GameState()
+        {
+            cutEdges = new HashSet<(Cell, Cell)>();
+            edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshProUGUI, GameObject)>();
+            currentCost = 0;
+        }
+        
+        public GameState(HashSet<(Cell, Cell)> cutEdges, 
+                        Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshProUGUI tmp, GameObject bg)> edges,
+                        int currentCost)
+        {
+            this.cutEdges = new HashSet<(Cell, Cell)>(cutEdges);
+            this.edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshProUGUI, GameObject)>(edges);
+            this.currentCost = currentCost;
+        }
+    }
+    
+    private Stack<GameState> gameStateHistory = new Stack<GameState>();
+    private const int MAX_UNDO_STEPS = 20; // 最大回退步数
+    
+    [Header("UI Controls")]
+    public Button ReturnButton; // 回退按钮
 
     public enum MulticutAlgorithm
     {
@@ -319,8 +349,30 @@ public class GameManager : MonoBehaviour
             costText = costTextObj.GetComponent<TextMeshProUGUI>();
         else
             UnityEngine.Debug.LogError("找不到UICanvas下的CostText！");
+            
+        // 绑定ReturnButton点击事件
+        if (ReturnButton == null)
+        {
+            var returnButtonObj = GameObject.Find("UICanvas/ReturnButton");
+            if (returnButtonObj != null)
+                ReturnButton = returnButtonObj.GetComponent<Button>();
+        }
+        
+        if (ReturnButton != null)
+        {
+            ReturnButton.onClick.AddListener(UndoLastAction);
+            UpdateReturnButtonState();
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("找不到UICanvas下的ReturnButton！");
+        }
 
         UpdateOptimalCostByPython();
+        
+        // 保存游戏初始状态
+        SaveGameState();
+        
         // 自动输出cell1和cell2连线的地形权重
         if (_cells != null && _cells.Count >= 2)
         {
@@ -623,6 +675,7 @@ public class GameManager : MonoBehaviour
         RemoveAllEdges();
         _initialEdges.Clear(); // 清空初始边集合
         playerCutEdges.Clear(); // 清空玩家切割记录
+        ClearUndoHistory(); // 清空回退历史
 
         List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
         // Assign positions to cells and collect Vector2 for triangulation
@@ -965,7 +1018,13 @@ public class GameManager : MonoBehaviour
 
                 if (componentsAfterRemoval > initialComponents)
                 {
+                    // 在删除边之前保存当前状态
+                    SaveGameState();
+                    UnityEngine.Debug.Log($"💾 保存单边删除前的状态，当前切割边数量: {playerCutEdges.Count}");
+                    
                     RemoveEdge(toRemoveKey.Item1, toRemoveKey.Item2);
+                    
+                    UnityEngine.Debug.Log($"✂️ 单边删除完成，删除的边: {toRemoveKey.Item1.Number}-{toRemoveKey.Item2.Number}");
                 }
                 else
                 {
@@ -1364,17 +1423,16 @@ public class GameManager : MonoBehaviour
             // 记录玩家切割的边
             playerCutEdges.Add(key);
             
-            // 确保销毁所有相关对象
+            // 隐藏边而不是销毁，以便回退时可以恢复
             if (edge.renderer != null && edge.renderer.gameObject != null)
             {
-                DestroyImmediate(edge.renderer.gameObject);
+                edge.renderer.gameObject.SetActive(false);
             }
             if (edge.bg != null)
             {
-                DestroyImmediate(edge.bg);
+                edge.bg.SetActive(false);
             }
             
-            _edges.Remove(key);
             UpdateCostText(); // 每次切割后刷新
         }
     }
@@ -1486,10 +1544,16 @@ public class GameManager : MonoBehaviour
 
         if (componentsAfterRemoval > initialComponents)
         {
+            // 在批量切割之前保存当前状态
+            SaveGameState();
+            UnityEngine.Debug.Log($"💾 保存批量切割前的状态，当前切割边数量: {playerCutEdges.Count}");
+            
             foreach (var edge in edgesToRemove)
             {
                 RemoveEdge(edge.Item1, edge.Item2);
             }
+            
+            UnityEngine.Debug.Log($"✂️ 批量切割完成，新增切割边数量: {edgesToRemove.Count}");
         }
         else
         {
@@ -1510,10 +1574,18 @@ public class GameManager : MonoBehaviour
 
         foreach (var pair in _edges)
         {
+            // 跳过被忽略的边
             if (ignoreEdges != null && ignoreEdges.Contains(pair.Key))
             {
                 continue;
             }
+            
+            // 跳过已经被玩家切割的边
+            if (playerCutEdges.Contains(pair.Key))
+            {
+                continue;
+            }
+            
             graph[pair.Key.Item1].Add(pair.Key.Item2);
             graph[pair.Key.Item2].Add(pair.Key.Item1);
         }
@@ -1582,7 +1654,7 @@ public class GameManager : MonoBehaviour
         // 如果没有地形管理器，使用随机权重作为后备
         if (terrainManager == null)
         {
-            return UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
+            return UnityEngine.Random.Range(-maxEdgeWeight, maxEdgeWeight + 1);
         }
 
         // 获取Tilemap
@@ -1596,7 +1668,7 @@ public class GameManager : MonoBehaviour
         if (tilemap == null)
         {
             UnityEngine.Debug.LogWarning("无法获取Tilemap，使用随机权重");
-            return UnityEngine.Random.Range((int)minEdgeWeight, (int)maxEdgeWeight + 1);
+            return UnityEngine.Random.Range(-maxEdgeWeight, maxEdgeWeight + 1);
         }
 
         // 使用SimpleEdgeTileTest的方法获取穿过的瓦片
@@ -1652,10 +1724,140 @@ public class GameManager : MonoBehaviour
         // 混合地形权重和随机因子
         float finalWeight = weightedTerrain * (1f - randomInfluence) + randomFactor * randomInfluence;
         
-        // 5. 确保权重在合理范围内
-        int clampedWeight = Mathf.Clamp(Mathf.RoundToInt(finalWeight), (int)minEdgeWeight, (int)maxEdgeWeight);
+        // 5. 使用简化的权重映射：从计算出的权重映射到 [1, maxEdgeWeight] 范围
+        int mappedWeight = MapWeightToRange(Mathf.RoundToInt(finalWeight));
         
-        return clampedWeight;
+        return mappedWeight;
+    }
+    
+                // 动态权重范围缓存
+    private float actualMinWeight = float.MaxValue;
+    private float actualMaxWeight = float.MinValue;
+    private bool needsRangeRecalculation = true;
+    
+    /// <summary>
+    /// 使用 Min-Max Normalization 将权重映射到 [-maxEdgeWeight, maxEdgeWeight] 范围
+    /// </summary>
+    private int MapWeightToRange(int weight)
+    {
+        // 确保范围已计算
+        if (needsRangeRecalculation)
+        {
+            RecalculateWeightRange();
+            needsRangeRecalculation = false;
+        }
+        
+        // 如果实际范围为0，返回0
+        if (Mathf.Approximately(actualMaxWeight, actualMinWeight))
+        {
+            return 0;
+        }
+        
+        // Min-Max Normalization: 映射到 [-maxEdgeWeight, maxEdgeWeight]
+        // 公式: newValue = newMin + (value - oldMin) * (newMax - newMin) / (oldMax - oldMin)
+        float normalizedWeight = (weight - actualMinWeight) / (actualMaxWeight - actualMinWeight);
+        float mappedWeight = -maxEdgeWeight + normalizedWeight * (2 * maxEdgeWeight);
+        
+        return Mathf.RoundToInt(mappedWeight);
+    }
+    
+    /// <summary>
+    /// 重新计算实际权重范围（在应用映射之前的原始权重）
+    /// </summary>
+    private void RecalculateWeightRange()
+    {
+        actualMinWeight = float.MaxValue;
+        actualMaxWeight = float.MinValue;
+        
+        // 采样一些边来估算权重范围
+        int sampleCount = 0;
+        int maxSamples = Mathf.Min(50, _edges.Count); // 最多采样50个边
+        
+        foreach (var edgePair in _edges)
+        {
+            if (sampleCount >= maxSamples) break;
+            
+            var edgeKey = edgePair.Key;
+            Cell cellA = edgeKey.Item1;
+            Cell cellB = edgeKey.Item2;
+            
+            // 计算原始权重（不经过映射）
+            int rawWeight = CalculateRawWeightForSampling(cellA, cellB);
+            
+            if (rawWeight < actualMinWeight) actualMinWeight = rawWeight;
+            if (rawWeight > actualMaxWeight) actualMaxWeight = rawWeight;
+            
+            sampleCount++;
+        }
+        
+        // 如果没有有效数据，使用默认范围
+        if (actualMinWeight == float.MaxValue)
+        {
+            actualMinWeight = -maxEdgeWeight;
+            actualMaxWeight = maxEdgeWeight;
+        }
+        
+        UnityEngine.Debug.Log($"🔍 权重范围检测: [{actualMinWeight:F1}, {actualMaxWeight:F1}] -> 映射到 [-{maxEdgeWeight}, {maxEdgeWeight}]");
+    }
+    
+    /// <summary>
+    /// 为采样计算原始权重（不经过MapWeightToRange映射）
+    /// </summary>
+    private int CalculateRawWeightForSampling(Cell a, Cell b)
+    {
+        // 如果没有地形管理器，使用随机权重作为后备
+        if (terrainManager == null)
+        {
+            return UnityEngine.Random.Range(-50, 51); // 使用估计范围
+        }
+
+        // 获取Tilemap
+        var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+        Tilemap tilemap = null;
+        if (tilemapProperty != null)
+        {
+            tilemap = tilemapProperty.GetValue(terrainManager) as UnityEngine.Tilemaps.Tilemap;
+        }
+
+        if (tilemap == null)
+        {
+            return UnityEngine.Random.Range(-50, 51); // 使用估计范围
+        }
+
+        // 使用SimpleEdgeTileTest的方法获取穿过的瓦片
+        var crossedTiles = GetTilesCrossedByLine(a.transform.position, b.transform.position, tilemap);
+        
+        // 计算基础地形权重
+        int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
+        
+        // 应用难度设置（但不进行映射）
+        return ApplyDifficultySettingsRaw(baseTerrainWeight);
+    }
+    
+    /// <summary>
+    /// 应用难度设置到权重（不进行映射）
+    /// </summary>
+    private int ApplyDifficultySettingsRaw(int baseWeight)
+    {
+        // 1. 应用地形权重倍数
+        float terrainMultiplier = difficultySettings.terrainWeightMultiplier;
+        float weightedTerrain = baseWeight * terrainMultiplier;
+        
+        // 2. 应用难度等级倍数
+        float difficultyMultiplier = difficultySettings.GetDifficultyMultiplier();
+        weightedTerrain *= difficultyMultiplier;
+        
+        // 3. 添加全局偏移
+        weightedTerrain += difficultySettings.globalWeightOffset;
+        
+        // 4. 添加随机因子
+        float randomInfluence = difficultySettings.randomFactor;
+        int randomFactor = difficultySettings.GetRandomFactor();
+        
+        // 混合地形权重和随机因子
+        float finalWeight = weightedTerrain * (1f - randomInfluence) + randomFactor * randomInfluence;
+        
+        return Mathf.RoundToInt(finalWeight);
     }
     
     /// <summary>
@@ -2482,6 +2684,8 @@ public class GameManager : MonoBehaviour
         difficultySettings.randomFactor = 0.3f;
     }
     
+    
+    
     /// <summary>
     /// 重新计算所有edges的权重
     /// </summary>
@@ -2492,6 +2696,9 @@ public class GameManager : MonoBehaviour
         
         // 清空权重缓存
         _edgeWeightCache.Clear();
+        
+        // 重置权重范围缓存，强制重新计算（用于颜色映射）
+        needsRangeRecalculation = true;
         
         // 重新计算所有边的权重
         foreach (var edgePair in _edges)
@@ -2530,22 +2737,159 @@ public class GameManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 根据权重获取边的颜色
+    /// 根据权重获取边的颜色（使用 maxEdgeWeight 进行颜色映射）
     /// </summary>
     private Color GetEdgeColorByWeight(int weight)
     {
-        // 权重越高，颜色越深（越重要）
-        float normalizedWeight = Mathf.Clamp01((weight - minEdgeWeight) / (float)(maxEdgeWeight - minEdgeWeight));
-        
         if (weight >= 0)
         {
-            // 正权重：绿色系
+            // 正权重：绿色系，从浅绿到深绿
+            float normalizedWeight = Mathf.Clamp01(weight / (float)maxEdgeWeight);
             return Color.Lerp(Color.green, Color.yellow, normalizedWeight);
         }
         else
         {
-            // 负权重：红色系
+            // 负权重：红色系，从浅红到深红
+            float normalizedWeight = Mathf.Clamp01(Mathf.Abs(weight) / (float)maxEdgeWeight);
             return Color.Lerp(Color.red, Color.magenta, normalizedWeight);
         }
     }
+    
+    #region 回退功能实现
+    
+    /// <summary>
+    /// 保存当前游戏状态到历史记录
+    /// </summary>
+    private void SaveGameState()
+    {
+        // 创建当前状态的深拷贝
+        var currentState = new GameState(
+            playerCutEdges,
+            _edges,
+            GetCurrentCost()
+        );
+        
+        gameStateHistory.Push(currentState);
+        
+        // 限制历史记录数量
+        if (gameStateHistory.Count > MAX_UNDO_STEPS)
+        {
+            var tempStack = new Stack<GameState>();
+            for (int i = 0; i < MAX_UNDO_STEPS; i++)
+            {
+                if (gameStateHistory.Count > 0)
+                    tempStack.Push(gameStateHistory.Pop());
+            }
+            gameStateHistory.Clear();
+            while (tempStack.Count > 0)
+            {
+                gameStateHistory.Push(tempStack.Pop());
+            }
+        }
+        
+        UpdateReturnButtonState();
+        UnityEngine.Debug.Log($"🔄 保存游戏状态，历史记录数量: {gameStateHistory.Count}");
+    }
+    
+    /// <summary>
+    /// 回退到上一步状态（一次性回退所有操作）
+    /// </summary>
+    public void UndoLastAction()
+    {
+        if (gameStateHistory.Count == 0)
+        {
+            UnityEngine.Debug.Log("⚠️ 没有可回退的操作");
+            return;
+        }
+        
+        var previousState = gameStateHistory.Pop();
+        
+        UnityEngine.Debug.Log($"🔄 开始回退操作...");
+        UnityEngine.Debug.Log($"📊 当前状态: 切割了 {playerCutEdges.Count} 条边");
+        UnityEngine.Debug.Log($"📊 回退到: 切割了 {previousState.cutEdges.Count} 条边");
+        
+        // 计算需要恢复和隐藏的边
+        var edgesToRestore = new HashSet<(Cell, Cell)>(playerCutEdges);
+        var edgesToHide = new HashSet<(Cell, Cell)>(previousState.cutEdges);
+        
+        // 恢复所有当前被切割的边
+        foreach (var cutEdge in edgesToRestore)
+        {
+            if (_edges.TryGetValue(cutEdge, out var edgeData))
+            {
+                if (edgeData.renderer != null)
+                {
+                    edgeData.renderer.gameObject.SetActive(true);
+                    UnityEngine.Debug.Log($"✅ 恢复边: {cutEdge.Item1.Number}-{cutEdge.Item2.Number}");
+                }
+                if (edgeData.bg != null)
+                    edgeData.bg.SetActive(useWeightedEdges);
+            }
+        }
+        
+        // 恢复到之前的玩家切割状态
+        playerCutEdges.Clear();
+        foreach (var edge in previousState.cutEdges)
+        {
+            playerCutEdges.Add(edge);
+        }
+        
+        // 隐藏之前状态中被切割的边
+        foreach (var cutEdge in edgesToHide)
+        {
+            if (_edges.TryGetValue(cutEdge, out var edgeData))
+            {
+                if (edgeData.renderer != null)
+                {
+                    edgeData.renderer.gameObject.SetActive(false);
+                    UnityEngine.Debug.Log($"❌ 隐藏边: {cutEdge.Item1.Number}-{cutEdge.Item2.Number}");
+                }
+                if (edgeData.bg != null)
+                    edgeData.bg.SetActive(false);
+            }
+        }
+        
+        // 更新cost显示
+        UpdateCostText();
+        
+        // 更新按钮状态
+        UpdateReturnButtonState();
+        
+        UnityEngine.Debug.Log($"↶ 回退操作完成！剩余历史记录: {gameStateHistory.Count}");
+        UnityEngine.Debug.Log($"📊 最终状态: 切割了 {playerCutEdges.Count} 条边");
+    }
+    
+
+    
+    /// <summary>
+    /// 更新回退按钮的可用状态
+    /// </summary>
+    private void UpdateReturnButtonState()
+    {
+        if (ReturnButton != null)
+        {
+            ReturnButton.interactable = gameStateHistory.Count > 0;
+        }
+    }
+    
+    /// <summary>
+    /// 清空回退历史
+    /// </summary>
+    public void ClearUndoHistory()
+    {
+        gameStateHistory.Clear();
+        UpdateReturnButtonState();
+        UnityEngine.Debug.Log("🗑️ 清空回退历史");
+    }
+    
+    /// <summary>
+    /// 保存当前操作状态（在完成一次操作后调用）
+    /// </summary>
+    public void SaveCurrentOperation()
+    {
+        SaveGameState();
+        UnityEngine.Debug.Log($"💾 保存当前操作状态，切割边数量: {playerCutEdges.Count}");
+    }
+    
+    #endregion
 }

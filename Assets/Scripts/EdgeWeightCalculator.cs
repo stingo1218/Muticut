@@ -119,11 +119,11 @@ public class EdgeWeightCalculator : MonoBehaviour
                 int edgeWeight = CalculateEdgeWeight(crossedTiles, terrainManager);
                 totalWeight += edgeWeight;
                 
-                Debug.Log($"📊 {edgeName}: {crossedTiles.Count}个tiles, 权重 = {edgeWeight}");
+                // Debug.Log($"📊 {edgeName}: {crossedTiles.Count}个tiles, 权重 = {edgeWeight}");
             }
         }
         
-        Debug.Log($"✅ 计算完成！共 {edgeCount} 个edges，总权重 = {totalWeight}");
+        // Debug.Log($"✅ 计算完成！共 {edgeCount} 个edges，总权重 = {totalWeight}");
     }
     
     [ContextMenu("立即计算权重")]
