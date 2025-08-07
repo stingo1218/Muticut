@@ -8,16 +8,10 @@ using TMPro;
 public class DifficultyController : MonoBehaviour
 {
     [Header("UI组件")]
-    public Slider difficultySlider;
     public Slider randomFactorSlider;
-    public Slider terrainMultiplierSlider;
-    public Slider globalOffsetSlider;
     
     [Header("显示组件")]
-    public TextMeshProUGUI difficultyText;
     public TextMeshProUGUI randomFactorText;
-    public TextMeshProUGUI terrainMultiplierText;
-    public TextMeshProUGUI globalOffsetText;
     
     [Header("按钮")]
     public Button applyButton;
@@ -49,13 +43,6 @@ public class DifficultyController : MonoBehaviour
     
     private void InitializeUI()
     {
-        if (difficultySlider != null)
-        {
-            difficultySlider.minValue = 0;
-            difficultySlider.maxValue = 10;
-            difficultySlider.value = gameManager.difficultySettings.difficultyLevel;
-        }
-        
         if (randomFactorSlider != null)
         {
             randomFactorSlider.minValue = 0f;
@@ -63,36 +50,13 @@ public class DifficultyController : MonoBehaviour
             randomFactorSlider.value = gameManager.difficultySettings.randomFactor;
         }
         
-        if (terrainMultiplierSlider != null)
-        {
-            terrainMultiplierSlider.minValue = 0.1f;
-            terrainMultiplierSlider.maxValue = 3f;
-            terrainMultiplierSlider.value = gameManager.difficultySettings.terrainWeightMultiplier;
-        }
-        
-        if (globalOffsetSlider != null)
-        {
-            globalOffsetSlider.minValue = -10;
-            globalOffsetSlider.maxValue = 10;
-            globalOffsetSlider.value = gameManager.difficultySettings.globalWeightOffset;
-        }
-        
         UpdateDisplayTexts();
     }
     
     private void BindEvents()
     {
-        if (difficultySlider != null)
-            difficultySlider.onValueChanged.AddListener(OnDifficultyChanged);
-        
         if (randomFactorSlider != null)
             randomFactorSlider.onValueChanged.AddListener(OnRandomFactorChanged);
-        
-        if (terrainMultiplierSlider != null)
-            terrainMultiplierSlider.onValueChanged.AddListener(OnTerrainMultiplierChanged);
-        
-        if (globalOffsetSlider != null)
-            globalOffsetSlider.onValueChanged.AddListener(OnGlobalOffsetChanged);
         
         if (applyButton != null)
             applyButton.onClick.AddListener(ApplySettings);
@@ -104,43 +68,16 @@ public class DifficultyController : MonoBehaviour
             testButton.onClick.AddListener(TestCurrentSettings);
     }
     
-    private void OnDifficultyChanged(float value)
-    {
-        gameManager.difficultySettings.difficultyLevel = Mathf.RoundToInt(value);
-        UpdateDisplayTexts();
-    }
-    
     private void OnRandomFactorChanged(float value)
     {
         gameManager.difficultySettings.randomFactor = value;
         UpdateDisplayTexts();
     }
     
-    private void OnTerrainMultiplierChanged(float value)
-    {
-        gameManager.difficultySettings.terrainWeightMultiplier = value;
-        UpdateDisplayTexts();
-    }
-    
-    private void OnGlobalOffsetChanged(float value)
-    {
-        gameManager.difficultySettings.globalWeightOffset = Mathf.RoundToInt(value);
-        UpdateDisplayTexts();
-    }
-    
     private void UpdateDisplayTexts()
     {
-        if (difficultyText != null)
-            difficultyText.text = $"难度等级: {gameManager.difficultySettings.difficultyLevel}";
-        
         if (randomFactorText != null)
             randomFactorText.text = $"随机因子: {gameManager.difficultySettings.randomFactor:F2}";
-        
-        if (terrainMultiplierText != null)
-            terrainMultiplierText.text = $"地形倍数: {gameManager.difficultySettings.terrainWeightMultiplier:F2}";
-        
-        if (globalOffsetText != null)
-            globalOffsetText.text = $"全局偏移: {gameManager.difficultySettings.globalWeightOffset}";
     }
     
     public void ApplySettings()
@@ -165,45 +102,30 @@ public class DifficultyController : MonoBehaviour
     
     private void CopySettings(GameManager.DifficultySettings from, GameManager.DifficultySettings to)
     {
-        to.difficultyLevel = from.difficultyLevel;
         to.randomFactor = from.randomFactor;
         to.randomRange = from.randomRange;
-        to.terrainWeightMultiplier = from.terrainWeightMultiplier;
-        to.globalWeightOffset = from.globalWeightOffset;
-        to.easyMultiplier = from.easyMultiplier;
-        to.normalMultiplier = from.normalMultiplier;
-        to.hardMultiplier = from.hardMultiplier;
     }
     
-    [ContextMenu("快速设置 - 简单模式")]
-    public void SetEasyMode()
+    [ContextMenu("快速设置 - 纯地形模式")]
+    public void SetTerrainOnlyMode()
     {
-        gameManager.difficultySettings.difficultyLevel = 2;
-        gameManager.difficultySettings.randomFactor = 0.1f;
-        gameManager.difficultySettings.terrainWeightMultiplier = 0.8f;
-        gameManager.difficultySettings.globalWeightOffset = 2;
+        gameManager.difficultySettings.randomFactor = 0f;
         InitializeUI();
         ApplySettings();
     }
     
-    [ContextMenu("快速设置 - 普通模式")]
-    public void SetNormalMode()
+    [ContextMenu("快速设置 - 混合模式")]
+    public void SetMixedMode()
     {
-        gameManager.difficultySettings.difficultyLevel = 5;
         gameManager.difficultySettings.randomFactor = 0.3f;
-        gameManager.difficultySettings.terrainWeightMultiplier = 1.0f;
-        gameManager.difficultySettings.globalWeightOffset = 0;
         InitializeUI();
         ApplySettings();
     }
     
-    [ContextMenu("快速设置 - 困难模式")]
-    public void SetHardMode()
+    [ContextMenu("快速设置 - 纯随机模式")]
+    public void SetRandomOnlyMode()
     {
-        gameManager.difficultySettings.difficultyLevel = 8;
-        gameManager.difficultySettings.randomFactor = 0.5f;
-        gameManager.difficultySettings.terrainWeightMultiplier = 1.3f;
-        gameManager.difficultySettings.globalWeightOffset = -3;
+        gameManager.difficultySettings.randomFactor = 1f;
         InitializeUI();
         ApplySettings();
     }

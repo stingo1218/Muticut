@@ -253,31 +253,9 @@ public class GameManager : MonoBehaviour
     [System.Serializable]
     public class DifficultySettings
     {
-        [Header("难度等级")]
-        [Range(0, 10)] public int difficultyLevel = 5; // 0=简单, 10=困难
-        
         [Header("随机因子设置")]
         [Range(0f, 1f)] public float randomFactor = 0.3f; // 随机因子强度 (0=纯地形, 1=纯随机)
         [Range(-20, 20)] public int randomRange = 10; // 随机范围
-        
-        [Header("地形权重调整")]
-        [Range(0.1f, 3f)] public float terrainWeightMultiplier = 1.0f; // 地形权重倍数
-        [Range(-10, 10)] public int globalWeightOffset = 0; // 全局权重偏移
-        
-        [Header("难度特定调整")]
-        [Range(0.5f, 2f)] public float easyMultiplier = 0.8f; // 简单模式倍数
-        [Range(0.5f, 2f)] public float normalMultiplier = 1.0f; // 普通模式倍数
-        [Range(0.5f, 2f)] public float hardMultiplier = 1.3f; // 困难模式倍数
-        
-        /// <summary>
-        /// 根据难度等级获取权重倍数
-        /// </summary>
-        public float GetDifficultyMultiplier()
-        {
-            if (difficultyLevel <= 3) return easyMultiplier;
-            if (difficultyLevel <= 7) return normalMultiplier;
-            return hardMultiplier;
-        }
         
         /// <summary>
         /// 获取随机因子
@@ -294,6 +272,9 @@ public class GameManager : MonoBehaviour
     
     [Header("难度设置")]
     public DifficultySettings difficultySettings = new DifficultySettings();
+
+    [Header("节点生成设置")]
+    [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
 
     /// <summary>
     /// 获取指定生物群系的权重
@@ -522,21 +503,41 @@ public class GameManager : MonoBehaviour
         // 活动点列表
         List<Vector2> activePoints = new List<Vector2>();
 
-        // 添加第一个点
-        Vector2 firstPoint = new Vector2(
-            UnityEngine.Random.Range(minX, maxX),
-            UnityEngine.Random.Range(minY, maxY)
-        );
+        // 添加第一个点（确保在陆地上）
+        Vector2 firstPoint;
+        int attempts = 0;
+        do
+        {
+            firstPoint = new Vector2(
+                UnityEngine.Random.Range(minX, maxX),
+                UnityEngine.Random.Range(minY, maxY)
+            );
+            attempts++;
+            if (attempts > 1000) // 防止无限循环
+            {
+                UnityEngine.Debug.LogWarning("无法找到有效的陆地位置，使用默认位置");
+                break;
+            }
+        } while (!IsPositionOnLand(firstPoint));
+
         cellPositions.Add(firstPoint);
         activePoints.Add(firstPoint);
 
         // 将点添加到网格
         int gridX = Mathf.FloorToInt((firstPoint.x - minX) / cellSize);
         int gridY = Mathf.FloorToInt((firstPoint.y - minY) / cellSize);
-        grid[gridX, gridY] = cellPositions.Count - 1;
-
-        while (activePoints.Count > 0 && cellPositions.Count < numberOfPoints)
+        if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows)
         {
+            grid[gridX, gridY] = cellPositions.Count - 1;
+        }
+
+        int maxTotalAttempts = numberOfPoints * 100; // 总尝试次数限制
+        int totalAttempts = 0;
+
+        while (activePoints.Count > 0 && cellPositions.Count < numberOfPoints && totalAttempts < maxTotalAttempts)
+        {
+            totalAttempts++;
+            
             // 随机选择一个活动点
             int activeIndex = UnityEngine.Random.Range(0, activePoints.Count);
             Vector2 point = activePoints[activeIndex];
@@ -556,6 +557,10 @@ public class GameManager : MonoBehaviour
                 // 检查新点是否在有效范围内
                 if (newPoint.x < minX || newPoint.x > maxX || 
                     newPoint.y < minY || newPoint.y > maxY)
+                    continue;
+
+                // 检查新点是否在陆地上
+                if (!IsPositionOnLand(newPoint))
                     continue;
 
                 // 检查新点是否与现有点距离足够
@@ -593,7 +598,10 @@ public class GameManager : MonoBehaviour
                 {
                     cellPositions.Add(newPoint);
                     activePoints.Add(newPoint);
-                    grid[newGridX, newGridY] = cellPositions.Count - 1;
+                    if (newGridX >= 0 && newGridX < cols && newGridY >= 0 && newGridY < rows)
+                    {
+                        grid[newGridX, newGridY] = cellPositions.Count - 1;
+                    }
                     foundValidPoint = true;
                     break;
                 }
@@ -605,8 +613,95 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        UnityEngine.Debug.Log($"Generated {cellPositions.Count} points using Poisson Disk Sampling");
+        if (cellPositions.Count < numberOfPoints)
+        {
+            UnityEngine.Debug.LogWarning($"只能生成 {cellPositions.Count} 个节点，少于请求的 {numberOfPoints} 个。可能陆地面积不足。");
+        }
+
+        UnityEngine.Debug.Log($"Generated {cellPositions.Count} points using Poisson Disk Sampling on land");
         return cellPositions;
+    }
+
+    /// <summary>
+    /// 检查指定位置是否在陆地上
+    /// </summary>
+    /// <param name="position">要检查的位置</param>
+    /// <returns>如果位置在陆地上返回true，否则返回false</returns>
+    private bool IsPositionOnLand(Vector2 position)
+    {
+        // 如果禁用了地形检查，直接返回true
+        if (!enableTerrainCheck)
+        {
+            return true;
+        }
+
+        if (terrainManager == null)
+        {
+            UnityEngine.Debug.LogWarning("TerrainManager is null, assuming position is on land");
+            return true;
+        }
+
+        try
+        {
+            // 获取Tilemap
+            var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+            Tilemap tilemap = null;
+            if (tilemapProperty != null)
+            {
+                tilemap = tilemapProperty.GetValue(terrainManager) as Tilemap;
+            }
+
+            if (tilemap == null)
+            {
+                UnityEngine.Debug.LogWarning("无法获取Tilemap，假设位置在陆地上");
+                return true;
+            }
+
+            // 使用tilemap.WorldToCell()进行正确的坐标转换
+            Vector3Int tilePos = tilemap.WorldToCell(position);
+
+            // 获取该位置的生物群系类型
+            int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
+            
+            // 检查是否为水域生物群系
+            bool isWater = IsWaterBiome(biomeType);
+            
+            // 调试信息（可选，用于验证地形检查是否正常工作）
+            if (UnityEngine.Debug.isDebugBuild)
+            {
+                UnityEngine.Debug.Log($"位置 {position} -> 瓦片 {tilePos} -> 生物群系 {biomeType} -> 是否水域 {isWater}");
+            }
+            
+            return !isWater;
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"检查地形时出错: {ex.Message}，假设位置在陆地上");
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 检查生物群系类型是否为水域
+    /// </summary>
+    /// <param name="biomeType">生物群系类型</param>
+    /// <returns>如果是水域返回true，否则返回false</returns>
+    private bool IsWaterBiome(int biomeType)
+    {
+        // 根据 HexCoordinateSystem.BiomeType 枚举定义水域生物群系
+        // DeepWater = 0, ShallowWater = 1, Lake1 = 20, Lake2 = 21, Lake3 = 22, Lake4 = 23
+        switch (biomeType)
+        {
+            case 0:  // DeepWater (深水)
+            case 1:  // ShallowWater (浅水)
+            case 20: // Lake1 (湖泊1)
+            case 21: // Lake2 (湖泊2)
+            case 22: // Lake3 (湖泊3)
+            case 23: // Lake4 (湖泊4)
+                return true;
+            default:
+                return false;
+        }
     }
 
     void StretchAndCenterCells(List<Cell> cells)
@@ -1706,25 +1801,14 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private int ApplyDifficultySettings(int baseWeight)
     {
-        // 1. 应用地形权重倍数
-        float terrainMultiplier = difficultySettings.terrainWeightMultiplier;
-        float weightedTerrain = baseWeight * terrainMultiplier;
-        
-        // 2. 应用难度等级倍数
-        float difficultyMultiplier = difficultySettings.GetDifficultyMultiplier();
-        weightedTerrain *= difficultyMultiplier;
-        
-        // 3. 添加全局偏移
-        weightedTerrain += difficultySettings.globalWeightOffset;
-        
-        // 4. 添加随机因子
+        // 混合地形权重和随机因子
         float randomInfluence = difficultySettings.randomFactor;
         int randomFactor = difficultySettings.GetRandomFactor();
         
-        // 混合地形权重和随机因子
-        float finalWeight = weightedTerrain * (1f - randomInfluence) + randomFactor * randomInfluence;
+        // 计算最终权重：地形权重 * (1 - 随机因子) + 随机因子 * 随机值
+        float finalWeight = baseWeight * (1f - randomInfluence) + randomFactor * randomInfluence;
         
-        // 5. 使用简化的权重映射：从计算出的权重映射到 [1, maxEdgeWeight] 范围
+        // 使用简化的权重映射：从计算出的权重映射到 [-maxEdgeWeight, maxEdgeWeight] 范围
         int mappedWeight = MapWeightToRange(Mathf.RoundToInt(finalWeight));
         
         return mappedWeight;
@@ -1839,23 +1923,12 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private int ApplyDifficultySettingsRaw(int baseWeight)
     {
-        // 1. 应用地形权重倍数
-        float terrainMultiplier = difficultySettings.terrainWeightMultiplier;
-        float weightedTerrain = baseWeight * terrainMultiplier;
-        
-        // 2. 应用难度等级倍数
-        float difficultyMultiplier = difficultySettings.GetDifficultyMultiplier();
-        weightedTerrain *= difficultyMultiplier;
-        
-        // 3. 添加全局偏移
-        weightedTerrain += difficultySettings.globalWeightOffset;
-        
-        // 4. 添加随机因子
+        // 混合地形权重和随机因子
         float randomInfluence = difficultySettings.randomFactor;
         int randomFactor = difficultySettings.GetRandomFactor();
         
-        // 混合地形权重和随机因子
-        float finalWeight = weightedTerrain * (1f - randomInfluence) + randomFactor * randomInfluence;
+        // 计算最终权重：地形权重 * (1 - 随机因子) + 随机因子 * 随机值
+        float finalWeight = baseWeight * (1f - randomInfluence) + randomFactor * randomInfluence;
         
         return Mathf.RoundToInt(finalWeight);
     }
@@ -2599,11 +2672,8 @@ public class GameManager : MonoBehaviour
         
         // 显示难度设置信息
         UnityEngine.Debug.Log($"⚙️ 难度设置:");
-        UnityEngine.Debug.Log($"  - 难度等级: {difficultySettings.difficultyLevel}");
         UnityEngine.Debug.Log($"  - 随机因子: {difficultySettings.randomFactor}");
-        UnityEngine.Debug.Log($"  - 地形倍数: {difficultySettings.terrainWeightMultiplier}");
-        UnityEngine.Debug.Log($"  - 全局偏移: {difficultySettings.globalWeightOffset}");
-        UnityEngine.Debug.Log($"  - 难度倍数: {difficultySettings.GetDifficultyMultiplier()}");
+        UnityEngine.Debug.Log($"  - 随机范围: {difficultySettings.randomRange}");
         
         // 计算最终权重
         int finalWeight = ApplyDifficultySettings(baseTerrainWeight);
@@ -2660,18 +2730,8 @@ public class GameManager : MonoBehaviour
         UnityEngine.Debug.Log($"🌍 基础地形权重: {baseWeight}");
         UnityEngine.Debug.Log($"🔗 Edge: Cell {cellA.Number} -> Cell {cellB.Number}");
         
-        // 测试不同难度等级
-        int[] testDifficulties = { 1, 5, 10 };
-        foreach (int difficulty in testDifficulties)
-        {
-            difficultySettings.difficultyLevel = difficulty;
-            int weight = ApplyDifficultySettings(baseWeight);
-            UnityEngine.Debug.Log($"  🎯 难度{difficulty}: {weight}");
-        }
-        
         // 测试不同随机因子
         float[] testRandomFactors = { 0f, 0.3f, 0.7f, 1f };
-        difficultySettings.difficultyLevel = 5; // 重置为中等难度
         foreach (float randomFactor in testRandomFactors)
         {
             difficultySettings.randomFactor = randomFactor;
@@ -2680,7 +2740,6 @@ public class GameManager : MonoBehaviour
         }
         
         // 恢复原始设置
-        difficultySettings.difficultyLevel = 5;
         difficultySettings.randomFactor = 0.3f;
     }
     
