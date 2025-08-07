@@ -83,9 +83,9 @@ public class RenderOrderFixer : MonoBehaviour
         
         Debug.Log($"🔍 Tilemap最高sortingOrder: {maxTilemapOrder}");
         
-        // 设置LineRenderer的sortingOrder高于Tilemap
+        // 设置LineRenderer的sortingOrder低于Tilemap，确保在cells之下
         LineRenderer[] lineRenderers = FindObjectsByType<LineRenderer>(FindObjectsSortMode.None);
-        int newOrder = maxTilemapOrder + 10; // 比Tilemap高10
+        int newOrder = 1; // 设置为较低的排序顺序
         
         foreach (var lineRenderer in lineRenderers)
         {
@@ -108,9 +108,9 @@ public class RenderOrderFixer : MonoBehaviour
         
         foreach (var lineRenderer in lineRenderers)
         {
-            lineRenderer.sortingOrder = 50;
-            lineRenderer.sortingLayerName = "UI";
-            lineRenderer.gameObject.layer = LayerMask.NameToLayer("UI");
+            lineRenderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+            lineRenderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+            lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
         }
         
         Debug.Log("🔄 LineRenderer已重置为UI层");

@@ -219,8 +219,51 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+    [System.Serializable]
+    public class DifficultySettings
+    {
+        [Header("难度等级")]
+        [Range(0, 10)] public int difficultyLevel = 5; // 0=简单, 10=困难
+        
+        [Header("随机因子设置")]
+        [Range(0f, 1f)] public float randomFactor = 0.3f; // 随机因子强度 (0=纯地形, 1=纯随机)
+        [Range(-20, 20)] public int randomRange = 10; // 随机范围
+        
+        [Header("地形权重调整")]
+        [Range(0.1f, 3f)] public float terrainWeightMultiplier = 1.0f; // 地形权重倍数
+        [Range(-10, 10)] public int globalWeightOffset = 0; // 全局权重偏移
+        
+        [Header("难度特定调整")]
+        [Range(0.5f, 2f)] public float easyMultiplier = 0.8f; // 简单模式倍数
+        [Range(0.5f, 2f)] public float normalMultiplier = 1.0f; // 普通模式倍数
+        [Range(0.5f, 2f)] public float hardMultiplier = 1.3f; // 困难模式倍数
+        
+        /// <summary>
+        /// 根据难度等级获取权重倍数
+        /// </summary>
+        public float GetDifficultyMultiplier()
+        {
+            if (difficultyLevel <= 3) return easyMultiplier;
+            if (difficultyLevel <= 7) return normalMultiplier;
+            return hardMultiplier;
+        }
+        
+        /// <summary>
+        /// 获取随机因子
+        /// </summary>
+        public int GetRandomFactor()
+        {
+            if (randomFactor <= 0f) return 0;
+            return UnityEngine.Random.Range(-randomRange, randomRange + 1);
+        }
+    }
+
     [Header("地形权重设置")]
     public TerrainWeights terrainWeights = new TerrainWeights();
+    
+    [Header("难度设置")]
+    public DifficultySettings difficultySettings = new DifficultySettings();
 
     /// <summary>
     /// 获取指定生物群系的权重
@@ -1028,9 +1071,9 @@ public class GameManager : MonoBehaviour
             previewEdge.startColor = Color.black;
                             previewEdge.endColor = Color.black;
                 previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
-                previewEdge.sortingOrder = 50; // 设置合适的排序顺序
-                previewEdge.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
-                previewEdge.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI
+                previewEdge.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+                previewEdge.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+                previewEdge.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
         }
         // 确保预览线的Z轴为0，避免渲染顺序问题
         Vector3 startPos = new Vector3(startPosition.x, startPosition.y, 0);
@@ -1111,9 +1154,9 @@ public class GameManager : MonoBehaviour
             }
 
                                             _edges[key] = (renderer, weight, tmp, bg);
-                renderer.sortingOrder = 50; // 设置合适的排序顺序
-                renderer.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
-                renderer.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI
+                renderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+                renderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+                renderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
                 if (bg.TryGetComponent<SpriteRenderer>(out var bgRenderer))
                     bgRenderer.sortingOrder = renderer.sortingOrder + 1;
                 // TextMeshProUGUI的渲染顺序通过Canvas控制，这里不需要设置sortingOrder
@@ -1191,8 +1234,8 @@ public class GameManager : MonoBehaviour
             
             _edges[key] = (lineRenderer, weight, tmp, weightPrefab);
 
-            lineRenderer.sortingOrder = 100; // 大幅提高排序顺序
-            lineRenderer.sortingLayerName = "Default"; // 改为Default层，与Tilemap保持一致
+            lineRenderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+            lineRenderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
             lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
             // 暂时注释掉背景和文本的排序设置
             /*
@@ -1302,9 +1345,9 @@ public class GameManager : MonoBehaviour
         
         _edges[key] = (lineRenderer, weight, tmp, weightPrefab);
 
-        lineRenderer.sortingOrder = 100;
-        lineRenderer.sortingLayerName = "Default";
-        lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default");
+        lineRenderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+        lineRenderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+        lineRenderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
     }
 
     public void CreateOrUpdateEdge(Cell fromCell, Cell toCell)
@@ -1382,9 +1425,9 @@ public class GameManager : MonoBehaviour
                 eraseLineRenderer.endWidth = 0.2f;
                 eraseLineRenderer.useWorldSpace = true;
                 eraseLineRenderer.textureMode = LineTextureMode.Tile;
-                eraseLineRenderer.sortingOrder = 50; // 设置合适的排序顺序
-                eraseLineRenderer.sortingLayerName = "UI"; // 设置为UI层，确保显示在Tilemap之上
-                eraseLineRenderer.gameObject.layer = LayerMask.NameToLayer("UI"); // 设置GameObject的Layer为UI 
+                eraseLineRenderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+                eraseLineRenderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+                eraseLineRenderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default 
         }
         eraseLineRenderer.positionCount = 1;
         // 确保擦除线的Z轴为0，避免渲染顺序问题
@@ -1533,7 +1576,7 @@ public class GameManager : MonoBehaviour
         return weight;
     }
 
-    // 计算基于地形的边权重
+    // 计算基于地形的边权重（重构版本）
     private int CalculateTerrainBasedWeight(Cell a, Cell b)
     {
         // 如果没有地形管理器，使用随机权重作为后备
@@ -1559,6 +1602,20 @@ public class GameManager : MonoBehaviour
         // 使用SimpleEdgeTileTest的方法获取穿过的瓦片
         var crossedTiles = GetTilesCrossedByLine(a.transform.position, b.transform.position, tilemap);
         
+        // 计算基础地形权重
+        int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
+        
+        // 应用难度设置
+        int finalWeight = ApplyDifficultySettings(baseTerrainWeight);
+        
+        return finalWeight;
+    }
+    
+    /// <summary>
+    /// 计算基础地形权重
+    /// </summary>
+    private int CalculateBaseTerrainWeight(HashSet<Vector3Int> crossedTiles)
+    {
         int totalWeight = 0;
         
         // 遍历每个瓦片，获取其生物群系并累加权重
@@ -1570,6 +1627,35 @@ public class GameManager : MonoBehaviour
         }
         
         return totalWeight;
+    }
+    
+    /// <summary>
+    /// 应用难度设置到权重
+    /// </summary>
+    private int ApplyDifficultySettings(int baseWeight)
+    {
+        // 1. 应用地形权重倍数
+        float terrainMultiplier = difficultySettings.terrainWeightMultiplier;
+        float weightedTerrain = baseWeight * terrainMultiplier;
+        
+        // 2. 应用难度等级倍数
+        float difficultyMultiplier = difficultySettings.GetDifficultyMultiplier();
+        weightedTerrain *= difficultyMultiplier;
+        
+        // 3. 添加全局偏移
+        weightedTerrain += difficultySettings.globalWeightOffset;
+        
+        // 4. 添加随机因子
+        float randomInfluence = difficultySettings.randomFactor;
+        int randomFactor = difficultySettings.GetRandomFactor();
+        
+        // 混合地形权重和随机因子
+        float finalWeight = weightedTerrain * (1f - randomInfluence) + randomFactor * randomInfluence;
+        
+        // 5. 确保权重在合理范围内
+        int clampedWeight = Mathf.Clamp(Mathf.RoundToInt(finalWeight), (int)minEdgeWeight, (int)maxEdgeWeight);
+        
+        return clampedWeight;
     }
     
     /// <summary>
@@ -2305,30 +2391,95 @@ public class GameManager : MonoBehaviour
         var crossedTiles = GetTilesCrossedByLine(cellA.transform.position, cellB.transform.position, tilemap);
         UnityEngine.Debug.Log($"📊 穿过的瓦片数量: {crossedTiles.Count}");
         
-        int totalWeight = 0;
-        foreach (Vector3Int tilePos in crossedTiles)
-        {
-            int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
-            int tileWeight = terrainWeights.GetWeightForBiome(biomeType);
-            totalWeight += tileWeight;
-            
-            UnityEngine.Debug.Log($"  🎯 瓦片{tilePos}: 生物群系{biomeType}, 权重{tileWeight}");
-        }
+        // 计算基础地形权重
+        int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
+        UnityEngine.Debug.Log($"🌍 基础地形权重: {baseTerrainWeight}");
         
-        UnityEngine.Debug.Log($"✅ 总权重: {totalWeight}");
+        // 显示难度设置信息
+        UnityEngine.Debug.Log($"⚙️ 难度设置:");
+        UnityEngine.Debug.Log($"  - 难度等级: {difficultySettings.difficultyLevel}");
+        UnityEngine.Debug.Log($"  - 随机因子: {difficultySettings.randomFactor}");
+        UnityEngine.Debug.Log($"  - 地形倍数: {difficultySettings.terrainWeightMultiplier}");
+        UnityEngine.Debug.Log($"  - 全局偏移: {difficultySettings.globalWeightOffset}");
+        UnityEngine.Debug.Log($"  - 难度倍数: {difficultySettings.GetDifficultyMultiplier()}");
+        
+        // 计算最终权重
+        int finalWeight = ApplyDifficultySettings(baseTerrainWeight);
+        UnityEngine.Debug.Log($"🎯 最终权重: {finalWeight}");
         
         // 对比缓存中的权重
         int cachedWeight = GetOrCreateEdgeWeight(cellA, cellB);
         UnityEngine.Debug.Log($"💾 缓存中的权重: {cachedWeight}");
         
-        if (totalWeight == cachedWeight)
+        if (finalWeight == cachedWeight)
         {
             UnityEngine.Debug.Log("✅ 权重计算正确！");
         }
         else
         {
-            UnityEngine.Debug.LogWarning($"⚠️ 权重不匹配！计算值: {totalWeight}, 缓存值: {cachedWeight}");
+            UnityEngine.Debug.LogWarning($"⚠️ 权重不匹配！计算值: {finalWeight}, 缓存值: {cachedWeight}");
         }
+    }
+    
+    /// <summary>
+    /// 测试不同难度设置的效果
+    /// </summary>
+    [ContextMenu("测试难度设置效果")]
+    public void TestDifficultySettings()
+    {
+        UnityEngine.Debug.Log("🧪 开始测试难度设置效果...");
+        
+        if (_cells == null || _cells.Count < 2)
+        {
+            UnityEngine.Debug.LogWarning("⚠️ 没有足够的Cell进行测试");
+            return;
+        }
+        
+        Cell cellA = _cells[0];
+        Cell cellB = _cells[1];
+        
+        // 获取基础地形权重
+        var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+        Tilemap tilemap = null;
+        if (tilemapProperty != null)
+        {
+            tilemap = tilemapProperty.GetValue(terrainManager) as UnityEngine.Tilemaps.Tilemap;
+        }
+        
+        if (tilemap == null)
+        {
+            UnityEngine.Debug.LogError("❌ 无法获取Tilemap");
+            return;
+        }
+        
+        var crossedTiles = GetTilesCrossedByLine(cellA.transform.position, cellB.transform.position, tilemap);
+        int baseWeight = CalculateBaseTerrainWeight(crossedTiles);
+        
+        UnityEngine.Debug.Log($"🌍 基础地形权重: {baseWeight}");
+        UnityEngine.Debug.Log($"🔗 Edge: Cell {cellA.Number} -> Cell {cellB.Number}");
+        
+        // 测试不同难度等级
+        int[] testDifficulties = { 1, 5, 10 };
+        foreach (int difficulty in testDifficulties)
+        {
+            difficultySettings.difficultyLevel = difficulty;
+            int weight = ApplyDifficultySettings(baseWeight);
+            UnityEngine.Debug.Log($"  🎯 难度{difficulty}: {weight}");
+        }
+        
+        // 测试不同随机因子
+        float[] testRandomFactors = { 0f, 0.3f, 0.7f, 1f };
+        difficultySettings.difficultyLevel = 5; // 重置为中等难度
+        foreach (float randomFactor in testRandomFactors)
+        {
+            difficultySettings.randomFactor = randomFactor;
+            int weight = ApplyDifficultySettings(baseWeight);
+            UnityEngine.Debug.Log($"  🎲 随机因子{randomFactor}: {weight}");
+        }
+        
+        // 恢复原始设置
+        difficultySettings.difficultyLevel = 5;
+        difficultySettings.randomFactor = 0.3f;
     }
     
     /// <summary>
@@ -2339,13 +2490,10 @@ public class GameManager : MonoBehaviour
     {
         UnityEngine.Debug.Log("🔄 开始重新计算所有Edges权重...");
         
-        if (_edges == null || _edges.Count == 0)
-        {
-            UnityEngine.Debug.LogWarning("⚠️ 没有找到edges");
-            return;
-        }
+        // 清空权重缓存
+        _edgeWeightCache.Clear();
         
-        int updatedCount = 0;
+        // 重新计算所有边的权重
         foreach (var edgePair in _edges)
         {
             var edgeKey = edgePair.Key;
@@ -2354,22 +2502,50 @@ public class GameManager : MonoBehaviour
             
             if (cellA == null || cellB == null) continue;
             
-            // 清除缓存，强制重新计算
-            var key = GetCanonicalEdgeKey(cellA, cellB);
-            if (_edgeWeightCache.ContainsKey(key))
-            {
-                _edgeWeightCache.Remove(key);
-            }
-            
             // 重新计算权重
             int newWeight = GetOrCreateEdgeWeight(cellA, cellB);
             
-            // 更新edge显示
-            CreateOrUpdateEdge(cellA, cellB, newWeight);
+            // 更新边的显示
+            var edgeData = edgePair.Value;
+            var weightLabel = edgeData.Item3;
+            if (weightLabel != null)
+            {
+                weightLabel.text = newWeight.ToString();
+            }
             
-            updatedCount++;
+            // 更新边的颜色（基于新权重）
+            var lineRenderer = edgeData.Item1;
+            if (lineRenderer != null)
+            {
+                Color edgeColor = GetEdgeColorByWeight(newWeight);
+                lineRenderer.startColor = edgeColor;
+                lineRenderer.endColor = edgeColor;
+            }
         }
         
-        UnityEngine.Debug.Log($"✅ 完成重新计算，更新了 {updatedCount} 个edges");
+        UnityEngine.Debug.Log($"✅ 重新计算完成！共更新 {_edges.Count} 个edges");
+        
+        // 更新UI显示
+        UpdateCostText();
+    }
+    
+    /// <summary>
+    /// 根据权重获取边的颜色
+    /// </summary>
+    private Color GetEdgeColorByWeight(int weight)
+    {
+        // 权重越高，颜色越深（越重要）
+        float normalizedWeight = Mathf.Clamp01((weight - minEdgeWeight) / (float)(maxEdgeWeight - minEdgeWeight));
+        
+        if (weight >= 0)
+        {
+            // 正权重：绿色系
+            return Color.Lerp(Color.green, Color.yellow, normalizedWeight);
+        }
+        else
+        {
+            // 负权重：红色系
+            return Color.Lerp(Color.red, Color.magenta, normalizedWeight);
+        }
     }
 }
