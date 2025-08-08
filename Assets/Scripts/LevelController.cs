@@ -37,12 +37,12 @@ public class LevelController : MonoBehaviour
     {
         if (levelCellPrefab == null)
         {
-            Debug.LogError("levelCellPrefab未赋值！");
+            // Debug.LogError("levelCellPrefab未赋值！");
             return;
         }
         if (contentParent == null)
         {
-            Debug.LogError("contentParent未赋值！");
+            // Debug.LogError("contentParent未赋值！");
             return;
         }
 
@@ -52,7 +52,7 @@ public class LevelController : MonoBehaviour
             var cell = cellObj.GetComponent<LevelCell>();
             if (cell == null)
             {
-                Debug.LogError("LevelCell脚本未挂在预制体上！");
+                // Debug.LogError("LevelCell脚本未挂在预制体上！");
                 continue;
             }
 
@@ -68,7 +68,7 @@ public class LevelController : MonoBehaviour
 
     void OnLevelCellClick(int level)
     {
-        Debug.Log($"点击了关卡：{level}");
+        // Debug.Log($"点击了关卡：{level}");
         // 这里可以加载关卡或弹窗
     }
 }

@@ -60,13 +60,13 @@ public class FindClusters : MonoBehaviour
             gameManager = FindFirstObjectByType<GameManager>();
             if (gameManager != null && enableDebugLogs)
             {
-                Debug.Log($"🔍 FindClusters: 自动找到GameManager: {gameManager.name}");
+                // Debug.Log($"🔍 FindClusters: 自动找到GameManager: {gameManager.name}");
             }
         }
         
         if (gameManager == null)
         {
-            Debug.LogError("❌ FindClusters: 无法找到GameManager！");
+            // Debug.LogError("❌ FindClusters: 无法找到GameManager！");
             return;
         }
         
@@ -81,7 +81,7 @@ public class FindClusters : MonoBehaviour
     {
         if (gameManager == null)
         {
-            Debug.LogError("❌ FindClusters: GameManager为null，无法更新簇信息");
+            // Debug.LogError("❌ FindClusters: GameManager为null，无法更新簇信息");
             return;
         }
         
@@ -91,43 +91,43 @@ public class FindClusters : MonoBehaviour
             var playerCutEdgesField = gameManager.GetType().GetField("playerCutEdges", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            if (playerCutEdgesField == null)
-            {
-                Debug.LogError("❌ FindClusters: 无法获取playerCutEdges字段");
-                return;
-            }
+                    if (playerCutEdgesField == null)
+        {
+            // Debug.LogError("❌ FindClusters: 无法获取playerCutEdges字段");
+            return;
+        }
             
             var playerCutEdges = playerCutEdgesField.GetValue(gameManager);
-            if (playerCutEdges == null)
-            {
-                Debug.LogError("❌ FindClusters: playerCutEdges为null");
-                return;
-            }
+                    if (playerCutEdges == null)
+        {
+            // Debug.LogError("❌ FindClusters: playerCutEdges为null");
+            return;
+        }
             
             // 获取切割边数量
             var countProperty = playerCutEdges.GetType().GetProperty("Count");
-            if (countProperty == null)
-            {
-                Debug.LogError("❌ FindClusters: 无法获取Count属性");
-                return;
-            }
+                    if (countProperty == null)
+        {
+            // Debug.LogError("❌ FindClusters: 无法获取Count属性");
+            return;
+        }
             
             int cutEdgesCount = (int)countProperty.GetValue(playerCutEdges);
             
             if (enableDebugLogs)
             {
-                Debug.Log($"🔍 FindClusters: 检测到 {cutEdgesCount} 条切割边");
+                // Debug.Log($"🔍 FindClusters: 检测到 {cutEdgesCount} 条切割边");
             }
             
             // 调用GameManager的连通分量计算方法
             var calculateMethod = gameManager.GetType().GetMethod("CalculateNumberOfConnectedComponents", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             
-            if (calculateMethod == null)
-            {
-                Debug.LogError("❌ FindClusters: 无法找到CalculateNumberOfConnectedComponents方法");
-                return;
-            }
+                    if (calculateMethod == null)
+        {
+            // Debug.LogError("❌ FindClusters: 无法找到CalculateNumberOfConnectedComponents方法");
+            return;
+        }
             
             // 计算连通分量数量
             int componentCount = (int)calculateMethod.Invoke(gameManager, new object[] { playerCutEdges });
@@ -135,7 +135,7 @@ public class FindClusters : MonoBehaviour
             
             if (enableDebugLogs)
             {
-                Debug.Log($"🔍 FindClusters: 计算得到 {componentCount} 个连通分量");
+                // Debug.Log($"🔍 FindClusters: 计算得到 {componentCount} 个连通分量");
             }
             
             // 获取详细的簇信息
@@ -144,7 +144,7 @@ public class FindClusters : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogError($"❌ FindClusters: 更新簇信息时出错: {ex.Message}");
+            // Debug.LogError($"❌ FindClusters: 更新簇信息时出错: {ex.Message}");
         }
     }
     

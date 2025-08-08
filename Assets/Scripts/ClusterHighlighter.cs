@@ -37,22 +37,43 @@ public class ClusterHighlighter : MonoBehaviour
     [SerializeField] private string clusterDataPath = "clusters_after_cut.json";
     [SerializeField] private Color initialBaseColor = new Color(0.6f, 0.6f, 0.6f, 0.6f);
     [SerializeField] private int recolorBatchSize = 600;
+    [SerializeField] private bool showOnStart = true;
+    [SerializeField] private bool updateColorsOnCostChange = false;
 
     [Header("Colors")]
     [SerializeField] private Color[] predefinedColors = new Color[]
     {
-        new Color(0.8f, 0.3f, 0.3f, 0.6f), // 淡红色
-        new Color(0.3f, 0.8f, 0.3f, 0.6f), // 淡绿色
-        new Color(0.3f, 0.3f, 0.8f, 0.6f), // 淡蓝色
-        new Color(0.8f, 0.8f, 0.3f, 0.6f), // 淡黄色
-        new Color(0.3f, 0.8f, 0.8f, 0.6f), // 淡青色
-        new Color(0.8f, 0.3f, 0.8f, 0.6f), // 淡紫色
-        new Color(0.8f, 0.5f, 0.3f, 0.6f), // 淡橙色
-        new Color(0.5f, 0.3f, 0.8f, 0.6f), // 淡紫罗兰
-        new Color(0.8f, 0.3f, 0.5f, 0.6f), // 淡粉色
-        new Color(0.3f, 0.8f, 0.5f, 0.6f), // 淡青绿
-        new Color(0.5f, 0.8f, 0.3f, 0.6f), // 淡黄绿
-        new Color(0.6f, 0.6f, 0.6f, 0.6f)  // 淡灰色
+        // 深色系调色板（半透明，便于叠加显示）
+        new Color(0.15f, 0.20f, 0.35f, 0.6f), // 深海军蓝
+        new Color(0.18f, 0.28f, 0.18f, 0.6f), // 深森林绿
+        new Color(0.30f, 0.15f, 0.15f, 0.6f), // 深砖红
+        new Color(0.22f, 0.25f, 0.30f, 0.6f), // 石板灰蓝
+        new Color(0.20f, 0.16f, 0.24f, 0.6f), // 深紫罗兰
+        new Color(0.20f, 0.30f, 0.32f, 0.6f), // 深青蓝
+        new Color(0.35f, 0.25f, 0.18f, 0.6f), // 深棕褐
+        new Color(0.28f, 0.22f, 0.22f, 0.6f), // 暗酒红
+        new Color(0.20f, 0.22f, 0.26f, 0.6f), // 深石墨
+        new Color(0.12f, 0.18f, 0.22f, 0.6f), // 暗青灰
+        new Color(0.22f, 0.18f, 0.24f, 0.6f), // 茄皮紫
+        new Color(0.26f, 0.28f, 0.18f, 0.6f), // 暗橄榄
+        new Color(0.18f, 0.24f, 0.18f, 0.6f), // 墨绿
+        new Color(0.23f, 0.20f, 0.16f, 0.6f), // 深赭石
+        new Color(0.16f, 0.20f, 0.26f, 0.6f), // 深钢蓝
+        new Color(0.30f, 0.22f, 0.28f, 0.6f), // 葡萄酒紫
+        new Color(0.22f, 0.30f, 0.22f, 0.6f), // 苔藓绿
+        new Color(0.28f, 0.30f, 0.32f, 0.6f), // 暗银灰
+        new Color(0.18f, 0.16f, 0.20f, 0.6f), // 木炭灰
+        new Color(0.32f, 0.28f, 0.18f, 0.6f), // 深卡其
+        new Color(0.20f, 0.24f, 0.30f, 0.6f), // 蓝灰
+        new Color(0.24f, 0.20f, 0.28f, 0.6f), // 梅子紫
+        new Color(0.28f, 0.24f, 0.20f, 0.6f), // 焦糖褐
+        new Color(0.20f, 0.27f, 0.26f, 0.6f), // 石青
+        new Color(0.24f, 0.28f, 0.20f, 0.6f), // 苦艾绿
+        new Color(0.22f, 0.22f, 0.28f, 0.6f), // 深暮蓝
+        new Color(0.27f, 0.20f, 0.22f, 0.6f), // 深玫瑰红
+        new Color(0.20f, 0.18f, 0.18f, 0.6f), // 深烟灰
+        new Color(0.24f, 0.26f, 0.30f, 0.6f), // 冷灰蓝
+        new Color(0.30f, 0.30f, 0.30f, 0.6f), // 中深灰
     };
 
     private List<Cell> cells = new List<Cell>();
@@ -66,6 +87,7 @@ public class ClusterHighlighter : MonoBehaviour
     private Coroutine backgroundCalculationCoroutine;
     private Dictionary<Vector3Int, Color> cachedTileColors = new Dictionary<Vector3Int, Color>();
     private CH_ClustersAfterCutData cachedClusterData = null;
+    private string cachedClustersSignature = null;
 
     private void Awake()
     {
@@ -86,6 +108,48 @@ public class ClusterHighlighter : MonoBehaviour
     {
         // 启动后台计算协程
         StartCoroutine(BackgroundEcoZoneCalculation());
+
+        // 在显示之前，尝试用现有JSON预热缓存，避免开局几秒后颜色跳变
+        PrewarmColorsFromExistingData();
+
+        // 开局默认显示生态区
+        if (showOnStart)
+        {
+            ShowEcoZones();
+        }
+    }
+
+    private void PrewarmColorsFromExistingData()
+    {
+        try
+        {
+            var tilemap = GetTilemap();
+            if (tilemap == null) return;
+
+            // 获取Cells并建立分配
+            GetCellsFromGameManager();
+            if (cells.Count == 0) return;
+            if (cellTileAssignment.Count == 0)
+            {
+                AssignTilesToCells(tilemap);
+            }
+
+            var data = LoadClustersData();
+            bool hasNewData = data != null && data.clusters != null && data.clusters.Length > 0;
+            if (hasNewData)
+            {
+                // 生成并缓存颜色，设置签名，避免协程首次触发"数据变化"
+                var colors = BuildColorsByClusters(tilemap, data);
+                cachedTileColors.Clear();
+                foreach (var kv in colors) cachedTileColors[kv.Key] = kv.Value;
+                cachedClusterData = data;
+                cachedClustersSignature = BuildClustersSignature(data);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            // Debug.LogWarning($"⚠️ ClusterHighlighter: 预热现有簇数据失败: {ex.Message}");
+        }
     }
 
     [ContextMenu("刷新簇显示(从JSON)")]
@@ -99,7 +163,7 @@ public class ClusterHighlighter : MonoBehaviour
         var tilemap = GetTilemap();
         if (tilemap == null)
         {
-            Debug.LogWarning("⚠️ ClusterHighlighter: Tilemap 未就绪");
+            // Debug.LogWarning("⚠️ ClusterHighlighter: Tilemap 未就绪");
             return;
         }
 
@@ -108,7 +172,7 @@ public class ClusterHighlighter : MonoBehaviour
         if (cachedTileColors.Count > 0)
         {
             newTileColors = new Dictionary<Vector3Int, Color>(cachedTileColors);
-            Debug.Log("🌍 使用缓存数据刷新显示");
+            // Debug.Log("🌍 使用缓存数据刷新显示");
         }
         else
         {
@@ -116,7 +180,7 @@ public class ClusterHighlighter : MonoBehaviour
             GetCellsFromGameManager();
             if (cells.Count == 0)
             {
-                Debug.LogWarning("⚠️ ClusterHighlighter: 未获取到Cells");
+                // Debug.LogWarning("⚠️ ClusterHighlighter: 未获取到Cells");
                 return;
             }
 
@@ -144,13 +208,13 @@ public class ClusterHighlighter : MonoBehaviour
         // 使用缓存的数据立即显示
         if (cachedTileColors.Count > 0)
         {
-            Debug.Log("🌍 使用缓存数据立即显示生态区");
+            // Debug.Log("🌍 使用缓存数据立即显示生态区");
             StartIncrementalRecolor(tilemap, cachedTileColors);
         }
         else
         {
             // 如果没有缓存数据，先用统一底色
-            Debug.Log("🌍 使用统一底色显示生态区");
+            // Debug.Log("🌍 使用统一底色显示生态区");
             var uniform = BuildUniformColors(tilemap);
             StartIncrementalRecolor(tilemap, uniform);
         }
@@ -216,7 +280,7 @@ public class ClusterHighlighter : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning($"⚠️ ClusterHighlighter: 读取GameManager._cells失败: {ex.Message}");
+            // Debug.LogWarning($"⚠️ ClusterHighlighter: 读取GameManager._cells失败: {ex.Message}");
         }
     }
 
@@ -301,7 +365,7 @@ public class ClusterHighlighter : MonoBehaviour
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning($"⚠️ ClusterHighlighter: 读取JSON失败: {ex.Message}");
+            // Debug.LogWarning($"⚠️ ClusterHighlighter: 读取JSON失败: {ex.Message}");
             return null;
         }
     }
@@ -329,7 +393,7 @@ public class ClusterHighlighter : MonoBehaviour
         for (int i = 0; i < data.clusters.Length; i++)
         {
             var info = data.clusters[i];
-            Color clusterColor = predefinedColors[i % predefinedColors.Length];
+            Color clusterColor = GetStableClusterColor(info);
             if (info?.cells == null) continue;
             foreach (int num in info.cells)
             {
@@ -342,6 +406,48 @@ public class ClusterHighlighter : MonoBehaviour
             }
         }
         return colors;
+    }
+
+    private Color GetStableClusterColor(CH_ClusterInfo info)
+    {
+        int key = 0;
+        if (info?.cells != null && info.cells.Length > 0)
+        {
+            int min = info.cells[0];
+            for (int i = 1; i < info.cells.Length; i++)
+            {
+                if (info.cells[i] < min) min = info.cells[i];
+            }
+            key = min;
+        }
+        var colors = predefinedColors != null && predefinedColors.Length > 0 ? predefinedColors : new[] { initialBaseColor };
+        return colors[Mathf.Abs(key) % colors.Length];
+    }
+
+    private string BuildClustersSignature(CH_ClustersAfterCutData data)
+    {
+        if (data == null || data.clusters == null) return string.Empty;
+        var parts = new List<string>(data.clusters.Length);
+        for (int i = 0; i < data.clusters.Length; i++)
+        {
+            var c = data.clusters[i];
+            if (c?.cells == null || c.cells.Length == 0)
+            {
+                parts.Add("0:0");
+                continue;
+            }
+            var sorted = c.cells.ToArray();
+            System.Array.Sort(sorted);
+            int min = sorted[0];
+            int hash = 0;
+            for (int j = 0; j < sorted.Length; j++)
+            {
+                unchecked { hash = hash * 31 + sorted[j]; }
+            }
+            parts.Add($"{min}:{sorted.Length}:{hash}");
+        }
+        parts.Sort();
+        return string.Join("|", parts);
     }
 
     private Dictionary<Vector3Int, Color> BuildUniformColors(Tilemap tilemap)
@@ -404,7 +510,7 @@ public class ClusterHighlighter : MonoBehaviour
     /// </summary>
     private IEnumerator BackgroundEcoZoneCalculation()
     {
-        Debug.Log("🔄 启动后台生态区计算...");
+        // Debug.Log("🔄 启动后台生态区计算...");
         
         while (true)
         {
@@ -434,44 +540,45 @@ public class ClusterHighlighter : MonoBehaviour
                 
                 // 检查是否有新的簇数据
                 var newClusterData = LoadClustersData();
-                bool hasNewData = newClusterData != null && 
-                                newClusterData.clusters != null && 
-                                newClusterData.clusters.Length > 0;
-                
-                // 检查数据是否有变化
+                bool hasNewData = newClusterData != null &&
+                                   newClusterData.clusters != null &&
+                                   newClusterData.clusters.Length > 0;
+
                 bool dataChanged = false;
                 if (hasNewData)
                 {
-                    if (cachedClusterData == null || 
-                        cachedClusterData.clusters.Length != newClusterData.clusters.Length ||
-                        cachedClusterData.cost != newClusterData.cost)
+                    string newSig = BuildClustersSignature(newClusterData);
+                    bool clustersChanged = cachedClustersSignature == null || cachedClustersSignature != newSig;
+                    bool costChanged = cachedClusterData != null && cachedClusterData.cost != newClusterData.cost;
+                    if (clustersChanged || (updateColorsOnCostChange && costChanged))
                     {
                         dataChanged = true;
                         cachedClusterData = newClusterData;
+                        cachedClustersSignature = newSig;
                     }
                 }
-                else if (cachedClusterData != null)
+                else if (cachedClusterData != null || !string.IsNullOrEmpty(cachedClustersSignature))
                 {
-                    // 从有数据变为无数据
                     dataChanged = true;
                     cachedClusterData = null;
+                    cachedClustersSignature = null;
                 }
                 
                 // 如果数据有变化，重新计算颜色
                 if (dataChanged)
                 {
-                    Debug.Log("🔄 检测到簇数据变化，重新计算生态区颜色...");
+                    // Debug.Log("🔄 检测到簇数据变化，重新计算生态区颜色...");
                     
                     Dictionary<Vector3Int, Color> newColors;
                     if (hasNewData)
                     {
                         newColors = BuildColorsByClusters(tilemap, newClusterData);
-                        Debug.Log($"✅ 使用簇数据计算颜色，共{newColors.Count}个瓦片");
+                        // Debug.Log($"✅ 使用簇数据计算颜色，共{newColors.Count}个瓦片");
                     }
                     else
                     {
                         newColors = BuildUniformColors(tilemap);
-                        Debug.Log($"✅ 使用统一颜色，共{newColors.Count}个瓦片");
+                        // Debug.Log($"✅ 使用统一颜色，共{newColors.Count}个瓦片");
                     }
                     
                     // 更新缓存
@@ -492,7 +599,7 @@ public class ClusterHighlighter : MonoBehaviour
             }
             catch (System.Exception ex)
             {
-                Debug.LogWarning($"⚠️ 后台生态区计算出错: {ex.Message}");
+                // Debug.LogWarning($"⚠️ 后台生态区计算出错: {ex.Message}");
             }
         }
     }

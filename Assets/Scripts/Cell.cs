@@ -174,7 +174,7 @@ public class Cell : MonoBehaviour
         string type = isWeightLabel ? "权重标签" : "Cell";
         string backgroundOrder = isWeightLabel ? "20" : "15";
         string textOrder = isWeightLabel ? "40" : "35";
-        Debug.Log($"✅ {type} {Number} 渲染顺序已调整：背景({backgroundOrder}) < 文本({textOrder})");
+                    // Debug.Log($"✅ {type} {Number} 渲染顺序已调整：背景({backgroundOrder}) < 文本({textOrder})");
     }
 
     private void ChangeSpriteSize(SpriteRenderer sprite, float size)

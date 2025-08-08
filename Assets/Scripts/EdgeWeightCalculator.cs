@@ -19,32 +19,32 @@ public class EdgeWeightCalculator : MonoBehaviour
     
     private void Start()
     {
-        Debug.Log("🚀 EdgeWeightCalculator 已启动");
+        // Debug.Log("🚀 EdgeWeightCalculator 已启动");
         if (calculateOnStart)
         {
-            Debug.Log($"⏰ 将在 {calculateDelay} 秒后自动计算权重");
+            // Debug.Log($"⏰ 将在 {calculateDelay} 秒后自动计算权重");
             Invoke(nameof(CalculateAllEdgeWeights), calculateDelay);
         }
         else
         {
-            Debug.Log("⚠️ 自动计算已禁用，请手动触发");
+            // Debug.Log("⚠️ 自动计算已禁用，请手动触发");
         }
     }
     
     [ContextMenu("计算所有Edge权重")]
     public void CalculateAllEdgeWeights()
     {
-        Debug.Log("🔢 开始计算所有Edge权重...");
+        // Debug.Log("🔢 开始计算所有Edge权重...");
         
         // 获取GameManager
         GameManager gameManager = GameManager.Instance;
         if (gameManager == null)
         {
-            Debug.LogError("❌ 无法找到GameManager");
+            // Debug.LogError("❌ 无法找到GameManager");
             return;
         }
         
-        Debug.Log("✅ 找到GameManager");
+        // Debug.Log("✅ 找到GameManager");
         
         // 获取TerrainManager
         var terrainManagerField = typeof(GameManager).GetField("terrainManager", 
@@ -57,11 +57,11 @@ public class EdgeWeightCalculator : MonoBehaviour
         
         if (terrainManager == null)
         {
-            Debug.LogError("❌ 无法找到TerrainManager");
+            // Debug.LogError("❌ 无法找到TerrainManager");
             return;
         }
         
-        Debug.Log("✅ 找到TerrainManager");
+        // Debug.Log("✅ 找到TerrainManager");
         
         // 获取Tilemap
         var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
@@ -73,11 +73,11 @@ public class EdgeWeightCalculator : MonoBehaviour
         
         if (tilemap == null)
         {
-            Debug.LogError("❌ 无法获取Tilemap");
+            // Debug.LogError("❌ 无法获取Tilemap");
             return;
         }
         
-        Debug.Log("✅ 找到Tilemap");
+        // Debug.Log("✅ 找到Tilemap");
         
         // 获取所有edges
         var edgesField = typeof(GameManager).GetField("_edges", 
@@ -90,11 +90,11 @@ public class EdgeWeightCalculator : MonoBehaviour
         
         if (edges == null || edges.Count == 0)
         {
-            Debug.LogWarning("⚠️ 没有找到edges");
+            // Debug.LogWarning("⚠️ 没有找到edges");
             return;
         }
         
-        Debug.Log($"📊 找到 {edges.Count} 个edges，开始计算权重...");
+        // Debug.Log($"📊 找到 {edges.Count} 个edges，开始计算权重...");
         
         // 计算每个edge的权重
         int edgeCount = 0;
@@ -129,20 +129,20 @@ public class EdgeWeightCalculator : MonoBehaviour
     [ContextMenu("立即计算权重")]
     public void CalculateWeightsImmediately()
     {
-        Debug.Log("⚡ 立即计算权重...");
+        // Debug.Log("⚡ 立即计算权重...");
         CalculateAllEdgeWeights();
     }
     
     [ContextMenu("强制更新所有Edge权重")]
     public void ForceUpdateAllEdgeWeights()
     {
-        Debug.Log("🔄 强制更新所有Edge权重...");
+        // Debug.Log("🔄 强制更新所有Edge权重...");
         
         // 获取GameManager
         GameManager gameManager = GameManager.Instance;
         if (gameManager == null)
         {
-            Debug.LogError("❌ 无法找到GameManager");
+            // Debug.LogError("❌ 无法找到GameManager");
             return;
         }
         
@@ -157,11 +157,11 @@ public class EdgeWeightCalculator : MonoBehaviour
         
         if (edges == null || edges.Count == 0)
         {
-            Debug.LogWarning("⚠️ 没有找到edges");
+            // Debug.LogWarning("⚠️ 没有找到edges");
             return;
         }
         
-        Debug.Log($"📊 找到 {edges.Count} 个edges，开始强制更新权重...");
+        // Debug.Log($"📊 找到 {edges.Count} 个edges，开始强制更新权重...");
         
         int updatedCount = 0;
         
@@ -182,22 +182,22 @@ public class EdgeWeightCalculator : MonoBehaviour
             gameManager.CreateOrUpdateEdge(cellA, cellB, newWeight);
             
             updatedCount++;
-            Debug.Log($"🔄 {edgeName}: 权重已更新为 {newWeight}");
+            // Debug.Log($"🔄 {edgeName}: 权重已更新为 {newWeight}");
         }
         
-        Debug.Log($"✅ 强制更新完成！共更新 {updatedCount} 个edges");
+        // Debug.Log($"✅ 强制更新完成！共更新 {updatedCount} 个edges");
     }
     
     [ContextMenu("比较权重计算")]
     public void CompareWeightCalculations()
     {
-        Debug.Log("🔍 开始比较权重计算...");
+        // Debug.Log("🔍 开始比较权重计算...");
         
         // 获取GameManager
         GameManager gameManager = GameManager.Instance;
         if (gameManager == null)
         {
-            Debug.LogError("❌ 无法找到GameManager");
+            // Debug.LogError("❌ 无法找到GameManager");
             return;
         }
         
@@ -212,11 +212,11 @@ public class EdgeWeightCalculator : MonoBehaviour
         
         if (edges == null || edges.Count == 0)
         {
-            Debug.LogWarning("⚠️ 没有找到edges");
+            // Debug.LogWarning("⚠️ 没有找到edges");
             return;
         }
         
-        Debug.Log($"📊 找到 {edges.Count} 个edges，开始比较权重计算...");
+        // Debug.Log($"📊 找到 {edges.Count} 个edges，开始比较权重计算...");
         
         int matchCount = 0;
         int totalCount = 0;
@@ -265,15 +265,15 @@ public class EdgeWeightCalculator : MonoBehaviour
             if (gameManagerWeight == calculatorWeight)
             {
                 matchCount++;
-                Debug.Log($"✅ {edgeName}: GameManager={gameManagerWeight}, Calculator={calculatorWeight} ✓");
+                // Debug.Log($"✅ {edgeName}: GameManager={gameManagerWeight}, Calculator={calculatorWeight} ✓");
             }
             else
             {
-                Debug.LogWarning($"❌ {edgeName}: GameManager={gameManagerWeight}, Calculator={calculatorWeight} ✗");
+                // Debug.LogWarning($"❌ {edgeName}: GameManager={gameManagerWeight}, Calculator={calculatorWeight} ✗");
             }
         }
         
-        Debug.Log($"📊 比较完成！匹配: {matchCount}/{totalCount} ({matchCount * 100f / totalCount:F1}%)");
+        // Debug.Log($"📊 比较完成！匹配: {matchCount}/{totalCount} ({matchCount * 100f / totalCount:F1}%)");
     }
     
     /// <summary>
@@ -346,12 +346,12 @@ public class EdgeWeightCalculator : MonoBehaviour
                 }
             }
             
-            Debug.LogWarning($"无法使用映射表获取瓦片 {tilePos} 的生物群系");
+            // Debug.LogWarning($"无法使用映射表获取瓦片 {tilePos} 的生物群系");
             return -1;
         }
         catch (System.Exception ex)
         {
-            Debug.LogWarning($"获取生物群系时出错: {ex.Message}");
+            // Debug.LogWarning($"获取生物群系时出错: {ex.Message}");
             return -1;
         }
     }

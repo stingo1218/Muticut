@@ -61,22 +61,17 @@ public class GameManager : MonoBehaviour
     public class GameState
     {
         public HashSet<(Cell, Cell)> cutEdges;
-        public Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshProUGUI tmp, GameObject bg)> edges;
         public int currentCost;
         
         public GameState()
         {
             cutEdges = new HashSet<(Cell, Cell)>();
-            edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshProUGUI, GameObject)>();
             currentCost = 0;
         }
         
-        public GameState(HashSet<(Cell, Cell)> cutEdges, 
-                        Dictionary<(Cell, Cell), (LineRenderer renderer, int weight, TextMeshProUGUI tmp, GameObject bg)> edges,
-                        int currentCost)
+        public GameState(HashSet<(Cell, Cell)> cutEdges, int currentCost)
         {
             this.cutEdges = new HashSet<(Cell, Cell)>(cutEdges);
-            this.edges = new Dictionary<(Cell, Cell), (LineRenderer, int, TextMeshProUGUI, GameObject)>(edges);
             this.currentCost = currentCost;
         }
     }
@@ -340,6 +335,9 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        
+        // 清空clusters_after_cut.json文件，避免开局时出现二次高亮
+        ClearClustersFile();
         
         // 确保在重新开始时清理旧的边缘
         RemoveAllEdges();
@@ -718,10 +716,10 @@ public class GameManager : MonoBehaviour
             bool isWater = IsWaterBiome(biomeType);
             
             // 调试信息（可选，用于验证地形检查是否正常工作）
-            if (UnityEngine.Debug.isDebugBuild)
-            {
-                UnityEngine.Debug.Log($"位置 {position} -> 瓦片 {tilePos} -> 生物群系 {biomeType} -> 是否水域 {isWater}");
-            }
+            // if (UnityEngine.Debug.isDebugBuild)
+            // {
+            //     UnityEngine.Debug.Log($"位置 {position} -> 瓦片 {tilePos} -> 生物群系 {biomeType} -> 是否水域 {isWater}");
+            // }
             
             return !isWater;
         }
@@ -2021,7 +2019,7 @@ public class GameManager : MonoBehaviour
         }
         weight = Mathf.RoundToInt(weight * scale);
 
-        // 结构性修饰：长边奖励（让长边更“便宜”或“更值得割”，根据你的设计理念）
+        // 结构性修饰：长边奖励（让长边更"便宜"或"更值得割"，根据你的设计理念）
         float length = Vector2.Distance(a.transform.position, b.transform.position);
         if (length >= edgeDifficulty.longEdgeLengthThreshold)
         {
@@ -2563,7 +2561,7 @@ public class GameManager : MonoBehaviour
                         cutEdges.Add(edge);
                     }
                 }
-                UnityEngine.Debug.Log($"标准多割求解完成，目标值: {model.ObjVal}, 切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
+                // UnityEngine.Debug.Log($"标准多割求解完成，目标值: {model.ObjVal}, 切割边数: {cutEdges.Count}, 迭代次数: {iteration}");
             }
             else
             {
@@ -3094,7 +3092,6 @@ public class GameManager : MonoBehaviour
         // 创建当前状态的深拷贝
         var currentState = new GameState(
             playerCutEdges,
-            _edges,
             GetCurrentCost()
         );
         
@@ -3232,4 +3229,32 @@ public class GameManager : MonoBehaviour
     }
     
     #endregion
+
+    /// <summary>
+    /// 清空clusters_after_cut.json文件，避免开局时出现二次高亮
+    /// </summary>
+    private void ClearClustersFile()
+    {
+        try
+        {
+            string filePath = System.IO.Path.Combine(Application.dataPath, "..", "clusters_after_cut.json");
+            
+            // 创建一个空的初始状态
+            var emptyData = new ClustersAfterCutDataDTO();
+            emptyData.cut_edges = new CutEdgeDTO[0];
+            emptyData.cost = 0;
+            emptyData.clusters = new ClusterInfoDTO[0];
+            emptyData.cluster_count = 0;
+            emptyData.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            
+            string jsonData = JsonUtility.ToJson(emptyData, true);
+            System.IO.File.WriteAllText(filePath, jsonData);
+            
+            UnityEngine.Debug.Log($"🧹 已清空clusters_after_cut.json文件，避免开局二次高亮");
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"⚠️ 清空clusters文件时出错: {ex.Message}");
+        }
+    }
 }

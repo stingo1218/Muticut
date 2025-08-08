@@ -26,7 +26,7 @@ public class EdgeClickHandler : MonoBehaviour
     {
         if (gameManager != null)
         {
-            Debug.Log($"🖱️ 点击了Edge: {cellA.Number} -> {cellB.Number}");
+            // Debug.Log($"🖱️ 点击了Edge: {cellA.Number} -> {cellB.Number}");
             gameManager.ShowEdgeTileInfo(cellA, cellB);
         }
     }

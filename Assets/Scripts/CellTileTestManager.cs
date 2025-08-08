@@ -140,11 +140,11 @@ public class CellTileTestManager : MonoBehaviour
             if (component.GetType().Name == "GameManager")
             {
                 gameManager = component;
-                Debug.Log($"🔍 自动找到GameManager: {component.name}");
+                // Debug.Log($"🔍 自动找到GameManager: {component.name}");
                 return;
             }
         }
-        Debug.LogWarning("⚠️ 未找到GameManager，请手动设置");
+        // Debug.LogWarning("⚠️ 未找到GameManager，请手动设置");
     }
     
     /// <summary>
@@ -158,11 +158,11 @@ public class CellTileTestManager : MonoBehaviour
             if (component.GetType().Name == "TerrainManager")
             {
                 terrainManager = component;
-                Debug.Log($"🔍 自动找到TerrainManager: {component.name}");
+                // Debug.Log($"🔍 自动找到TerrainManager: {component.name}");
                 return;
             }
         }
-        Debug.LogWarning("⚠️ 未找到TerrainManager，请手动设置");
+        // Debug.LogWarning("⚠️ 未找到TerrainManager，请手动设置");
     }
     
     /// <summary>
@@ -173,11 +173,11 @@ public class CellTileTestManager : MonoBehaviour
         if (showEcoZonesToggle != null)
         {
             showEcoZonesToggle.onValueChanged.AddListener(OnEcoZonesToggleChanged);
-            Debug.Log("🔗 已设置生态区Toggle监听");
+            // Debug.Log("🔗 已设置生态区Toggle监听");
         }
         else
         {
-            Debug.LogWarning("⚠️ 未找到生态区Toggle，请手动设置");
+            // Debug.LogWarning("⚠️ 未找到生态区Toggle，请手动设置");
         }
     }
     
@@ -204,18 +204,18 @@ public class CellTileTestManager : MonoBehaviour
         // 如果已经初始化过，直接返回
         if (isDataInitialized)
         {
-            Debug.Log("🔸 生态区数据已初始化，跳过重复初始化");
+            // Debug.Log("🔸 生态区数据已初始化，跳过重复初始化");
             return;
         }
         
-        Debug.Log("🔸 初始化生态区数据...");
+        // Debug.Log("🔸 初始化生态区数据...");
         
         // 获取Cells
         GetCells();
         
         if (cells.Count == 0)
         {
-            Debug.LogError("❌ 没有找到Cell，无法初始化生态区");
+            // Debug.LogError("❌ 没有找到Cell，无法初始化生态区");
             return;
         }
         

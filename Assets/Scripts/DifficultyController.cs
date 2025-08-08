@@ -26,7 +26,7 @@ public class DifficultyController : MonoBehaviour
         gameManager = GameManager.Instance;
         if (gameManager == null)
         {
-            Debug.LogError("❌ 无法找到GameManager");
+            // Debug.LogError("❌ 无法找到GameManager");
             return;
         }
         
@@ -82,13 +82,13 @@ public class DifficultyController : MonoBehaviour
     
     public void ApplySettings()
     {
-        Debug.Log("✅ 应用难度设置...");
+        // Debug.Log("✅ 应用难度设置...");
         gameManager.RecalculateAllEdgeWeights();
     }
     
     public void ResetToOriginal()
     {
-        Debug.Log("🔄 重置为原始设置...");
+        // Debug.Log("🔄 重置为原始设置...");
         CopySettings(originalSettings, gameManager.difficultySettings);
         InitializeUI();
         gameManager.RecalculateAllEdgeWeights();
@@ -96,7 +96,7 @@ public class DifficultyController : MonoBehaviour
     
     public void TestCurrentSettings()
     {
-        Debug.Log("🧪 测试当前设置...");
+        // Debug.Log("🧪 测试当前设置...");
         gameManager.TestDifficultySettings();
     }
     
