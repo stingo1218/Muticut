@@ -249,7 +249,6 @@ GameObject:
   - component: {fileID: 5308073915513291172}
   - component: {fileID: 5072761218065930179}
   - component: {fileID: 1732025751996871802}
-  - component: {fileID: 6881858341943397647}
   m_Layer: 6
   m_Name: Weight
   m_TagString: Untagged
@@ -374,17 +373,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 2}
   m_EdgeRadius: 0
---- !u!114 &6881858341943397647
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7155447657182004721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83b66162adf16d14c81d04f5f0469ef5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _numberText: {fileID: 624034172026017270}
-  _cellSprite: {fileID: 5072761218065930179}
