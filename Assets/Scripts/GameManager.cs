@@ -1564,6 +1564,11 @@ public class GameManager : MonoBehaviour
         if (_edges.ContainsKey(key))
         {
             var (renderer, _, tmp, bg) = _edges[key];
+            // 重新连接时，确保可见
+            if (renderer != null && renderer.gameObject != null)
+            {
+                renderer.gameObject.SetActive(true);
+            }
             if (useBresenhamLine)
             {
                 // 用Bresenham算法生成像素点
@@ -1593,10 +1598,7 @@ public class GameManager : MonoBehaviour
                 tmp.transform.position = textPos;
                 bg.transform.position = bgPos;
                 tmp.text = weight.ToString();
-                Vector2 textSize = tmp.GetPreferredValues(tmp.text);
-                float baseWidth = bg.GetComponent<SpriteRenderer>().size.x;
-                float baseHeight = bg.GetComponent<SpriteRenderer>().size.y;
-                bg.transform.localScale = new Vector3((textSize.x + 0.1f) / baseWidth, (textSize.y + 0.1f) / baseHeight, 1f);
+                // 不再在这里调整背景缩放，保持预制体原始缩放，避免单位不一致导致放大
             }
             else
             {
@@ -1604,7 +1606,13 @@ public class GameManager : MonoBehaviour
                 bg.SetActive(false);
             }
 
-                                            _edges[key] = (renderer, weight, tmp, bg);
+            // 从玩家切割集合中移除此边（完成重连）
+            if (playerCutEdges.Contains(key))
+            {
+                playerCutEdges.Remove(key);
+            }
+
+            _edges[key] = (renderer, weight, tmp, bg);
                 renderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
                 renderer.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
                 renderer.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
@@ -1654,8 +1662,9 @@ public class GameManager : MonoBehaviour
             // 创建权重标签：使用WeightPrefab中已有的TextMeshPro
             Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
             
-            // 实例化WeightPrefab
+            // 实例化WeightPrefab（使用统一的固定缩放，避免受父对象或不同像素密度影响）
             GameObject weightPrefab = Instantiate(WeightPrefab, lineObject.transform);
+            weightPrefab.transform.localScale = Vector3.one; // 重置缩放
             
                     // 获取WeightPrefab中的TextMeshProUGUI组件（UI版本）
         TextMeshProUGUI tmp = weightPrefab.GetComponentInChildren<TextMeshProUGUI>();
@@ -1670,10 +1679,11 @@ public class GameManager : MonoBehaviour
             // 设置文本内容
             tmp.text = weight.ToString();
             
-            // 确保权重标签的Z轴为0，避免渲染顺序问题
+            // 确保权重标签的Z轴为0，避免渲染顺序问题，并设置统一的缩放
             Vector3 weightPos = new Vector3(midPoint.x, midPoint.y, 0);
             weightPrefab.transform.position = weightPos;
             weightPrefab.transform.rotation = Quaternion.identity;
+            weightPrefab.transform.localScale = Vector3.one;
             
             // 根据开关决定是否显示权重
             weightPrefab.SetActive(useWeightedEdges);
@@ -1683,6 +1693,12 @@ public class GameManager : MonoBehaviour
             bgRenderer.sortingOrder = lineRenderer.sortingOrder + 1;
         // TextMeshProUGUI的渲染顺序通过Canvas控制，这里不需要设置sortingOrder
             
+            // 从玩家切割集合中移除此边（完成重连/新增）
+            if (playerCutEdges.Contains(key))
+            {
+                playerCutEdges.Remove(key);
+            }
+
             _edges[key] = (lineRenderer, weight, tmp, weightPrefab);
 
             lineRenderer.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
@@ -1701,21 +1717,11 @@ public class GameManager : MonoBehaviour
         // 如果连通分量数量减少，说明有两个分量被合并
         if (after < before)
         {
-            // 获取fromCell所在新分量的所有cell
-            var allCells = GetAllCellsInSameComponent(fromCell);
-            // 恢复初始状态下这些点之间的所有边
-            foreach (var edge in _initialEdges)
-            {
-                if (allCells.Contains(edge.Item1) && allCells.Contains(edge.Item2))
-                {
-                    var canonicalKey = GetCanonicalEdgeKey(edge.Item1, edge.Item2);
-                    if (!_edges.ContainsKey(canonicalKey))
-                    {
-                        // 避免递归调用，直接创建边而不调用CreateOrUpdateEdge
-                        CreateEdgeDirectly(edge.Item1, edge.Item2);
-                    }
-                }
-            }
+            // 恢复当前两个分量内，所有原先属于同一簇的内部边
+            RestoreClusterInternalEdges(fromCell, toCell);
+            // 合并后刷新cost与clusters
+            UpdateCostText();
+            try { CalculateAndSaveClustersAfterCut(); } catch { }
         }
     }
 
@@ -1778,7 +1784,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        // 设置文本内容
+        // 设置文本内容（不调整背景scale，保持预制体内的相对布局）
         tmp.text = weight.ToString();
         
         // 确保权重标签的Z轴为0，避免渲染顺序问题
@@ -2555,6 +2561,42 @@ public class GameManager : MonoBehaviour
             }
         }
         return visited;
+    }
+
+    // 新增：在重连后恢复簇内所有原始边
+    private void RestoreClusterInternalEdges(Cell a, Cell b)
+    {
+        // 获取a和b各自当前连通分量的所有cells
+        var compA = GetAllCellsInSameComponent(a);
+        var compB = GetAllCellsInSameComponent(b);
+
+        // 合并两个集合，作为“新簇”的候选
+        var union = new HashSet<Cell>(compA);
+        foreach (var c in compB) union.Add(c);
+
+        // 在初始边集合中，恢复所有两端都在union内的边
+        foreach (var edge in _initialEdges)
+        {
+            if (edge.Item1 == null || edge.Item2 == null) continue;
+            if (!union.Contains(edge.Item1) || !union.Contains(edge.Item2)) continue;
+
+            var key = GetCanonicalEdgeKey(edge.Item1, edge.Item2);
+            // 从切割集合移除
+            if (playerCutEdges.Contains(key)) playerCutEdges.Remove(key);
+            // 若未存在，则直接创建
+            if (!_edges.ContainsKey(key))
+            {
+                CreateEdgeDirectly(edge.Item1, edge.Item2);
+            }
+            else
+            {
+                // 确保可见
+                var (renderer, w, tmp, bg) = _edges[key];
+                if (renderer != null && renderer.gameObject != null)
+                    renderer.gameObject.SetActive(true);
+                if (bg != null) bg.SetActive(useWeightedEdges);
+            }
+        }
     }
 
     // 贪心多割算法实现 - 标准多割问题（不限制连通分量数量）
