@@ -43,37 +43,48 @@ public class ClusterHighlighter : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color[] predefinedColors = new Color[]
     {
-        // 深色系调色板（半透明，便于叠加显示）
-        new Color(0.15f, 0.20f, 0.35f, 0.6f), // 深海军蓝
-        new Color(0.18f, 0.28f, 0.18f, 0.6f), // 深森林绿
-        new Color(0.30f, 0.15f, 0.15f, 0.6f), // 深砖红
-        new Color(0.22f, 0.25f, 0.30f, 0.6f), // 石板灰蓝
-        new Color(0.20f, 0.16f, 0.24f, 0.6f), // 深紫罗兰
-        new Color(0.20f, 0.30f, 0.32f, 0.6f), // 深青蓝
-        new Color(0.35f, 0.25f, 0.18f, 0.6f), // 深棕褐
-        new Color(0.28f, 0.22f, 0.22f, 0.6f), // 暗酒红
-        new Color(0.20f, 0.22f, 0.26f, 0.6f), // 深石墨
-        new Color(0.12f, 0.18f, 0.22f, 0.6f), // 暗青灰
-        new Color(0.22f, 0.18f, 0.24f, 0.6f), // 茄皮紫
-        new Color(0.26f, 0.28f, 0.18f, 0.6f), // 暗橄榄
-        new Color(0.18f, 0.24f, 0.18f, 0.6f), // 墨绿
-        new Color(0.23f, 0.20f, 0.16f, 0.6f), // 深赭石
-        new Color(0.16f, 0.20f, 0.26f, 0.6f), // 深钢蓝
-        new Color(0.30f, 0.22f, 0.28f, 0.6f), // 葡萄酒紫
-        new Color(0.22f, 0.30f, 0.22f, 0.6f), // 苔藓绿
-        new Color(0.28f, 0.30f, 0.32f, 0.6f), // 暗银灰
-        new Color(0.18f, 0.16f, 0.20f, 0.6f), // 木炭灰
-        new Color(0.32f, 0.28f, 0.18f, 0.6f), // 深卡其
-        new Color(0.20f, 0.24f, 0.30f, 0.6f), // 蓝灰
-        new Color(0.24f, 0.20f, 0.28f, 0.6f), // 梅子紫
-        new Color(0.28f, 0.24f, 0.20f, 0.6f), // 焦糖褐
-        new Color(0.20f, 0.27f, 0.26f, 0.6f), // 石青
-        new Color(0.24f, 0.28f, 0.20f, 0.6f), // 苦艾绿
-        new Color(0.22f, 0.22f, 0.28f, 0.6f), // 深暮蓝
-        new Color(0.27f, 0.20f, 0.22f, 0.6f), // 深玫瑰红
-        new Color(0.20f, 0.18f, 0.18f, 0.6f), // 深烟灰
-        new Color(0.24f, 0.26f, 0.30f, 0.6f), // 冷灰蓝
-        new Color(0.30f, 0.30f, 0.30f, 0.6f), // 中深灰
+        // 显眼颜色调色板（半透明，便于叠加显示）
+        new Color(1.0f, 1.0f, 1.0f, 0.7f), // 白色 - 最高对比度
+        new Color(1.0f, 1.0f, 0.0f, 0.7f), // 黄色 - 明亮醒目
+        new Color(1.0f, 0.55f, 0.0f, 0.7f), // 橙色 - 温暖明亮
+        new Color(1.0f, 0.41f, 0.71f, 0.7f), // 粉色 - 鲜艳对比
+        new Color(0.53f, 0.81f, 0.92f, 0.7f), // 浅蓝色 - 清新对比
+        new Color(0.58f, 0.44f, 0.86f, 0.7f), // 紫色 - 优雅对比
+        new Color(0.0f, 0.81f, 0.82f, 0.7f), // 青色 - 现代感对比
+        new Color(1.0f, 0.75f, 0.8f, 0.7f), // 浅粉色 - 柔和醒目
+        new Color(0.5f, 1.0f, 0.5f, 0.7f), // 浅绿色 - 清新明亮
+        new Color(1.0f, 0.65f, 0.0f, 0.7f), // 深橙色 - 强烈对比
+        new Color(0.8f, 0.4f, 1.0f, 0.7f), // 亮紫色 - 鲜艳醒目
+        new Color(0.4f, 0.8f, 1.0f, 0.7f), // 天蓝色 - 清新明亮
+        new Color(1.0f, 0.8f, 0.4f, 0.7f), // 金黄色 - 明亮温暖
+        new Color(0.8f, 1.0f, 0.4f, 0.7f), // 浅黄绿 - 清新醒目
+        new Color(1.0f, 0.4f, 0.8f, 0.7f), // 亮粉色 - 鲜艳对比
+        new Color(0.6f, 0.8f, 1.0f, 0.7f), // 浅蓝绿 - 清新现代
+        new Color(1.0f, 0.6f, 0.4f, 0.7f), // 珊瑚色 - 温暖醒目
+        new Color(0.8f, 0.6f, 1.0f, 0.7f), // 淡紫色 - 优雅明亮
+        new Color(1.0f, 0.9f, 0.4f, 0.7f), // 浅黄色 - 明亮温暖
+        new Color(0.4f, 1.0f, 0.8f, 0.7f), // 青绿色 - 清新现代
+        new Color(1.0f, 0.7f, 0.9f, 0.7f), // 浅玫瑰粉 - 柔和醒目
+        new Color(0.7f, 0.9f, 1.0f, 0.7f), // 浅天蓝 - 清新明亮
+        new Color(1.0f, 0.8f, 0.6f, 0.7f), // 浅橙色 - 温暖明亮
+        new Color(0.9f, 0.7f, 1.0f, 0.7f), // 淡紫粉 - 优雅醒目
+        new Color(0.6f, 1.0f, 0.9f, 0.7f), // 青蓝绿 - 清新现代
+        new Color(1.0f, 0.6f, 0.8f, 0.7f), // 亮玫瑰粉 - 鲜艳对比
+        new Color(0.8f, 0.8f, 1.0f, 0.7f), // 淡蓝紫 - 清新优雅
+        new Color(1.0f, 0.9f, 0.7f, 0.7f), // 浅金黄 - 明亮温暖
+        new Color(0.7f, 1.0f, 0.8f, 0.7f), // 浅青绿 - 清新明亮
+        new Color(1.0f, 0.7f, 0.6f, 0.7f), // 浅珊瑚 - 温暖醒目
+        new Color(0.9f, 0.8f, 1.0f, 0.7f), // 淡紫蓝 - 优雅清新
+        new Color(0.8f, 1.0f, 0.9f, 0.7f), // 浅青蓝 - 清新现代
+        new Color(1.0f, 0.8f, 0.9f, 0.7f), // 浅粉橙 - 温暖醒目
+        new Color(0.7f, 0.9f, 0.8f, 0.7f), // 浅青绿蓝 - 清新优雅
+        new Color(1.0f, 0.9f, 0.8f, 0.7f), // 浅米黄 - 明亮温暖
+        new Color(0.8f, 0.9f, 1.0f, 0.7f), // 浅蓝青 - 清新现代
+        new Color(1.0f, 0.8f, 0.7f, 0.7f), // 浅橙粉 - 温暖醒目
+        new Color(0.9f, 0.8f, 0.9f, 0.7f), // 淡紫粉蓝 - 优雅清新
+        new Color(0.8f, 1.0f, 0.8f, 0.7f), // 浅青绿 - 清新明亮
+        new Color(1.0f, 0.9f, 0.9f, 0.7f), // 浅粉白 - 明亮温暖
+        new Color(0.9f, 0.9f, 1.0f, 0.7f), // 淡蓝白 - 清新优雅
     };
 
     private List<Cell> cells = new List<Cell>();
@@ -249,6 +260,7 @@ public class ClusterHighlighter : MonoBehaviour
     // 供Toggle的 OnValueChanged(bool) 直接绑定
     public void OnEcoZonesToggleChanged(bool isOn)
     {
+        Debug.Log($"ClusterHighlighter: Toggle状态改变为 {isOn}");
         if (isOn) ShowEcoZones(); else HideEcoZones();
     }
 

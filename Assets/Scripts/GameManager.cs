@@ -15,7 +15,8 @@ using UnityEngine.Tilemaps;
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
-    [SerializeField] private Cell _cellPrefab; // 单元格预制体
+    [SerializeField] private Cell _urbanCellPrefab; // 陆地单元格预制体 (Urban)
+    [SerializeField] private Cell _portCellPrefab;  // 水面单元格预制体 (Port)
     [SerializeField] private MonoBehaviour terrainManager; // 地形管理器引用
 
     [HideInInspector] public bool hasgameFinished;
@@ -56,6 +57,29 @@ public class GameManager : MonoBehaviour
     private HashSet<(Cell, Cell)> _initialEdges = new HashSet<(Cell, Cell)>(); // 记录初始边
     private HashSet<(Cell, Cell)> playerCutEdges = new HashSet<(Cell, Cell)>();
     
+    // 关卡与特性（尽量只改GameManager）
+    [Header("关卡生成设置")]
+    [SerializeField] public int levelIndex = 1;
+    [SerializeField] private int baseSeed = 123456;
+    [SerializeField] private bool useDailySeed = false;
+    private int currentSeed = 0;
+    
+
+    
+    [Header("计时器（可选）")]
+    [SerializeField] private bool enableTimer = false;
+    [SerializeField] private float timeLimitSeconds = 120f;
+    private float remainingTime = 0f;
+    private TextMeshProUGUI timerText;
+    
+    [Header("切割次数限制")]
+    [SerializeField] private bool enableCutLimit = true;
+    [SerializeField] private int baseCutLimit = 8; // 基础切割次数
+    [SerializeField] private float cutLimitReductionRate = 0.8f; // 每关卡减少的系数
+    [SerializeField] private TextMeshProUGUI cutLimitText; // 直接拖拽UI组件
+    private int currentCutLimit = 0;
+    private int remainingCuts = 0;
+    
     // 回退功能相关
     [System.Serializable]
     public class GameState
@@ -85,6 +109,8 @@ public class GameManager : MonoBehaviour
         public ClusterInfoDTO[] clusters;
         public int cluster_count;
         public string timestamp;
+        public int level_index; // 新增：关卡序号
+        public string seed;     // 新增：关卡种子
     }
     
     [System.Serializable]
@@ -205,93 +231,6 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI costText;
     private int optimalCost = 0;
 
-    [System.Serializable]
-    public class TerrainWeights
-    {
-        [Header("平地地形")]
-        public int grassWeight = 5;           // 平地草原
-        public int plainsWeight = 4;          // 平地沙漠1/2
-        public int sparseTreesWeight = -12;   // 平地稀疏树木1/2
-        public int forestWeight = -6;         // 平地森林/沼泽森林
-        
-        [Header("水域")]
-        public int shallowWaterWeight = 3;    // 浅水
-        public int deepWaterWeight = -8;      // 深水
-        public int lakeWeight = -8;           // 湖泊1-4
-        
-        [Header("丘陵地形")]
-        public int hillWeight = -15;          // 丘陵沙漠/草原/森林/针叶林
-        
-        [Header("山地地形")]
-        public int mountainWeight = -10;      // 山地沙漠/灌木丛/高山/不可通行
-        
-        [Header("特殊地形")]
-        public int volcanoWeight = -20;       // 火山
-        public int lairWeight = 0;            // 巢穴/雪地巢穴/沙漠巢穴
-        
-        [Header("默认")]
-        public int defaultWeight = 0;         // 默认权重
-
-        public int GetWeightForBiome(int biomeType)
-        {
-            switch (biomeType)
-            {
-                case 0: return deepWaterWeight;   // 深水
-                case 1: return shallowWaterWeight; // 浅水
-                case 2: return plainsWeight;       // 平地沙漠1
-                case 3: return plainsWeight;       // 平地沙漠2
-                case 4: return grassWeight;        // 平地草原
-                case 5: return sparseTreesWeight;  // 平地稀疏树木1
-                case 6: return sparseTreesWeight;  // 平地稀疏树木2
-                case 7: return forestWeight;       // 平地森林
-                case 8: return forestWeight;       // 平地沼泽森林
-                case 9: return hillWeight;         // 丘陵沙漠
-                case 10: return hillWeight;        // 丘陵草原
-                case 11: return hillWeight;        // 丘陵森林
-                case 12: return hillWeight;        // 丘陵针叶林
-                case 13: return mountainWeight;    // 山地沙漠
-                case 14: return mountainWeight;    // 山地灌木丛1
-                case 15: return mountainWeight;    // 山地灌木丛2
-                case 16: return mountainWeight;    // 山地高山1
-                case 17: return mountainWeight;    // 山地高山2
-                case 18: return mountainWeight;    // 山地不可通行1
-                case 19: return mountainWeight;    // 山地不可通行2
-                case 20: return lakeWeight;        // 湖泊1
-                case 21: return lakeWeight;        // 湖泊2
-                case 22: return lakeWeight;        // 湖泊3
-                case 23: return lakeWeight;        // 湖泊4
-                case 24: return volcanoWeight;     // 火山
-                case 25: return lairWeight;        // 巢穴
-                case 26: return lairWeight;        // 雪地巢穴
-                case 27: return lairWeight;        // 沙漠巢穴
-                default: return defaultWeight;     // 默认权重
-            }
-        }
-    }
-
-    [System.Serializable]
-    public class DifficultySettings
-    {
-        [Header("随机因子设置")]
-        [Range(0f, 1f)] public float randomFactor = 0.3f; // 随机因子强度 (0=纯地形, 1=纯随机)
-        [Range(-20, 20)] public int randomRange = 10; // 随机范围
-        
-        /// <summary>
-        /// 获取随机因子
-        /// </summary>
-        public int GetRandomFactor()
-        {
-            if (randomFactor <= 0f) return 0;
-            return UnityEngine.Random.Range(-randomRange, randomRange + 1);
-        }
-    }
-
-    [Header("地形权重设置")]
-    public TerrainWeights terrainWeights = new TerrainWeights();
-    
-    [Header("难度设置")]
-    public DifficultySettings difficultySettings = new DifficultySettings();
-
     // 关卡难度与陷阱/奖励边配置（用于从易到难的可控生成）
     public enum DifficultyTier { Easy, Normal, Hard, Nightmare }
 
@@ -323,13 +262,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
 
     /// <summary>
-    /// 获取指定生物群系的权重
+    /// 获取指定生物群系的权重（简化版：完全基于关卡号，忽略地形）
     /// </summary>
-    /// <param name="biomeType">生物群系类型ID</param>
+    /// <param name="biomeType">生物群系类型ID（已忽略）</param>
     /// <returns>权重值</returns>
     public int GetBiomeWeight(int biomeType)
     {
-        return terrainWeights.GetWeightForBiome(biomeType);
+        // 完全基于关卡号计算权重，忽略地形类型
+        float levelFactor = Mathf.Log(levelIndex + 1, 2) * 0.1f;
+        
+        // 所有地形类型使用相同的权重计算
+        return Mathf.RoundToInt(levelFactor * 2); // 关卡越多，权重越大
     }
 
     private void Awake()
@@ -338,12 +281,14 @@ public class GameManager : MonoBehaviour
         
         // 清空clusters_after_cut.json文件，避免开局时出现二次高亮
         ClearClustersFile();
+        InitLevelSeed();
         
         // 确保在重新开始时清理旧的边缘
         RemoveAllEdges();
         
         // 调试信息
-        // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellPrefab: {(_cellPrefab != null ? "已设置" : "为 null")}");
+        // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _urbanCellPrefab: {(_urbanCellPrefab != null ? "已设置" : "为 null")}");
+        // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _portCellPrefab: {(_portCellPrefab != null ? "已设置" : "为 null")}");
         // UnityEngine.Debug.Log($"🔍 GameManager.Awake() - _cellNumbers: {_cellNumbers}");
         
         // 生成地形
@@ -397,6 +342,18 @@ public class GameManager : MonoBehaviour
         {
             UnityEngine.Debug.LogError("找不到UICanvas下的ReturnButton！");
         }
+        // 计时器UI（可选）
+        var timerObj = GameObject.Find("UICanvas/TimerText");
+        if (timerObj != null)
+        {
+            timerText = timerObj.GetComponent<TextMeshProUGUI>();
+        }
+        
+        // 切割次数UI（通过Inspector拖拽绑定）
+        if (cutLimitText == null)
+        {
+            UnityEngine.Debug.LogWarning("CutLimitText未在Inspector中绑定，切割次数UI将不会显示");
+        }
 
         UpdateOptimalCostByPython();
         
@@ -411,6 +368,71 @@ public class GameManager : MonoBehaviour
             int weight = GetOrCreateEdgeWeight(cell1, cell2);
             // UnityEngine.Debug.Log($"Cell1({cell1.Number})-Cell2({cell2.Number}) 连线地形权重: {weight}");
         }
+        
+        // 初始化切割次数限制
+        if (enableCutLimit)
+        {
+            currentCutLimit = CalculateCutLimit();
+            remainingCuts = currentCutLimit;
+            UnityEngine.Debug.Log($"初始切割次数限制: {currentCutLimit}");
+        }
+    }
+
+    // 初始化关卡种子（可选：每日种子/固定基准）
+    private void InitLevelSeed()
+    {
+        if (useDailySeed)
+        {
+            string dateSeed = System.DateTime.UtcNow.ToString("yyyyMMdd");
+            currentSeed = (int)dateSeed.GetHashCode() ^ levelIndex;
+        }
+        else
+        {
+            currentSeed = baseSeed ^ levelIndex * 73856093; // 简单混合
+        }
+        UnityEngine.Random.InitState(currentSeed);
+        UnityEngine.Debug.Log($"Level {levelIndex} 使用种子: {currentSeed}");
+    }
+    
+    /// <summary>
+    /// 计算当前关卡的切割次数限制
+    /// </summary>
+    private int CalculateCutLimit()
+    {
+        if (!enableCutLimit) return int.MaxValue; // 不限制
+        
+        // 基础次数 - 关卡增长减少
+        int limit = Mathf.Max(3, baseCutLimit - Mathf.RoundToInt((levelIndex - 1) * cutLimitReductionRate));
+        
+        // 确保至少有3次切割机会
+        return Mathf.Max(3, limit);
+    }
+    
+    /// <summary>
+    /// 设置初始切割次数（公开方法，可在Inspector中调用）
+    /// </summary>
+    /// <param name="initialCuts">初始切割次数</param>
+    public void SetInitialCutLimit(int initialCuts)
+    {
+        if (!enableCutLimit) return;
+        
+        currentCutLimit = Mathf.Max(1, initialCuts); // 至少1次
+        remainingCuts = currentCutLimit;
+        
+        UnityEngine.Debug.Log($"手动设置切割次数限制: {currentCutLimit}");
+        UpdateCutLimitUI();
+    }
+    
+    /// <summary>
+    /// 重置切割次数为初始值
+    /// </summary>
+    public void ResetCutLimit()
+    {
+        if (!enableCutLimit) return;
+        
+        remainingCuts = currentCutLimit;
+        UnityEngine.Debug.Log($"重置切割次数: {remainingCuts}/{currentCutLimit}");
+        UpdateCutLimitUI();
     }
 
     // 新增：公开方法，供HintToggle绑定
@@ -520,6 +542,26 @@ public class GameManager : MonoBehaviour
         SpawnLevel(numberOfCells);
     }
 
+    // 进入下一关（最小改动：清场→levelIndex++→seed→SpawnLevel）
+    public void NextLevel()
+    {
+        levelIndex++;
+        ClearClustersFile();
+        RemoveAllEdges();
+        _initialEdges.Clear();
+        playerCutEdges.Clear();
+        ClearUndoHistory();
+        InitLevelSeed();
+        
+        // 初始化切割次数限制
+        currentCutLimit = CalculateCutLimit();
+        remainingCuts = currentCutLimit;
+        UnityEngine.Debug.Log($"Level {levelIndex}: 切割次数限制 {currentCutLimit}");
+        
+        SpawnLevel(_cellNumbers);
+        remainingTime = 0f; // 重新计时
+    }
+
     private List<Vector2> GenerateCellPositions(int numberOfPoints)
     {
         List<Vector2> cellPositions = new List<Vector2>();
@@ -552,22 +594,11 @@ public class GameManager : MonoBehaviour
         // 活动点列表
         List<Vector2> activePoints = new List<Vector2>();
 
-        // 添加第一个点（确保在陆地上）
-        Vector2 firstPoint;
-        int attempts = 0;
-        do
-        {
-            firstPoint = new Vector2(
-                UnityEngine.Random.Range(minX, maxX),
-                UnityEngine.Random.Range(minY, maxY)
-            );
-            attempts++;
-            if (attempts > 1000) // 防止无限循环
-            {
-                UnityEngine.Debug.LogWarning("无法找到有效的陆地位置，使用默认位置");
-                break;
-            }
-        } while (!IsPositionOnLand(firstPoint));
+        // 添加第一个点（不再强制要求在陆地上）
+        Vector2 firstPoint = new Vector2(
+            UnityEngine.Random.Range(minX, maxX),
+            UnityEngine.Random.Range(minY, maxY)
+        );
 
         cellPositions.Add(firstPoint);
         activePoints.Add(firstPoint);
@@ -608,9 +639,7 @@ public class GameManager : MonoBehaviour
                     newPoint.y < minY || newPoint.y > maxY)
                     continue;
 
-                // 检查新点是否在陆地上
-                if (!IsPositionOnLand(newPoint))
-                    continue;
+                // 不再检查是否在陆地上，允许在任何地形生成Cell
 
                 // 检查新点是否与现有点距离足够
                 int newGridX = Mathf.FloorToInt((newPoint.x - minX) / cellSize);
@@ -753,6 +782,149 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 根据地形类型选择合适的Cell prefab（改进版，学习自SimpleEdgeTileTest）
+    /// </summary>
+    /// <param name="position">Cell位置</param>
+    /// <returns>对应地形的Cell prefab</returns>
+    private Cell GetCellPrefabForTerrain(Vector2 position)
+    {
+        // 如果禁用了地形检查，默认使用urban prefab
+        if (!enableTerrainCheck)
+        {
+            return _urbanCellPrefab;
+        }
+
+        if (terrainManager == null)
+        {
+            UnityEngine.Debug.LogWarning("TerrainManager is null, using urban prefab");
+            return _urbanCellPrefab;
+        }
+
+        try
+        {
+            // 获取Tilemap
+            var tilemapProperty = terrainManager.GetType().GetProperty("tilemap");
+            Tilemap tilemap = null;
+            if (tilemapProperty != null)
+            {
+                tilemap = tilemapProperty.GetValue(terrainManager) as Tilemap;
+            }
+
+            if (tilemap == null)
+            {
+                UnityEngine.Debug.LogWarning("无法获取Tilemap，使用urban prefab");
+                return _urbanCellPrefab;
+            }
+
+            // 使用tilemap.WorldToCell()进行坐标转换
+            Vector3Int tilePos = tilemap.WorldToCell(position);
+            
+            // 检查瓦片是否存在
+            if (!tilemap.HasTile(tilePos))
+            {
+                UnityEngine.Debug.LogWarning($"位置 {position} 没有瓦片，使用urban prefab");
+                return _urbanCellPrefab;
+            }
+
+            // 使用改进的生物群系检测方法（学习自SimpleEdgeTileTest）
+            int biomeType = GetBiomeUsingAdvancedMap(terrainManager, tilePos);
+            
+            // 根据地形类型选择prefab
+            bool isWater = IsWaterBiome(biomeType);
+            string biomeName = GetBiomeDisplayName(biomeType);
+            
+            if (isWater)
+            {
+                UnityEngine.Debug.Log($"Cell位置 {position} -> 瓦片 {tilePos} -> {biomeName} -> 使用Port prefab");
+                return _portCellPrefab;
+            }
+            else
+            {
+                UnityEngine.Debug.Log($"Cell位置 {position} -> 瓦片 {tilePos} -> {biomeName} -> 使用Urban prefab");
+                return _urbanCellPrefab;
+            }
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"检查地形时出错: {ex.Message}，使用urban prefab");
+            return _urbanCellPrefab;
+        }
+    }
+
+    /// <summary>
+    /// 使用改进的映射表获取生物群系（学习自SimpleEdgeTileTest）
+    /// </summary>
+    /// <param name="terrainManager">地形管理器</param>
+    /// <param name="tilePos">瓦片位置</param>
+    /// <returns>生物群系类型ID</returns>
+    private int GetBiomeUsingAdvancedMap(MonoBehaviour terrainManager, Vector3Int tilePos)
+    {
+        try
+        {
+            // 调用TerrainManager的GetBiomeAtTile方法
+            var getBiomeMethod = terrainManager.GetType().GetMethod("GetBiomeAtTile");
+            if (getBiomeMethod != null)
+            {
+                var result = getBiomeMethod.Invoke(terrainManager, new object[] { tilePos });
+                if (result != null)
+                {
+                    return (int)result;
+                }
+            }
+            
+            UnityEngine.Debug.LogWarning($"无法使用映射表获取瓦片 {tilePos} 的生物群系");
+            return -1;
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"获取生物群系时出错: {ex.Message}");
+            return -1;
+        }
+    }
+
+    /// <summary>
+    /// 获取生物群系显示名称（学习自SimpleEdgeTileTest）
+    /// </summary>
+    /// <param name="biomeType">生物群系类型</param>
+    /// <returns>生物群系名称</returns>
+    private string GetBiomeDisplayName(int biomeType)
+    {
+        switch (biomeType)
+        {
+            case 0: return "深水";
+            case 1: return "浅水";
+            case 2: return "平地沙漠1";
+            case 3: return "平地沙漠2";
+            case 4: return "平地草原";
+            case 5: return "平地稀疏树木1";
+            case 6: return "平地稀疏树木2";
+            case 7: return "平地森林";
+            case 8: return "平地沼泽森林";
+            case 9: return "丘陵沙漠";
+            case 10: return "丘陵草原";
+            case 11: return "丘陵森林";
+            case 12: return "丘陵针叶林";
+            case 13: return "山地沙漠";
+            case 14: return "山地灌木丛1";
+            case 15: return "山地灌木丛2";
+            case 16: return "山地高山1";
+            case 17: return "山地高山2";
+            case 18: return "山地不可通行1";
+            case 19: return "山地不可通行2";
+            case 20: return "湖泊1";
+            case 21: return "湖泊2";
+            case 22: return "湖泊3";
+            case 23: return "湖泊4";
+            case 24: return "火山";
+            case 25: return "巢穴";
+            case 26: return "雪地巢穴";
+            case 27: return "沙漠巢穴";
+            case -1: return "未知地形";
+            default: return $"未知({biomeType})";
+        }
+    }
+
     void StretchAndCenterCells(List<Cell> cells)
     {
         // 1. 计算包围盒
@@ -794,12 +966,58 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 新增：仅计算拉伸居中后的最终位置，不直接移动对象，供生成前地形检测使用
+    private List<Vector2> ComputeStretchedAndCenteredPositions(List<Vector2> originalPositions)
+    {
+        List<Vector2> result = new List<Vector2>(originalPositions.Count);
+        if (originalPositions.Count == 0)
+        {
+            return result;
+        }
+
+        // 1. 计算包围盒
+        float minX = float.MaxValue, maxX = float.MinValue;
+        float minY = float.MaxValue, maxY = float.MinValue;
+        foreach (var pos in originalPositions)
+        {
+            if (pos.x < minX) minX = pos.x;
+            if (pos.x > maxX) maxX = pos.x;
+            if (pos.y < minY) minY = pos.y;
+            if (pos.y > maxY) maxY = pos.y;
+        }
+
+        // 2. 目标区域（与StretchAndCenterCells一致）
+        Camera cam = Camera.main;
+        float camHeight = cam.orthographicSize * 2f * 0.8f;
+        float camWidth = camHeight * cam.aspect;
+
+        // 3. 计算缩放比例
+        float width = Mathf.Max(maxX - minX, 0.01f);
+        float height = Mathf.Max(maxY - minY, 0.01f);
+        float scaleX = camWidth / width;
+        float scaleY = camHeight / height;
+
+        // 4. 以中心为基准，计算新位置
+        Vector2 center = new Vector2((minX + maxX) / 2f, (minY + maxY) / 2f);
+        Vector2 screenCenter = cam.transform.position;
+        foreach (var pos in originalPositions)
+        {
+            Vector2 newPos = new Vector2(
+                (pos.x - center.x) * scaleX,
+                (pos.y - center.y) * scaleY
+            ) + screenCenter;
+            result.Add(newPos);
+        }
+
+        return result;
+    }
+
     private void SpawnLevel(int numberOfPoints)
     {
-        // 检查 _cellPrefab 是否为 null
-        if (_cellPrefab == null)
+        // 检查 prefab 是否为 null
+        if (_urbanCellPrefab == null || _portCellPrefab == null)
         {
-            UnityEngine.Debug.LogError("❌ _cellPrefab 为 null！请在 Inspector 中设置 Cell Prefab。");
+            UnityEngine.Debug.LogError("❌ Cell Prefab 未设置！请在 Inspector 中设置 Urban Cell Prefab 和 Port Cell Prefab。");
             return;
         }
 
@@ -822,32 +1040,28 @@ public class GameManager : MonoBehaviour
         ClearUndoHistory(); // 清空回退历史
 
         List<Vector2> cellPositions = GenerateCellPositions(numberOfPoints);
+        // 预计算拉伸并居中的最终位置（避免实例化后再移动导致地形检测不准）
+        List<Vector2> finalPositions = ComputeStretchedAndCenteredPositions(cellPositions);
         // Assign positions to cells and collect Vector2 for triangulation
         List<Vector2> pointsForTriangulation = new List<Vector2>();
 
-        for (int i = 0; i < cellPositions.Count; i++)
+        for (int i = 0; i < finalPositions.Count; i++)
         {
-            Vector2 position = cellPositions[i];
+            Vector2 position = finalPositions[i];
 
             // 确保Cell的Z轴为0，避免渲染顺序问题
             Vector3 cellPosition = new Vector3(position.x, position.y, 0);
-            Cell newCell = Instantiate(_cellPrefab, cellPosition, Quaternion.identity, transform);
+            
+            // 根据地形类型选择合适的prefab
+            Cell prefabToUse = GetCellPrefabForTerrain(position);
+            Cell newCell = Instantiate(prefabToUse, cellPosition, Quaternion.identity, transform);
             newCell.Number = i + 1; // Cell.Number is 1-indexed for display/logic
             newCell.Init(i + 1);
             newCell.gameObject.name = $"Cell {newCell.Number}";
             _cells.Add(newCell);
             pointsForTriangulation.Add(position);
         }
-
-        // 先归一化/缩放/居中所有Cell
-        StretchAndCenterCells(_cells);
-
-        // 归一化后重新收集点坐标用于三角剖分
-        pointsForTriangulation.Clear();
-        foreach (var cell in _cells)
-        {
-            pointsForTriangulation.Add(cell.transform.position);
-        }
+        
 
         // Generate Delaunay Triangulation
         if (_cells.Count >= 3) // Need at least 3 points for triangulation
@@ -880,7 +1094,7 @@ public class GameManager : MonoBehaviour
         // 关卡生成完成后，写出初始（未切割）clusters并通知可视化，这样高亮脚本初始会显示统一底色
         try
         {
-            CalculateAndSaveClustersAfterCut();
+                    CalculateAndSaveClustersAfterCut();
             NotifyCellTileTestManager();
         }
         catch (System.Exception ex)
@@ -1097,6 +1311,29 @@ public class GameManager : MonoBehaviour
         {
             HandleMouseUp();
         }
+
+        // 计时器
+        if (enableTimer)
+        {
+            if (remainingTime <= 0f && _cells.Count > 0)
+            {
+                // 首次进入本关
+                remainingTime = timeLimitSeconds;
+            }
+            if (remainingTime > 0f)
+            {
+                remainingTime -= Time.deltaTime;
+                if (remainingTime < 0f) remainingTime = 0f;
+                UpdateTimerUI();
+                if (Mathf.Approximately(remainingTime, 0f))
+                {
+                    OnTimeUp();
+                }
+            }
+        }
+        
+        // 切割次数UI更新
+        UpdateCutLimitUI();
 
         // 按下右键，开始擦除
         if (Input.GetMouseButtonDown(1))
@@ -1573,6 +1810,7 @@ public class GameManager : MonoBehaviour
     public void RemoveEdge(Cell fromCell, Cell toCell)
     {
         var key = GetCanonicalEdgeKey(fromCell, toCell);
+        
         if (_edges.TryGetValue(key, out var edge))
         {
             // 记录玩家切割的边
@@ -1672,6 +1910,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // 时间到处理（尽量轻量）
+    private void OnTimeUp()
+    {
+        UnityEngine.Debug.Log("⏰ 时间到！自动生成下一关。");
+        NextLevel();
+    }
+
+    private void UpdateTimerUI()
+    {
+        if (!enableTimer || timerText == null) return;
+        int sec = Mathf.CeilToInt(remainingTime);
+        timerText.text = $"TIME: {sec}s";
+    }
+    
+    private void UpdateCutLimitUI()
+    {
+        if (!enableCutLimit || cutLimitText == null) return;
+        cutLimitText.text = $"Cut Limit: {remainingCuts}/{currentCutLimit}";
+    }
+
     private void EraseEdgesCrossedByPath(List<Vector2> path)
     {
         if (path.Count < 2) return;
@@ -1702,16 +1960,30 @@ public class GameManager : MonoBehaviour
 
         if (componentsAfterRemoval > initialComponents)
         {
+            // 检查切割次数限制
+            if (enableCutLimit && remainingCuts <= 0)
+            {
+                UnityEngine.Debug.Log("切割次数已用完！");
+                return;
+            }
+            
             // 在批量切割之前保存当前状态
             SaveGameState();
-            UnityEngine.Debug.Log($"💾 保存批量切割前的状态，当前切割边数量: {playerCutEdges.Count}");
+            UnityEngine.Debug.Log($"保存批量切割前的状态，当前切割边数量: {playerCutEdges.Count}");
             
             foreach (var edge in edgesToRemove)
             {
                 RemoveEdge(edge.Item1, edge.Item2);
             }
             
-            UnityEngine.Debug.Log($"✂️ 批量切割完成，新增切割边数量: {edgesToRemove.Count}");
+            // 减少切割次数（整个拖拽过程算一次）
+            if (enableCutLimit)
+            {
+                remainingCuts--;
+                UnityEngine.Debug.Log($"切割次数: {remainingCuts}/{currentCutLimit}");
+            }
+            
+            UnityEngine.Debug.Log($"批量切割完成，新增切割边数量: {edgesToRemove.Count}");
             
             // 计算并保存clusters信息
             CalculateAndSaveClustersAfterCut();
@@ -1739,6 +2011,8 @@ public class GameManager : MonoBehaviour
                 .ToArray();
             dto.cluster_count = clusters.Count;
             dto.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            dto.level_index = levelIndex;
+            dto.seed = currentSeed.ToString();
 
             string jsonData = JsonUtility.ToJson(dto, true);
             string filePath = System.IO.Path.Combine(Application.dataPath, "..", "clusters_after_cut.json");
@@ -1801,6 +2075,9 @@ public class GameManager : MonoBehaviour
             UnityEngine.Debug.LogError($"❌ 通知CellTileTestManager时出错: {ex.Message}");
         }
     }
+
+    // 在当前边集合上随机挑选若干条锁定（最小实现，只改GameManager）
+
 
     // 使用BFS计算所有clusters
     private List<List<Cell>> CalculateClustersWithBFS()
@@ -1979,31 +2256,22 @@ public class GameManager : MonoBehaviour
         // 附加：结构性与陷阱/奖励修饰（用于从易到难）
         int modified = ApplyEdgeDifficultyModifiers(a, b, crossedTiles, baseTerrainWeight);
 
-        // 应用难度设置（随机因子等）
-        int finalWeight = ApplyDifficultySettings(modified);
+        // 应用基于关卡号的动态权重调整
+        int finalWeight = ApplyLevelBasedWeight(modified);
         
         return finalWeight;
     }
     
     /// <summary>
-    /// 计算基础地形权重
+    /// 计算基础权重（简化版：忽略地形，只基于关卡号）
     /// </summary>
     private int CalculateBaseTerrainWeight(HashSet<Vector3Int> crossedTiles)
     {
-        int totalWeight = 0;
-        
-        // 遍历每个瓦片，获取其生物群系并累加权重
-        foreach (Vector3Int tilePos in crossedTiles)
-        {
-            int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
-            int tileWeight = terrainWeights.GetWeightForBiome(biomeType);
-            totalWeight += tileWeight;
-        }
-        
-        return totalWeight;
+        // 完全忽略地形，只基于关卡号计算基础权重
+        return GetBiomeWeight(0); // 传入任意值，因为地形类型被忽略了
     }
 
-    // 根据档位与结构/陷阱/奖励对边权重进行附加修饰
+    // 根据档位与结构/陷阱/奖励对边权重进行附加修饰（简化版：忽略地形）
     private int ApplyEdgeDifficultyModifiers(Cell a, Cell b, HashSet<Vector3Int> crossedTiles, int baseWeight)
     {
         int weight = baseWeight;
@@ -2019,36 +2287,19 @@ public class GameManager : MonoBehaviour
         }
         weight = Mathf.RoundToInt(weight * scale);
 
-        // 结构性修饰：长边奖励（让长边更"便宜"或"更值得割"，根据你的设计理念）
+        // 结构性修饰：长边奖励（让长边更"便宜"或"更值得割"）
         float length = Vector2.Distance(a.transform.position, b.transform.position);
         if (length >= edgeDifficulty.longEdgeLengthThreshold)
         {
             weight += edgeDifficulty.longEdgeBonus;
         }
 
-        // 穿越地形附加惩罚（更难档位更痛）
-        int mountainTiles = 0;
-        int waterTiles = 0;
-        foreach (var pos in crossedTiles)
-        {
-            int biome = GetBiomeUsingMap(terrainManager, pos);
-            // 例：山地 13..19
-            if (biome >= 13 && biome <= 19) mountainTiles++;
-            // 水域 0,1,20..23
-            if (biome == 0 || biome == 1 || (biome >= 20 && biome <= 23)) waterTiles++;
-        }
-        int terrainPenalty = mountainTiles * edgeDifficulty.mountainPenaltyPerTile + waterTiles * edgeDifficulty.waterPenaltyPerTile;
-        // 更难档位加重惩罚
-        if (difficultyTier == DifficultyTier.Hard) terrainPenalty = Mathf.RoundToInt(terrainPenalty * 1.2f);
-        if (difficultyTier == DifficultyTier.Nightmare) terrainPenalty = Mathf.RoundToInt(terrainPenalty * 1.5f);
-        weight += terrainPenalty;
-
         // 陷阱/奖励（互斥触发）：
         float r = UnityEngine.Random.value;
         if (r < edgeDifficulty.trapChance)
         {
             // 陷阱：额外负惩罚（更难档位更狠）
-            int trap = UnityEngine.Random.Range(edgeDifficulty.trapPenaltyMax, edgeDifficulty.trapPenaltyMin - 1); // 注意负数区间
+            int trap = UnityEngine.Random.Range(edgeDifficulty.trapPenaltyMax, edgeDifficulty.trapPenaltyMin - 1);
             if (difficultyTier == DifficultyTier.Hard) trap = Mathf.RoundToInt(trap * 1.2f);
             if (difficultyTier == DifficultyTier.Nightmare) trap = Mathf.RoundToInt(trap * 1.5f);
             weight += trap;
@@ -2065,13 +2316,14 @@ public class GameManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 应用难度设置到权重
+    /// 应用基于关卡号的动态权重调整
     /// </summary>
-    private int ApplyDifficultySettings(int baseWeight)
+    private int ApplyLevelBasedWeight(int baseWeight)
     {
-        // 混合地形权重和随机因子
-        float randomInfluence = difficultySettings.randomFactor;
-        int randomFactor = difficultySettings.GetRandomFactor();
+        // 更温和的随机因子：早期关卡随机性很小
+        float randomInfluence = Mathf.Min(0.6f, levelIndex * 0.01f); // 降低随机性增长速度
+        int randomRange = Mathf.Min(8, levelIndex); // 降低随机范围
+        int randomFactor = UnityEngine.Random.Range(-randomRange, randomRange + 1);
         
         // 计算最终权重：地形权重 * (1 - 随机因子) + 随机因子 * 随机值
         float finalWeight = baseWeight * (1f - randomInfluence) + randomFactor * randomInfluence;
@@ -2182,18 +2434,19 @@ public class GameManager : MonoBehaviour
         // 计算基础地形权重
         int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
         
-        // 应用难度设置（但不进行映射）
-        return ApplyDifficultySettingsRaw(baseTerrainWeight);
+        // 应用基于关卡号的动态权重调整（但不进行映射）
+        return ApplyLevelBasedWeightRaw(baseTerrainWeight);
     }
     
     /// <summary>
-    /// 应用难度设置到权重（不进行映射）
+    /// 应用基于关卡号的动态权重调整（不进行映射）
     /// </summary>
-    private int ApplyDifficultySettingsRaw(int baseWeight)
+    private int ApplyLevelBasedWeightRaw(int baseWeight)
     {
-        // 混合地形权重和随机因子
-        float randomInfluence = difficultySettings.randomFactor;
-        int randomFactor = difficultySettings.GetRandomFactor();
+        // 更温和的随机因子：早期关卡随机性很小
+        float randomInfluence = Mathf.Min(0.6f, levelIndex * 0.01f); // 降低随机性增长速度
+        int randomRange = Mathf.Min(8, levelIndex); // 降低随机范围
+        int randomFactor = UnityEngine.Random.Range(-randomRange, randomRange + 1);
         
         // 计算最终权重：地形权重 * (1 - 随机因子) + 随机因子 * 随机值
         float finalWeight = baseWeight * (1f - randomInfluence) + randomFactor * randomInfluence;
@@ -2940,11 +3193,11 @@ public class GameManager : MonoBehaviour
         
         // 显示难度设置信息
         UnityEngine.Debug.Log($"⚙️ 难度设置:");
-        UnityEngine.Debug.Log($"  - 随机因子: {difficultySettings.randomFactor}");
-        UnityEngine.Debug.Log($"  - 随机范围: {difficultySettings.randomRange}");
+        UnityEngine.Debug.Log($"  - 关卡因子: {Mathf.Min(0.6f, levelIndex * 0.01f):F2}");
+        UnityEngine.Debug.Log($"  - 随机范围: {Mathf.Min(8, levelIndex)}");
         
         // 计算最终权重
-        int finalWeight = ApplyDifficultySettings(baseTerrainWeight);
+        int finalWeight = ApplyLevelBasedWeight(baseTerrainWeight);
         UnityEngine.Debug.Log($"🎯 最终权重: {finalWeight}");
         
         // 对比缓存中的权重
@@ -2964,8 +3217,8 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 测试不同难度设置的效果
     /// </summary>
-    [ContextMenu("测试难度设置效果")]
-    public void TestDifficultySettings()
+    [ContextMenu("测试关卡权重效果")]
+    public void TestLevelWeightEffects()
     {
         UnityEngine.Debug.Log("🧪 开始测试难度设置效果...");
         
@@ -2998,17 +3251,16 @@ public class GameManager : MonoBehaviour
         UnityEngine.Debug.Log($"🌍 基础地形权重: {baseWeight}");
         UnityEngine.Debug.Log($"🔗 Edge: Cell {cellA.Number} -> Cell {cellB.Number}");
         
-        // 测试不同随机因子
-        float[] testRandomFactors = { 0f, 0.3f, 0.7f, 1f };
-        foreach (float randomFactor in testRandomFactors)
+        // 测试不同关卡
+        int[] testLevels = { 1, 5, 10, 20 };
+        foreach (int testLevel in testLevels)
         {
-            difficultySettings.randomFactor = randomFactor;
-            int weight = ApplyDifficultySettings(baseWeight);
-            UnityEngine.Debug.Log($"  🎲 随机因子{randomFactor}: {weight}");
+            int originalLevel = levelIndex;
+            levelIndex = testLevel;
+            int weight = ApplyLevelBasedWeight(baseWeight);
+            UnityEngine.Debug.Log($"  🎲 关卡{testLevel}: 权重{weight}");
+            levelIndex = originalLevel;
         }
-        
-        // 恢复原始设置
-        difficultySettings.randomFactor = 0.3f;
     }
     
     

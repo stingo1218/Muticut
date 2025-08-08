@@ -19,7 +19,7 @@ public class DifficultyController : MonoBehaviour
     public Button testButton;
     
     private GameManager gameManager;
-    private GameManager.DifficultySettings originalSettings;
+    private int originalLevelIndex;
     
     private void Start()
     {
@@ -30,9 +30,8 @@ public class DifficultyController : MonoBehaviour
             return;
         }
         
-        // 保存原始设置
-        originalSettings = new GameManager.DifficultySettings();
-        CopySettings(gameManager.difficultySettings, originalSettings);
+        // 保存原始关卡号
+        originalLevelIndex = gameManager.levelIndex;
         
         // 初始化UI
         InitializeUI();
@@ -45,9 +44,10 @@ public class DifficultyController : MonoBehaviour
     {
         if (randomFactorSlider != null)
         {
-            randomFactorSlider.minValue = 0f;
-            randomFactorSlider.maxValue = 1f;
-            randomFactorSlider.value = gameManager.difficultySettings.randomFactor;
+            randomFactorSlider.minValue = 1f;
+            randomFactorSlider.maxValue = 50f;
+            randomFactorSlider.wholeNumbers = true;
+            randomFactorSlider.value = gameManager.levelIndex;
         }
         
         UpdateDisplayTexts();
@@ -70,14 +70,14 @@ public class DifficultyController : MonoBehaviour
     
     private void OnRandomFactorChanged(float value)
     {
-        gameManager.difficultySettings.randomFactor = value;
+        gameManager.levelIndex = Mathf.RoundToInt(value);
         UpdateDisplayTexts();
     }
     
     private void UpdateDisplayTexts()
     {
         if (randomFactorText != null)
-            randomFactorText.text = $"随机因子: {gameManager.difficultySettings.randomFactor:F2}";
+            randomFactorText.text = $"关卡: {gameManager.levelIndex}";
     }
     
     public void ApplySettings()
@@ -89,7 +89,7 @@ public class DifficultyController : MonoBehaviour
     public void ResetToOriginal()
     {
         // Debug.Log("🔄 重置为原始设置...");
-        CopySettings(originalSettings, gameManager.difficultySettings);
+        gameManager.levelIndex = originalLevelIndex;
         InitializeUI();
         gameManager.RecalculateAllEdgeWeights();
     }
@@ -97,19 +97,13 @@ public class DifficultyController : MonoBehaviour
     public void TestCurrentSettings()
     {
         // Debug.Log("🧪 测试当前设置...");
-        gameManager.TestDifficultySettings();
-    }
-    
-    private void CopySettings(GameManager.DifficultySettings from, GameManager.DifficultySettings to)
-    {
-        to.randomFactor = from.randomFactor;
-        to.randomRange = from.randomRange;
+        gameManager.TestLevelWeightEffects();
     }
     
     [ContextMenu("快速设置 - 纯地形模式")]
     public void SetTerrainOnlyMode()
     {
-        gameManager.difficultySettings.randomFactor = 0f;
+        gameManager.levelIndex = 1;
         InitializeUI();
         ApplySettings();
     }
@@ -117,7 +111,7 @@ public class DifficultyController : MonoBehaviour
     [ContextMenu("快速设置 - 混合模式")]
     public void SetMixedMode()
     {
-        gameManager.difficultySettings.randomFactor = 0.3f;
+        gameManager.levelIndex = 10;
         InitializeUI();
         ApplySettings();
     }
@@ -125,7 +119,7 @@ public class DifficultyController : MonoBehaviour
     [ContextMenu("快速设置 - 纯随机模式")]
     public void SetRandomOnlyMode()
     {
-        gameManager.difficultySettings.randomFactor = 1f;
+        gameManager.levelIndex = 30;
         InitializeUI();
         ApplySettings();
     }

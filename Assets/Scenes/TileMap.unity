@@ -213,21 +213,18 @@ MonoBehaviour:
   terrainManager: {fileID: 577321252}
   gameManager: {fileID: 1255477919}
   clusterDataPath: clusters_after_cut.json
-  initialBaseColor: {r: 0.9784366, g: 0.47339445, b: 0.47339445, a: 0.6}
+  initialBaseColor: {r: 1, g: 0, b: 0, a: 0.6}
   recolorBatchSize: 600
+  showOnStart: 1
+  updateColorsOnCostChange: 0
   predefinedColors:
-  - {r: 0.8, g: 0.3, b: 0.3, a: 0.6}
-  - {r: 0.3, g: 0.8, b: 0.3, a: 0.6}
-  - {r: 0.3, g: 0.3, b: 0.8, a: 0.6}
-  - {r: 0.8, g: 0.8, b: 0.3, a: 0.6}
-  - {r: 0.3, g: 0.8, b: 0.8, a: 0.6}
-  - {r: 0.8, g: 0.3, b: 0.8, a: 0.6}
-  - {r: 0.8, g: 0.5, b: 0.3, a: 0.6}
-  - {r: 0.5, g: 0.3, b: 0.8, a: 0.6}
-  - {r: 0.8, g: 0.3, b: 0.5, a: 0.6}
-  - {r: 0.3, g: 0.8, b: 0.5, a: 0.6}
-  - {r: 0.5, g: 0.8, b: 0.3, a: 0.6}
-  - {r: 0.6, g: 0.6, b: 0.6, a: 0.6}
+  - {r: 0.8, g: 0.3, b: 0.3, a: 0.8509804}
+  - {r: 0.30265537, g: 0.8, b: 0.29803926, a: 0.8627451}
+  - {r: 0.3, g: 0.3, b: 0.8, a: 0.8627451}
+  - {r: 0.8, g: 0.8, b: 0.3, a: 0.8627451}
+  - {r: 0.3, g: 0.8, b: 0.8, a: 0.8627451}
+  - {r: 0.8, g: 0.3, b: 0.8, a: 0.8627451}
+  - {r: 0.8, g: 0.5, b: 0.3, a: 0.8627451}
 --- !u!4 &413475389
 Transform:
   m_ObjectHideFlags: 0
@@ -349,8 +346,8 @@ MonoBehaviour:
     moistureSeed: f45252655c9d99bff083674fd63107e0d6212ba0
     setMoistureSeed: 0
     drawMoisture: 1
-    frequencyMoisture: 1.99
-    redistributionMoisture: 1.04
+    frequencyMoisture: 1.27
+    redistributionMoisture: 1.39
     moistureOctaves_0: 1
     moistureOctaves_1: 0.5
     moistureOctaves_2: 0.25
@@ -899,8 +896,8 @@ MonoBehaviour:
     lairWeight: 2
     defaultWeight: 0
   difficultySettings:
-    randomFactor: 0.3
-    randomRange: 10
+    randomFactor: 1
+    randomRange: 16
   difficultyTier: 3
   edgeDifficulty:
     trapChance: 0.731
