@@ -1529,6 +1529,9 @@ public class GameManager : MonoBehaviour
             }
             
             UpdateCostText(); // 每次切割后刷新
+            
+            // 计算并保存clusters信息
+            CalculateAndSaveClustersAfterCut();
         }
     }
 
@@ -1649,11 +1652,134 @@ public class GameManager : MonoBehaviour
             }
             
             UnityEngine.Debug.Log($"✂️ 批量切割完成，新增切割边数量: {edgesToRemove.Count}");
+            
+            // 计算并保存clusters信息
+            CalculateAndSaveClustersAfterCut();
         }
         else
         {
             UnityEngine.Debug.Log("不能擦除：此次操作不会增加连通分量数量。");
         }
+    }
+
+    // 计算并保存clusters信息到JSON文件
+    public void CalculateAndSaveClustersAfterCut()
+    {
+        try
+        {
+            var clusters = CalculateClustersWithBFS();
+            int currentCost = GetCurrentCost();
+            
+            var outputData = new
+            {
+                cut_edges = playerCutEdges.Select(edge => new { u = edge.Item1.Number, v = edge.Item2.Number }).ToArray(),
+                cost = currentCost,
+                clusters = clusters.Select(cluster => new { cells = cluster.Select(cell => cell.Number).ToArray() }).ToArray(),
+                cluster_count = clusters.Count,
+                timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+            
+            string jsonData = JsonUtility.ToJson(outputData, true);
+            string filePath = System.IO.Path.Combine(Application.dataPath, "..", "clusters_after_cut.json");
+            System.IO.File.WriteAllText(filePath, jsonData);
+            
+            UnityEngine.Debug.Log($"📊 已保存clusters信息到: {filePath}");
+            UnityEngine.Debug.Log($"📊 当前有 {clusters.Count} 个clusters，总cost: {currentCost}");
+            foreach (var cluster in clusters)
+            {
+                UnityEngine.Debug.Log($"🔸 Cluster包含 {cluster.Count} 个cells: [{string.Join(", ", cluster.Select(c => c.Number))}]");
+            }
+            
+            // 通知CellTileTestManager重新加载clusters数据
+            NotifyCellTileTestManager();
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogError($"❌ 保存clusters信息时出错: {ex.Message}");
+        }
+    }
+
+    // 通知CellTileTestManager重新加载clusters数据
+    private void NotifyCellTileTestManager()
+    {
+        try
+        {
+            var cellTileTestManagers = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            foreach (var manager in cellTileTestManagers)
+            {
+                if (manager != null && manager.GetType().Name == "CellTileTestManager")
+                {
+                    var reloadMethod = manager.GetType().GetMethod("ReloadClusterData");
+                    if (reloadMethod != null)
+                    {
+                        reloadMethod.Invoke(manager, null);
+                        UnityEngine.Debug.Log($"🔔 已通知CellTileTestManager重新加载clusters数据: {manager.name}");
+                    }
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogError($"❌ 通知CellTileTestManager时出错: {ex.Message}");
+        }
+    }
+
+    // 使用BFS计算所有clusters
+    private List<List<Cell>> CalculateClustersWithBFS()
+    {
+        if (_cells.Count == 0) return new List<List<Cell>>();
+
+        Dictionary<Cell, HashSet<Cell>> graph = new Dictionary<Cell, HashSet<Cell>>();
+        foreach (var cell in _cells)
+        {
+            graph[cell] = new HashSet<Cell>();
+        }
+
+        // 构建图（排除已切割的边）
+        foreach (var pair in _edges)
+        {
+            if (playerCutEdges.Contains(pair.Key))
+            {
+                continue; // 跳过已切割的边
+            }
+            
+            graph[pair.Key.Item1].Add(pair.Key.Item2);
+            graph[pair.Key.Item2].Add(pair.Key.Item1);
+        }
+
+        List<List<Cell>> clusters = new List<List<Cell>>();
+        HashSet<Cell> visited = new HashSet<Cell>();
+
+        foreach (var cell in _cells)
+        {
+            if (!visited.Contains(cell))
+            {
+                // 使用BFS找到当前cluster的所有cells
+                List<Cell> cluster = new List<Cell>();
+                Queue<Cell> queue = new Queue<Cell>();
+                queue.Enqueue(cell);
+                visited.Add(cell);
+                cluster.Add(cell);
+
+                while (queue.Count > 0)
+                {
+                    var current = queue.Dequeue();
+                    foreach (var neighbor in graph[current])
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            visited.Add(neighbor);
+                            queue.Enqueue(neighbor);
+                            cluster.Add(neighbor);
+                        }
+                    }
+                }
+                
+                clusters.Add(cluster);
+            }
+        }
+
+        return clusters;
     }
 
     // 计算当前图中（或忽略某些边后）的连通分量数量
