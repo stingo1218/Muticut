@@ -81,6 +81,30 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    // JSON DTOs for clusters_after_cut.json
+    [System.Serializable]
+    private class ClustersAfterCutDataDTO
+    {
+        public CutEdgeDTO[] cut_edges;
+        public int cost;
+        public ClusterInfoDTO[] clusters;
+        public int cluster_count;
+        public string timestamp;
+    }
+    
+    [System.Serializable]
+    private class CutEdgeDTO
+    {
+        public int u;
+        public int v;
+    }
+    
+    [System.Serializable]
+    private class ClusterInfoDTO
+    {
+        public int[] cells;
+    }
+    
     private Stack<GameState> gameStateHistory = new Stack<GameState>();
     private const int MAX_UNDO_STEPS = 20; // 最大回退步数
     
@@ -272,6 +296,33 @@ public class GameManager : MonoBehaviour
     
     [Header("难度设置")]
     public DifficultySettings difficultySettings = new DifficultySettings();
+
+    // 关卡难度与陷阱/奖励边配置（用于从易到难的可控生成）
+    public enum DifficultyTier { Easy, Normal, Hard, Nightmare }
+
+    [System.Serializable]
+    public class EdgeDifficultyConfig
+    {
+        [Header("陷阱边概率与惩罚")]
+        [Range(0f, 1f)] public float trapChance = 0.05f; // 生成陷阱边的概率
+        public int trapPenaltyMin = -6;                   // 陷阱额外惩罚下限（负数）
+        public int trapPenaltyMax = -12;                  // 陷阱额外惩罚上限（负数）
+
+        [Header("奖励边概率与奖励")]
+        [Range(0f, 1f)] public float bonusChance = 0.04f; // 生成奖励边的概率（当未命中陷阱时）
+        public int bonusMin = 3;                          // 额外奖励下限（正数）
+        public int bonusMax = 8;                          // 额外奖励上限（正数）
+
+        [Header("结构性加成/惩罚")]
+        public float longEdgeLengthThreshold = 6.0f;      // 视为长边的阈值（世界单位）
+        public int longEdgeBonus = 2;                     // 长边奖励（鼓励割长边/不割长边可根据权重正负影响）
+        public int mountainPenaltyPerTile = -1;           // 每跨过一个山地瓦片额外惩罚
+        public int waterPenaltyPerTile = -1;              // 每跨过一个水域瓦片额外惩罚
+    }
+
+    [Header("边难度配置（可按档位覆写）")]
+    public DifficultyTier difficultyTier = DifficultyTier.Normal;
+    public EdgeDifficultyConfig edgeDifficulty = new EdgeDifficultyConfig();
 
     [Header("节点生成设置")]
     [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
@@ -827,6 +878,17 @@ public class GameManager : MonoBehaviour
 
         // 生成图后不再自动调用多割算法
         UpdateOptimalCostByPython(); // 新增：自动计算最优cost并刷新UI
+
+        // 关卡生成完成后，写出初始（未切割）clusters并通知可视化，这样高亮脚本初始会显示统一底色
+        try
+        {
+            CalculateAndSaveClustersAfterCut();
+            NotifyCellTileTestManager();
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"⚠️ 初始写出clusters失败: {ex.Message}");
+        }
     }
 
     // 新增：自动计算最优cost的方法
@@ -1669,17 +1731,18 @@ public class GameManager : MonoBehaviour
         {
             var clusters = CalculateClustersWithBFS();
             int currentCost = GetCurrentCost();
-            
-            var outputData = new
-            {
-                cut_edges = playerCutEdges.Select(edge => new { u = edge.Item1.Number, v = edge.Item2.Number }).ToArray(),
-                cost = currentCost,
-                clusters = clusters.Select(cluster => new { cells = cluster.Select(cell => cell.Number).ToArray() }).ToArray(),
-                cluster_count = clusters.Count,
-                timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
-            
-            string jsonData = JsonUtility.ToJson(outputData, true);
+
+            // Build DTO for Unity JsonUtility compatibility
+            var dto = new ClustersAfterCutDataDTO();
+            dto.cut_edges = playerCutEdges.Select(edge => new CutEdgeDTO { u = edge.Item1.Number, v = edge.Item2.Number }).ToArray();
+            dto.cost = currentCost;
+            dto.clusters = clusters
+                .Select(cluster => new ClusterInfoDTO { cells = cluster.Select(c => c.Number).ToArray() })
+                .ToArray();
+            dto.cluster_count = clusters.Count;
+            dto.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            string jsonData = JsonUtility.ToJson(dto, true);
             string filePath = System.IO.Path.Combine(Application.dataPath, "..", "clusters_after_cut.json");
             System.IO.File.WriteAllText(filePath, jsonData);
             
@@ -1707,13 +1770,30 @@ public class GameManager : MonoBehaviour
             var cellTileTestManagers = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             foreach (var manager in cellTileTestManagers)
             {
-                if (manager != null && manager.GetType().Name == "CellTileTestManager")
+                if (manager != null && (manager.GetType().Name == "CellTileTestManager" || manager.GetType().Name == "ClusterHighlighter"))
                 {
+                    // 优先调用 ClusterHighlighter.RefreshFromJson
+                    var refreshFromJson = manager.GetType().GetMethod("RefreshFromJson");
+                    if (refreshFromJson != null)
+                    {
+                        refreshFromJson.Invoke(manager, null);
+                        UnityEngine.Debug.Log($"🔔 已通知{manager.GetType().Name}.RefreshFromJson: {manager.name}");
+                        continue;
+                    }
+
+                    // 再尝试 CellTileTestManager 的 ForceRefreshClusterDisplay
+                    var forceRefreshMethod = manager.GetType().GetMethod("ForceRefreshClusterDisplay");
+                    if (forceRefreshMethod != null)
+                    {
+                        forceRefreshMethod.Invoke(manager, null);
+                        UnityEngine.Debug.Log($"🔔 已通知{manager.GetType().Name}.ForceRefreshClusterDisplay: {manager.name}");
+                        continue;
+                    }
                     var reloadMethod = manager.GetType().GetMethod("ReloadClusterData");
                     if (reloadMethod != null)
                     {
                         reloadMethod.Invoke(manager, null);
-                        UnityEngine.Debug.Log($"🔔 已通知CellTileTestManager重新加载clusters数据: {manager.name}");
+                        UnityEngine.Debug.Log($"🔔 已通知{manager.GetType().Name}.ReloadClusterData: {manager.name}");
                     }
                 }
             }
@@ -1897,9 +1977,12 @@ public class GameManager : MonoBehaviour
         
         // 计算基础地形权重
         int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
-        
-        // 应用难度设置
-        int finalWeight = ApplyDifficultySettings(baseTerrainWeight);
+
+        // 附加：结构性与陷阱/奖励修饰（用于从易到难）
+        int modified = ApplyEdgeDifficultyModifiers(a, b, crossedTiles, baseTerrainWeight);
+
+        // 应用难度设置（随机因子等）
+        int finalWeight = ApplyDifficultySettings(modified);
         
         return finalWeight;
     }
@@ -1920,6 +2003,67 @@ public class GameManager : MonoBehaviour
         }
         
         return totalWeight;
+    }
+
+    // 根据档位与结构/陷阱/奖励对边权重进行附加修饰
+    private int ApplyEdgeDifficultyModifiers(Cell a, Cell b, HashSet<Vector3Int> crossedTiles, int baseWeight)
+    {
+        int weight = baseWeight;
+
+        // 档位影响整体幅度（越难，整体幅度越大、负向惩罚更强、正向奖励更小）
+        float scale = 1f;
+        switch (difficultyTier)
+        {
+            case DifficultyTier.Easy:      scale = 0.8f; break;
+            case DifficultyTier.Normal:    scale = 1.0f; break;
+            case DifficultyTier.Hard:      scale = 1.2f; break;
+            case DifficultyTier.Nightmare: scale = 1.4f; break;
+        }
+        weight = Mathf.RoundToInt(weight * scale);
+
+        // 结构性修饰：长边奖励（让长边更“便宜”或“更值得割”，根据你的设计理念）
+        float length = Vector2.Distance(a.transform.position, b.transform.position);
+        if (length >= edgeDifficulty.longEdgeLengthThreshold)
+        {
+            weight += edgeDifficulty.longEdgeBonus;
+        }
+
+        // 穿越地形附加惩罚（更难档位更痛）
+        int mountainTiles = 0;
+        int waterTiles = 0;
+        foreach (var pos in crossedTiles)
+        {
+            int biome = GetBiomeUsingMap(terrainManager, pos);
+            // 例：山地 13..19
+            if (biome >= 13 && biome <= 19) mountainTiles++;
+            // 水域 0,1,20..23
+            if (biome == 0 || biome == 1 || (biome >= 20 && biome <= 23)) waterTiles++;
+        }
+        int terrainPenalty = mountainTiles * edgeDifficulty.mountainPenaltyPerTile + waterTiles * edgeDifficulty.waterPenaltyPerTile;
+        // 更难档位加重惩罚
+        if (difficultyTier == DifficultyTier.Hard) terrainPenalty = Mathf.RoundToInt(terrainPenalty * 1.2f);
+        if (difficultyTier == DifficultyTier.Nightmare) terrainPenalty = Mathf.RoundToInt(terrainPenalty * 1.5f);
+        weight += terrainPenalty;
+
+        // 陷阱/奖励（互斥触发）：
+        float r = UnityEngine.Random.value;
+        if (r < edgeDifficulty.trapChance)
+        {
+            // 陷阱：额外负惩罚（更难档位更狠）
+            int trap = UnityEngine.Random.Range(edgeDifficulty.trapPenaltyMax, edgeDifficulty.trapPenaltyMin - 1); // 注意负数区间
+            if (difficultyTier == DifficultyTier.Hard) trap = Mathf.RoundToInt(trap * 1.2f);
+            if (difficultyTier == DifficultyTier.Nightmare) trap = Mathf.RoundToInt(trap * 1.5f);
+            weight += trap;
+        }
+        else if (r < edgeDifficulty.trapChance + edgeDifficulty.bonusChance)
+        {
+            // 奖励：小幅正向奖励（简单档位更慷慨）
+            int bonus = UnityEngine.Random.Range(edgeDifficulty.bonusMin, edgeDifficulty.bonusMax + 1);
+            if (difficultyTier == DifficultyTier.Easy) bonus = Mathf.RoundToInt(bonus * 1.2f);
+            weight += bonus;
+        }
+
+        return weight;
     }
     
     /// <summary>
@@ -3042,6 +3186,17 @@ public class GameManager : MonoBehaviour
         
         UnityEngine.Debug.Log($"↶ 回退操作完成！剩余历史记录: {gameStateHistory.Count}");
         UnityEngine.Debug.Log($"📊 最终状态: 切割了 {playerCutEdges.Count} 条边");
+
+        // 回退后重新计算并保存clusters，并通知可视化刷新
+        try
+        {
+            CalculateAndSaveClustersAfterCut();
+            NotifyCellTileTestManager();
+        }
+        catch (System.Exception ex)
+        {
+            UnityEngine.Debug.LogWarning($"⚠️ 回退后刷新簇显示时出错: {ex.Message}");
+        }
     }
     
 

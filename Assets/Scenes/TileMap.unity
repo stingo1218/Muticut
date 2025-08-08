@@ -119,17 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!114 &17293005 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
-  m_PrefabInstance: {fileID: 947047727}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &17293006 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3968772836069914043, guid: cee28147380e2044184a46d2110b84de, type: 3}
@@ -187,6 +176,68 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -5.173387, y: -3.783279, z: -3.0983634}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &413475387
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 413475389}
+  - component: {fileID: 413475388}
+  m_Layer: 0
+  m_Name: ClusterHighlighter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &413475388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 413475387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d42f99165a891b47be6e761cf3edbc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  terrainManager: {fileID: 577321252}
+  gameManager: {fileID: 1255477919}
+  clusterDataPath: clusters_after_cut.json
+  initialBaseColor: {r: 0.9784366, g: 0.47339445, b: 0.47339445, a: 0.6}
+  recolorBatchSize: 600
+  predefinedColors:
+  - {r: 0.8, g: 0.3, b: 0.3, a: 0.6}
+  - {r: 0.3, g: 0.8, b: 0.3, a: 0.6}
+  - {r: 0.3, g: 0.3, b: 0.8, a: 0.6}
+  - {r: 0.8, g: 0.8, b: 0.3, a: 0.6}
+  - {r: 0.3, g: 0.8, b: 0.8, a: 0.6}
+  - {r: 0.8, g: 0.3, b: 0.8, a: 0.6}
+  - {r: 0.8, g: 0.5, b: 0.3, a: 0.6}
+  - {r: 0.5, g: 0.3, b: 0.8, a: 0.6}
+  - {r: 0.8, g: 0.3, b: 0.5, a: 0.6}
+  - {r: 0.3, g: 0.8, b: 0.5, a: 0.6}
+  - {r: 0.5, g: 0.8, b: 0.3, a: 0.6}
+  - {r: 0.6, g: 0.6, b: 0.6, a: 0.6}
+--- !u!4 &413475389
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 413475387}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 615.4787, y: 291.39603, z: 3.0626662}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -325,63 +376,6 @@ MonoBehaviour:
   showBiomeInfo: 1
   useColorMode: 1
   mapHash: 
---- !u!1 &689748948
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 689748950}
-  - component: {fileID: 689748949}
-  m_Layer: 0
-  m_Name: TileHighlight
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &689748949
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 689748948}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7f3ed377a379594eb94d71cd07e1429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  useGameManagerCells: 1
-  gameManager: {fileID: 1255477919}
-  terrainManager: {fileID: 577321252}
-  lineWidth: 0.2
-  sortingOrder: 10
-  zOffset: -0.5
-  autoFindGameManager: 1
-  autoFindTerrainManager: 1
-  showEcoZonesToggle: {fileID: 17293005}
-  enableClusterMode: 0
-  clusterDataPath: output.json
-  autoMonitorCost: 1
-  costCheckInterval: 1
---- !u!4 &689748950
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 689748948}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 395.32367, y: 197.46669, z: 7.5004416}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &761184441
 GameObject:
   m_ObjectHideFlags: 0
@@ -738,6 +732,34 @@ PrefabInstance:
       propertyPath: m_IsOn
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 413475388}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnEcoZonesToggleChanged
+      objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ClusterHighlighter, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6881827483485322065, guid: cee28147380e2044184a46d2110b84de, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -879,6 +901,18 @@ MonoBehaviour:
   difficultySettings:
     randomFactor: 0.3
     randomRange: 10
+  difficultyTier: 3
+  edgeDifficulty:
+    trapChance: 0.731
+    trapPenaltyMin: -6
+    trapPenaltyMax: -12
+    bonusChance: 0.04
+    bonusMin: 3
+    bonusMax: 8
+    longEdgeLengthThreshold: 6
+    longEdgeBonus: 2
+    mountainPenaltyPerTile: -1
+    waterPenaltyPerTile: -1
   enableTerrainCheck: 1
 --- !u!4 &1255477920
 Transform:
@@ -4887,4 +4921,4 @@ SceneRoots:
   - {fileID: 1863360461}
   - {fileID: 354220957}
   - {fileID: 2014055780}
-  - {fileID: 689748950}
+  - {fileID: 413475389}
