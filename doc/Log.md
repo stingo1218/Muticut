@@ -577,3 +577,91 @@
       - 实现"即使没有打开显示，也要计算，因为可能会中途打开它看一眼"
       - 提供即时的生态区显示体验，无需等待后台计算
       - 支持实时数据更新，确保显示内容始终是最新的计算结果
+
+27. **2024-12-20 游戏系统全面优化与重构** (当前对话)
+    - **游戏难度系统设计与实现**：
+      - 创建统一的GameDifficulty枚举（Easy、Medium、Hard），替代原有的复杂难度设置
+      - 实现ApplyDifficultySettings()方法，根据难度自动设置功能开关：
+        - Easy：仅切割次数限制（enableCutLimit = true）
+        - Medium：切割次数限制 + 计时器（enableTimer = true）
+        - Hard：切割次数限制 + 计时器 + 时间炸弹（enableTimeBomb = true）
+      - 添加渐进式难度参数ApplyProgressiveDifficulty()，随关卡增加自动调整：
+        - 节点数量逐步增加（所有难度）
+        - 切割次数限制逐步减少（所有难度）
+        - 计时器时间逐步减少（Medium/Hard）
+        - 时间炸弹惩罚逐步增加（Hard）
+   
+    - **时间炸弹陷阱系统实现**：
+      - 新增时间炸弹相关字段：timeBombEdges、timeBombChance、timeBombPenaltySeconds、timeBombEdgeColor、timeBombEdgeWidth
+      - 实现时间炸弹边生成逻辑：在SpawnLevel()中根据概率随机标记边为时间炸弹
+      - 添加视觉区分：时间炸弹边使用红色+加粗显示（UpdateTimeBombEdgeAppearance()）
+      - 实现惩罚机制：切割时间炸弹边时减少剩余时间（RemoveEdge()中处理）
+      - 确保只有Hard难度才能生成时间炸弹边（双重检查：enableTimeBomb && gameDifficulty == GameDifficulty.Hard）
+   
+    - **胜利条件与关卡进展系统**：
+      - 实现实时胜利检测：UpdateCostText()中检查currentCost == optimalCost
+      - 创建VictoryPanelController.cs脚本，管理胜利面板的显示/隐藏和时间暂停
+      - 添加胜利状态标志：hasOptimalCost、hasShownVictoryPanel，防止重复弹出面板
+      - 实现ShowVictoryPanel()方法，支持自动查找面板、设置CanvasGroup属性、暂停游戏时间
+      - 添加OnContinueButtonClicked()方法，处理继续按钮点击事件，自动进入下一关
+      - 完善NextLevel()方法，重置所有状态并应用新关卡的难度设置
+   
+    - **UI系统完善与自动化**：
+      - 添加关卡显示系统：levelDisplayText组件，格式"Level:Hard_01"
+      - 实现切割次数限制UI：cutLimitText组件，格式"Cut Limit: 3/5"
+      - 添加计时器UI：timerText组件，倒计时显示
+      - 所有UI组件支持自动查找：Start()方法中通过GameObject.Find()自动绑定
+      - 实现UpdateLevelDisplay()、UpdateCutLimitUI()、UpdateTimerUI()方法，确保UI实时更新
+   
+    - **边权重与颜色系统优化**：
+      - 修正边权重计算范围为[-30, 30]，确保有正有负的权重分布
+      - 实现BalanceEdgeWeights()方法，确保至少40%的边为负权重，避免最优cost为0的情况
+      - 统一边颜色系统：普通边使用黑色，时间炸弹边使用红色+加粗
+      - 修复Hint高亮功能：使用highlightEdgeColor强制绿色高亮，与时间炸弹样式兼容
+      - 实现TurnOffHint()方法，关卡切换时自动关闭Hint功能
+   
+    - **场景选择与数据持久化系统**：
+      - 创建SceneSelector.cs脚本，支持Easy/Medium/Hard难度选择和起始关卡设置
+      - 实现PlayerPrefs数据持久化：SelectDifficulty和StartLevel参数跨场景传递
+      - 添加LoadDifficultyFromSceneSelector()方法，GameManager启动时自动读取场景选择器设置
+      - 支持场景加载的多种方式：按名称加载或按索引加载，增强Build Settings兼容性
+   
+    - **生态区高亮系统关卡适配**：
+      - 修复ClusterHighlighter在关卡切换后不高亮的问题
+      - 添加ResetHighlighter()方法，清理缓存数据并重新初始化
+      - 实现ForceRefreshEcoZonesToggle()方法，通关后自动关闭生态区高亮
+      - 在NextLevel()中集成高亮器重置逻辑，确保每个新关卡都能正常使用生态区功能
+      - GameManager自动查找并绑定ClusterHighlighter组件，无需手动配置
+   
+    - **代码质量与维护性提升**：
+      - 清理冗余代码：删除CellTileTestManager.cs等不再使用的脚本
+      - 移除用户不需要的ContextMenu属性，避免意外调用
+      - 统一日志输出：移除emoji，使用纯文本格式
+      - 完善错误处理：KeyNotFoundException、空引用检查等异常处理
+      - 添加详细的调试日志，便于问题排查和功能验证
+   
+    - **性能优化与缓存管理**：
+      - 实现边权重缓存系统：_edgeWeightCache字典，避免重复计算
+      - 添加缓存清理逻辑：关卡切换时清空权重缓存，确保数据一致性
+      - 优化地形检测算法：使用反射和缓存机制提升性能
+      - 修复动态缩放问题：移除权重预制体的problematic scaling，使用固定localScale
+   
+    - **游戏平衡性调整**：
+      - 实现baseCutLimit和cutLimitReductionRate系统，确保每关都有足够但不过多的切割机会
+      - 添加timeLimitSeconds渐进缩短机制，为Medium/Hard难度增加时间压力
+      - 调整timeBombChance和timeBombPenaltySeconds，在Hard难度中提供适度挑战
+      - 完善无种子关卡生成：移除seed依赖，使用levelIndex确保每关的唯一性和可重复性
+   
+    - **关键技术问题解决**：
+      - **胜利面板不弹出问题**：修复hasOptimalCost标志设置时机，确保UpdateOptimalCostByPython()正确设置
+      - **关卡切换状态重置**：确保hasShownVictoryPanel和hasOptimalCost在NextLevel()中正确重置
+      - **UI组件查找失败**：实现robust查找逻辑，支持inactive对象查找和多路径尝试
+      - **权重分布不均**：通过BalanceEdgeWeights()算法确保合理的正负权重比例
+      - **时间炸弹不生效**：修复难度判断逻辑，确保只有Hard难度生成时间炸弹边
+   
+    - **测试与验证完成**：
+      - 验证三个难度档位的功能正确性
+      - 测试关卡进展和胜利检测的稳定性
+      - 确认生态区高亮在关卡切换后的正常工作
+      - 验证场景选择系统的数据传递正确性
+      - 测试时间炸弹系统的视觉效果和惩罚机制

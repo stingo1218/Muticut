@@ -264,6 +264,46 @@ public class ClusterHighlighter : MonoBehaviour
         if (isOn) ShowEcoZones(); else HideEcoZones();
     }
 
+    /// <summary>
+    /// 重置高亮器状态（在关卡切换时调用）
+    /// </summary>
+    [ContextMenu("重置高亮器状态")]
+    public void ResetHighlighter()
+    {
+        Debug.Log("🔄 ClusterHighlighter: 重置状态（关卡切换）");
+        
+        // 清理缓存的数据
+        cells.Clear();
+        cellTileAssignment.Clear();
+        cachedTileColors.Clear();
+        cachedClusterData = null;
+        cachedClustersSignature = null;
+        isDataInitialized = false;
+        
+        // 如果当前正在显示高亮，需要重新初始化和显示
+        if (isHighlightVisible)
+        {
+            var tilemap = GetTilemap();
+            if (tilemap != null)
+            {
+                // 重新获取cells并分配瓦片
+                GetCellsFromGameManager();
+                if (cells.Count > 0)
+                {
+                    AssignTilesToCells(tilemap);
+                    // 使用统一颜色先显示，等待后台协程更新
+                    var uniformColors = BuildUniformColors(tilemap);
+                    StartIncrementalRecolor(tilemap, uniformColors);
+                    Debug.Log($"✅ 重置完成，重新显示 {cells.Count} 个cells的生态区");
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ 重置后未获取到cells，可能GameManager尚未完成关卡生成");
+                }
+            }
+        }
+    }
+
     private Tilemap GetTilemap()
     {
         if (terrainManager == null) return null;

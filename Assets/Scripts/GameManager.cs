@@ -60,9 +60,6 @@ public class GameManager : MonoBehaviour
     // 关卡与特性（尽量只改GameManager）
     [Header("关卡生成设置")]
     [SerializeField] public int levelIndex = 1;
-    [SerializeField] private int baseSeed = 123456;
-    [SerializeField] private bool useDailySeed = false;
-    private int currentSeed = 0;
     
 
     
@@ -239,11 +236,22 @@ public class GameManager : MonoBehaviour
             UnityEngine.Debug.Log($"设置边颜色为红色，当前材质: {edgeInfo.renderer.material.name}");
         }
     }
+    
+    [ContextMenu("测试Victory Panel")]
+    public void TestVictoryPanel()
+    {
+        UnityEngine.Debug.Log("🧪 手动测试Victory Panel...");
+        ShowVictoryPanel();
+    }
 
     [SerializeField] private UnityEngine.UI.Toggle pixelHintTogglePrefab; // Inspector拖引用的PixelHintToggle预制体
 
     private TextMeshProUGUI costText;
     private int optimalCost = 0;
+    private TextMeshProUGUI levelDisplayText;
+    
+    [Header("生态区高亮")]
+    [SerializeField] private ClusterHighlighter clusterHighlighter; // 生态区高亮组件（可选，自动查找）
 
     // 关卡难度与陷阱/奖励边配置（用于从易到难的可控生成）
     public enum DifficultyTier { Easy, Normal, Hard, Nightmare }
@@ -268,9 +276,20 @@ public class GameManager : MonoBehaviour
         public int waterPenaltyPerTile = -1;              // 每跨过一个水域瓦片额外惩罚
     }
 
+    public enum GameDifficulty { Easy, Medium, Hard }
+    
+    [Header("游戏难度设置")]
+    [SerializeField] private GameDifficulty gameDifficulty = GameDifficulty.Medium;
+    
     [Header("边难度配置（可按档位覆写）")]
     public DifficultyTier difficultyTier = DifficultyTier.Normal;
     public EdgeDifficultyConfig edgeDifficulty = new EdgeDifficultyConfig();
+    
+    [Header("获胜条件与UI")]
+    [SerializeField] private GameObject victoryPanel; // 获胜通知Panel
+    [SerializeField] private UnityEngine.UI.Button continueButton; // 继续按钮 (可选，会自动从Panel中查找)
+    private bool hasOptimalCost = false; // 是否已获得最优cost
+    private bool hasShownVictoryPanel = false; // 防止重复弹出
     
     [Header("时间炸弹设置")]
     [SerializeField] private bool enableTimeBomb = false;
@@ -282,6 +301,14 @@ public class GameManager : MonoBehaviour
 
     [Header("节点生成设置")]
     [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
+
+    [Header("权重平衡")]
+    [Tooltip("目标负权重边比例，低于此比例会对所有边整体左移权重，避免最优cost为0的图")] 
+    [Range(0f, 0.9f)] [SerializeField] private float targetNegativeEdgeRatio = 0.35f;
+    [Tooltip("至少需要的负权重边数量")] 
+    [SerializeField] private int minNegativeEdges = 3;
+    [Tooltip("当负边比例不足时，一次性整体平移的步长（权重单位）")] 
+    [SerializeField] private int balanceShiftStep = 2;
 
     /// <summary>
     /// 获取指定生物群系的权重（简化版：完全基于关卡号，忽略地形）
@@ -317,18 +344,9 @@ public class GameManager : MonoBehaviour
             // 普通边：恢复正常
             line.startWidth = lineWidth;
             line.endWidth = lineWidth;
-            // 颜色根据useWeightedEdges设置
-            if (useWeightedEdges)
-            {
-                Color edgeColor = GetEdgeColorByWeight(data.Item2);
-                line.startColor = edgeColor;
-                line.endColor = edgeColor;
-            }
-            else
-            {
-                line.startColor = Color.black;
-                line.endColor = Color.black;
-            }
+            // 所有普通边都使用黑色
+            line.startColor = Color.black;
+            line.endColor = Color.black;
         }
     }
 
@@ -338,7 +356,6 @@ public class GameManager : MonoBehaviour
         
         // 清空clusters_after_cut.json文件，避免开局时出现二次高亮
         ClearClustersFile();
-        InitLevelSeed();
         
         // 确保在重新开始时清理旧的边缘
         RemoveAllEdges();
@@ -411,6 +428,71 @@ public class GameManager : MonoBehaviour
         {
             UnityEngine.Debug.LogWarning("CutLimitText未在Inspector中绑定，切割次数UI将不会显示");
         }
+        
+        // 关卡显示UI（自动查找）
+        var levelDisplayObj = GameObject.Find("UICanvas/LevelDisplay");
+        if (levelDisplayObj != null)
+        {
+            levelDisplayText = levelDisplayObj.GetComponent<TextMeshProUGUI>();
+            if (levelDisplayText != null)
+            {
+                UpdateLevelDisplay();
+                UnityEngine.Debug.Log("自动找到LevelDisplay组件");
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("未找到UICanvas/LevelDisplay，关卡显示将不可用");
+        }
+        
+        // 自动查找ClusterHighlighter组件
+        if (clusterHighlighter == null)
+        {
+            clusterHighlighter = FindFirstObjectByType<ClusterHighlighter>();
+            if (clusterHighlighter != null)
+            {
+                UnityEngine.Debug.Log("自动找到ClusterHighlighter组件");
+            }
+        }
+        
+        // 自动查找Victory Panel（如果未在Inspector中设置）
+        if (victoryPanel == null)
+        {
+            // 支持查找未激活对象
+            var panelObj = FindInactiveByPath("UICanvas/VictoryPanel");
+            if (panelObj == null) panelObj = FindInactiveByPath("Canvas/VictoryPanel");
+            if (panelObj == null) panelObj = FindInactiveByName("VictoryPanel");
+            if (panelObj != null)
+            {
+                victoryPanel = panelObj;
+                UnityEngine.Debug.Log($"自动找到Victory Panel: {panelObj.name}");
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning("未找到Victory Panel！请在Inspector中设置或确保Panel命名为VictoryPanel");
+            }
+        }
+        
+        // 绑定继续按钮事件 - 自动查找Victory Panel内的Button
+        if (victoryPanel != null && continueButton == null)
+        {
+            continueButton = victoryPanel.GetComponentInChildren<UnityEngine.UI.Button>();
+            if (continueButton != null)
+            {
+                UnityEngine.Debug.Log($"自动找到Continue Button: {continueButton.name}");
+            }
+        }
+        
+        if (continueButton != null)
+        {
+            continueButton.onClick.AddListener(OnContinueButtonClicked);
+        }
+        
+        // 读取场景选择器设置的难度和关卡
+        LoadDifficultyFromSceneSelector();
+        
+        // 根据难度自动设置功能开关
+        ApplyDifficultySettings();
 
         UpdateOptimalCostByPython();
         
@@ -435,22 +517,32 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // 初始化关卡种子（可选：每日种子/固定基准）
-    private void InitLevelSeed()
+    /// <summary>
+    /// 从场景选择器读取难度和关卡设置
+    /// </summary>
+    private void LoadDifficultyFromSceneSelector()
     {
-        if (useDailySeed)
+        // 读取难度设置
+        if (PlayerPrefs.HasKey("SelectedDifficulty"))
         {
-            string dateSeed = System.DateTime.UtcNow.ToString("yyyyMMdd");
-            currentSeed = (int)dateSeed.GetHashCode() ^ levelIndex;
+            int difficultyIndex = PlayerPrefs.GetInt("SelectedDifficulty", 1); // 默认Medium
+            gameDifficulty = (GameDifficulty)difficultyIndex;
+            UnityEngine.Debug.Log($"从场景选择器读取难度: {gameDifficulty}");
         }
-        else
+        
+        // 读取起始关卡
+        if (PlayerPrefs.HasKey("StartLevel"))
         {
-            currentSeed = baseSeed ^ levelIndex * 73856093; // 简单混合
+            levelIndex = PlayerPrefs.GetInt("StartLevel", 1);
+            UnityEngine.Debug.Log($"从场景选择器读取起始关卡: {levelIndex}");
         }
-        UnityEngine.Random.InitState(currentSeed);
-        UnityEngine.Debug.Log($"Level {levelIndex} 使用种子: {currentSeed}");
+        
+        // 清除PlayerPrefs，避免下次启动时影响
+        PlayerPrefs.DeleteKey("SelectedDifficulty");
+        PlayerPrefs.DeleteKey("StartLevel");
+        PlayerPrefs.Save();
     }
-    
+
     /// <summary>
     /// 计算当前关卡的切割次数限制
     /// </summary>
@@ -463,6 +555,175 @@ public class GameManager : MonoBehaviour
         
         // 确保至少有3次切割机会
         return Mathf.Max(3, limit);
+    }
+    
+    /// <summary>
+    /// 根据选择的难度自动设置功能开关和参数
+    /// </summary>
+    private void ApplyDifficultySettings()
+    {
+        switch (gameDifficulty)
+        {
+            case GameDifficulty.Easy:
+                enableCutLimit = true;
+                enableTimer = false;
+                enableTimeBomb = false;
+                UnityEngine.Debug.Log("难度设置: Easy (切割次数限制)");
+                break;
+                
+            case GameDifficulty.Medium:
+                enableCutLimit = true;
+                enableTimer = true;
+                enableTimeBomb = false;
+                UnityEngine.Debug.Log("难度设置: Medium (切割次数限制 + 计时器)");
+                break;
+                
+            case GameDifficulty.Hard:
+                enableCutLimit = true;
+                enableTimer = true;
+                enableTimeBomb = true;
+                UnityEngine.Debug.Log("难度设置: Hard (切割次数限制 + 计时器 + 时间炸弹)");
+                break;
+        }
+        
+        // 应用渐进式难度参数
+        ApplyProgressiveDifficulty();
+    }
+    
+    /// <summary>
+    /// 应用基于关卡的渐进式难度调整
+    /// </summary>
+    private void ApplyProgressiveDifficulty()
+    {
+        // 节点数量随关卡增加
+        _cellNumbers = Mathf.Min(30, 8 + levelIndex); // 从8个节点开始，最多30个
+        
+        // 切割次数逐步减少 (所有难度)
+        if (enableCutLimit)
+        {
+            baseCutLimit = Mathf.Max(3, 10 - levelIndex / 2); // 基础次数随关卡减少
+            currentCutLimit = CalculateCutLimit();
+            remainingCuts = currentCutLimit;
+        }
+        
+        // 计时器逐渐减少 (Medium和Hard)
+        if (enableTimer)
+        {
+            timeLimitSeconds = Mathf.Max(30f, 180f - levelIndex * 10f); // 从180秒开始，每关减少10秒，最少30秒
+            remainingTime = timeLimitSeconds;
+        }
+        
+        // 时间炸弹惩罚变高 (Hard)
+        if (enableTimeBomb)
+        {
+            timeBombPenaltySeconds = 3f + levelIndex * 0.5f; // 每关增加0.5秒惩罚
+            timeBombChance = Mathf.Min(0.3f, 0.08f + levelIndex * 0.02f); // 炸弹概率逐渐增加
+        }
+        
+        UnityEngine.Debug.Log($"关卡 {levelIndex} 难度参数: 节点={_cellNumbers}, 切割次数={currentCutLimit}, 计时器={timeLimitSeconds}s, 炸弹惩罚={timeBombPenaltySeconds}s");
+    }
+    
+    /// <summary>
+    /// 检查是否达到获胜条件 (当前cost == 最优cost)
+    /// </summary>
+    private void CheckVictoryCondition()
+    {
+        int currentCost = GetCurrentCost();
+        // 精确匹配最佳cost才算获胜
+        if (!hasShownVictoryPanel && hasOptimalCost && currentCost == optimalCost)
+        {
+            ShowVictoryPanel();
+            UnityEngine.Debug.Log($"获胜！当前代价: {currentCost}, 最优代价: {optimalCost}");
+        }
+    }
+    
+    /// <summary>
+    /// 显示获胜通知Panel
+    /// </summary>
+    private void ShowVictoryPanel()
+    {
+        UnityEngine.Debug.Log("ShowVictoryPanel 被调用");
+        
+        if (victoryPanel != null)
+        {
+            // 若面板上挂了控制器，则交由控制器显示
+            var controller = victoryPanel.GetComponent<VictoryPanelController>();
+            if (controller != null)
+            {
+                controller.Show();
+                hasShownVictoryPanel = true;
+                if (enableTimer)
+                {
+                    Time.timeScale = 0f;
+                    UnityEngine.Debug.Log("游戏时间已暂停");
+                }
+                return;
+            }
+            
+            UnityEngine.Debug.Log($"显示Victory Panel: {victoryPanel.name}");
+            
+            // 确保父级Canvas启用
+            var parentCanvas = victoryPanel.GetComponentInParent<Canvas>(true);
+            if (parentCanvas != null && !parentCanvas.enabled)
+            {
+                parentCanvas.enabled = true;
+                UnityEngine.Debug.Log($"已启用父Canvas: {parentCanvas.name}");
+            }
+            
+            // 置顶显示
+            victoryPanel.transform.SetAsLastSibling();
+            
+            // 显示并确保可交互
+            victoryPanel.SetActive(true);
+            var cg = victoryPanel.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.alpha = 1f;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
+                UnityEngine.Debug.Log("已设置CanvasGroup: alpha=1, interactable=true, blocksRaycasts=true");
+            }
+            
+            // 修正缩放
+            var rt = victoryPanel.GetComponent<RectTransform>();
+            if (rt != null && rt.localScale == Vector3.zero)
+            {
+                rt.localScale = Vector3.one;
+                UnityEngine.Debug.Log("Panel缩放为0，已重置为Vector3.one");
+            }
+            
+            hasShownVictoryPanel = true;
+            
+            // 暂停计时器
+            if (enableTimer)
+            {
+                Time.timeScale = 0f; // 暂停游戏时间
+                UnityEngine.Debug.Log("游戏时间已暂停");
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("Victory Panel未设置，直接进入下一关");
+            OnContinueButtonClicked();
+        }
+    }
+    
+    /// <summary>
+    /// 继续按钮点击事件
+    /// </summary>
+    private void OnContinueButtonClicked()
+    {
+        // 恢复游戏时间
+        Time.timeScale = 1f;
+        
+        // 隐藏获胜Panel
+        if (victoryPanel != null)
+        {
+            victoryPanel.SetActive(false);
+        }
+        
+        UnityEngine.Debug.Log($"玩家选择继续，进入关卡 {levelIndex + 1}");
+        NextLevel();
     }
     
     /// <summary>
@@ -505,7 +766,12 @@ public class GameManager : MonoBehaviour
             {
                 int u = edge.Item1.Number;
                 int v = edge.Item2.Number;
-                int w = _edgeWeightCache[edge];
+                int w;
+                if (!_edgeWeightCache.TryGetValue(edge, out w))
+                {
+                    // 回退：即时计算并缓存
+                    w = GetOrCreateEdgeWeight(edge.Item1, edge.Item2);
+                }
                 edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
             }
             string nodesStr = string.Join(",", nodes);
@@ -622,15 +888,110 @@ public class GameManager : MonoBehaviour
         timeBombEdges.Clear();
         
         ClearUndoHistory();
-        InitLevelSeed();
         
-        // 初始化切割次数限制
-        currentCutLimit = CalculateCutLimit();
-        remainingCuts = currentCutLimit;
-        UnityEngine.Debug.Log($"Level {levelIndex}: 切割次数限制 {currentCutLimit}");
+        // 根据新关卡应用难度设置
+        ApplyDifficultySettings();
+        
+                // 重置胜利检测标志（关键：否则上一关已显示过面板，下一关将不再弹出）
+        hasShownVictoryPanel = false;
+        hasOptimalCost = false;
+
+        // 自动关闭Hint功能
+        TurnOffHint();
+
+        // 重置生态区高亮器状态并自动关闭生态区显示
+        if (clusterHighlighter != null)
+        {
+            clusterHighlighter.ResetHighlighter();
+            
+            // 通关后自动关闭生态区高亮，让用户自己决定是否重新开启
+            ForceRefreshEcoZonesToggle();
+        }
+
+        // 清理权重缓存，确保重新计算
+        _edgeWeightCache.Clear();
         
         SpawnLevel(_cellNumbers);
-        remainingTime = 0f; // 重新计时
+        
+        // 更新UI显示
+        UpdateCutLimitUI();
+        UpdateTimerUI();
+        UpdateLevelDisplay();
+        
+        UnityEngine.Debug.Log($"进入关卡 {levelIndex}");
+    }
+
+    /// <summary>
+    /// 关闭Hint功能，恢复所有边的正常显示
+    /// </summary>
+    private void TurnOffHint()
+    {
+        // 恢复所有边的正常外观
+        foreach (var edgeKey in _edges.Keys)
+        {
+            // 重置材质
+            if (_edges.TryGetValue(edgeKey, out var edgeInfo) && _lineMaterial != null)
+                edgeInfo.renderer.material = _lineMaterial;
+            // 恢复正确的颜色和宽度
+            UpdateTimeBombEdgeAppearance(edgeKey);
+        }
+        
+        // 如果有Hint Toggle，将其设为关闭状态
+        var hintToggle = GameObject.Find("UICanvas/HintToggle")?.GetComponent<UnityEngine.UI.Toggle>();
+        if (hintToggle != null && hintToggle.isOn)
+        {
+            hintToggle.isOn = false;
+            UnityEngine.Debug.Log("自动关闭Hint功能");
+        }
+    }
+
+    /// <summary>
+    /// 关闭生态区高亮（通关后自动关闭）
+    /// </summary>
+    private void ForceRefreshEcoZonesToggle()
+    {
+        // 尝试多个可能的路径查找生态区Toggle
+        string[] possiblePaths = {
+            "UICanvas/EcoZonesToggle",
+            "Canvas/EcoZonesToggle", 
+            "UICanvas/Show Eco Zones Toggle",
+            "Canvas/Show Eco Zones Toggle",
+            "EcoZonesToggle",
+            "Show Eco Zones Toggle"
+        };
+
+        UnityEngine.UI.Toggle ecoToggle = null;
+        foreach (var path in possiblePaths)
+        {
+            var toggleObj = GameObject.Find(path);
+            if (toggleObj != null)
+            {
+                ecoToggle = toggleObj.GetComponent<UnityEngine.UI.Toggle>();
+                if (ecoToggle != null)
+                {
+                    UnityEngine.Debug.Log($"找到生态区Toggle: {path}");
+                    break;
+                }
+            }
+        }
+
+        if (ecoToggle != null)
+        {
+            // 通关后自动关闭生态区高亮
+            if (ecoToggle.isOn)
+            {
+                UnityEngine.Debug.Log("通关后自动关闭生态区高亮");
+                ecoToggle.isOn = false; // 触发OnEcoZonesToggleChanged(false)
+            }
+            else
+            {
+                UnityEngine.Debug.Log("生态区Toggle已为关闭状态");
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("未找到生态区Toggle，尝试的路径: " + string.Join(", ", possiblePaths));
+        }
     }
 
     private List<Vector2> GenerateCellPositions(int numberOfPoints)
@@ -1149,8 +1510,8 @@ public class GameManager : MonoBehaviour
                     var key = GetCanonicalEdgeKey(_cells[edge.P1Index], _cells[edge.P2Index]);
                     _initialEdges.Add(key);
                     
-                    // 生成时间炸弹边
-                    if (enableTimeBomb && UnityEngine.Random.value < timeBombChance)
+                    // 生成时间炸弹边（只有Hard难度才能生成）
+                    if (enableTimeBomb && gameDifficulty == GameDifficulty.Hard && UnityEngine.Random.value < timeBombChance)
                     {
                         timeBombEdges.Add(key);
                         // 更新外观（加粗+变色）
@@ -1171,8 +1532,8 @@ public class GameManager : MonoBehaviour
             var key = GetCanonicalEdgeKey(_cells[0], _cells[1]);
             _initialEdges.Add(key);
             
-            // 生成时间炸弹边
-            if (enableTimeBomb && UnityEngine.Random.value < timeBombChance)
+            // 生成时间炸弹边（只有Hard难度才能生成）
+            if (enableTimeBomb && gameDifficulty == GameDifficulty.Hard && UnityEngine.Random.value < timeBombChance)
             {
                 timeBombEdges.Add(key);
                 // 更新外观（加粗+变色）
@@ -1187,8 +1548,11 @@ public class GameManager : MonoBehaviour
         }
         // If 0 or 1 cell, do nothing
 
-        // 生成图后不再自动调用多割算法
-        UpdateOptimalCostByPython(); // 新增：自动计算最优cost并刷新UI
+        // 生成图后对权重进行一次平衡，避免全部为正导致最优cost为0
+        BalanceEdgeWeights();
+        
+        // 自动计算最优cost并刷新UI
+        UpdateOptimalCostByPython();
 
         // 关卡生成完成后，写出初始（未切割）clusters并通知可视化，这样高亮脚本初始会显示统一底色
         try
@@ -1212,7 +1576,12 @@ public class GameManager : MonoBehaviour
         {
             int u = edge.Item1.Number;
             int v = edge.Item2.Number;
-            int w = _edgeWeightCache[edge];
+            int w;
+            if (!_edgeWeightCache.TryGetValue(edge, out w))
+            {
+                // 回退：即时计算并缓存
+                w = GetOrCreateEdgeWeight(edge.Item1, edge.Item2);
+            }
             edgeList.Add(new Dictionary<string, object> { {"u", u}, {"v", v}, {"weight", w} });
         }
         string nodesStr = string.Join(",", nodes);
@@ -1234,6 +1603,8 @@ public class GameManager : MonoBehaviour
         if (costMatch.Success)
             optimalCostLocal = int.Parse(costMatch.Groups[1].Value);
         optimalCost = optimalCostLocal;
+        hasOptimalCost = true; // 关键：在未点击Hint时也标记已获得最优cost
+        UnityEngine.Debug.Log($"Level {levelIndex} 最优cost = {optimalCost}");
         UpdateCostText();
     }
 
@@ -2054,6 +2425,20 @@ public class GameManager : MonoBehaviour
         timerText.text = $"TIME: {sec}s";
     }
     
+    private void UpdateLevelDisplay()
+    {
+        if (levelDisplayText == null) return;
+        
+        // 获取难度名称
+        string difficultyName = gameDifficulty.ToString();
+        
+        // 格式化关卡号为两位数
+        string levelNumber = levelIndex.ToString("D2");
+        
+        // 组合格式："Level:Hard_01"
+        levelDisplayText.text = $"Level:{difficultyName}_{levelNumber}";
+    }
+    
     private void UpdateCutLimitUI()
     {
         if (!enableCutLimit || cutLimitText == null) return;
@@ -2142,7 +2527,7 @@ public class GameManager : MonoBehaviour
             dto.cluster_count = clusters.Count;
             dto.timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             dto.level_index = levelIndex;
-            dto.seed = currentSeed.ToString();
+            dto.seed = levelIndex.ToString(); // 使用关卡号代替种子
 
             string jsonData = JsonUtility.ToJson(dto, true);
             string filePath = System.IO.Path.Combine(Application.dataPath, "..", "clusters_after_cut.json");
@@ -3099,8 +3484,9 @@ public class GameManager : MonoBehaviour
                 UnityEngine.Debug.LogWarning($"[HighlightCutEdges] 未找到对应的边: {edge.Item1.Number}-{edge.Item2.Number}");
             }
         }
-        // 更新最优cost
-        if (cost != 0) optimalCost = cost;
+        // 更新最优cost（允许为负或为0）
+        optimalCost = cost;
+        hasOptimalCost = true;
         UpdateCostText();
     }
 
@@ -3121,6 +3507,17 @@ public class GameManager : MonoBehaviour
         {
             int currentCost = GetCurrentCost();
             costText.text = $"COST: {currentCost}/{optimalCost}";
+            
+            // 每次cost更新时检查是否达到最佳/更优cost（容错）
+            if (!hasShownVictoryPanel && hasOptimalCost && currentCost <= optimalCost)
+            {
+                UnityEngine.Debug.Log($"达到或优于最佳cost，显示通关Panel。当前: {currentCost}, 最优: {optimalCost}");
+                ShowVictoryPanel();
+            }
+            else if (hasOptimalCost)
+            {
+                UnityEngine.Debug.Log($"Cost更新: {currentCost}/{optimalCost} (差值 {currentCost - optimalCost})");
+            }
         }
     }
 
@@ -3690,6 +4087,110 @@ public class GameManager : MonoBehaviour
         catch (System.Exception ex)
         {
             UnityEngine.Debug.LogWarning($"⚠️ 清空clusters文件时出错: {ex.Message}");
+        }
+    }
+
+    // 在场景中查找未激活对象（按路径）
+    private GameObject FindInactiveByPath(string path)
+    {
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        var roots = scene.GetRootGameObjects();
+        var parts = path.Split('/');
+        foreach (var root in roots)
+        {
+            if (root.name != parts[0]) continue;
+            Transform current = root.transform;
+            bool ok = true;
+            for (int i = 1; i < parts.Length; i++)
+            {
+                current = current.Find(parts[i]);
+                if (current == null) { ok = false; break; }
+            }
+            if (ok && current != null) return current.gameObject;
+        }
+        return null;
+    }
+
+    // 在场景所有根对象下递归查找指定名称（包含未激活）
+    private GameObject FindInactiveByName(string name)
+    {
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (t.name == name) return t.gameObject;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 平衡边权重，确保存在一定比例的负权重边，避免最优cost=0的无聊局面
+    /// </summary>
+    private void BalanceEdgeWeights()
+    {
+        if (_edges.Count == 0) return;
+        
+        // 统计当前负边比例
+        List<int> weights = new List<int>(_edges.Count);
+        int negativeCount = 0;
+        foreach (var key in _edges.Keys)
+        {
+            if (!_edgeWeightCache.TryGetValue(key, out int w))
+                w = GetOrCreateEdgeWeight(key.Item1, key.Item2);
+            weights.Add(w);
+            if (w < 0) negativeCount++;
+        }
+        
+        float negativeRatio = negativeCount / (float)_edges.Count;
+        int targetNeg = Mathf.Max(minNegativeEdges, Mathf.CeilToInt(targetNegativeEdgeRatio * _edges.Count));
+        
+        if (negativeRatio >= targetNegativeEdgeRatio && negativeCount >= minNegativeEdges)
+        {
+            UnityEngine.Debug.Log($"权重平衡: 已满足负边比例 {negativeRatio:P0}，无需调整");
+            return;
+        }
+
+        // 更保守的方法：只将最小的几个正数权重变为负数
+        weights.Sort(); // 从小到大
+        int needToMakeNegative = targetNeg - negativeCount;
+        
+        UnityEngine.Debug.Log($"权重平衡: 负边比例={negativeRatio:P0} 不足，需要将 {needToMakeNegative} 个最小正边变为负数");
+        
+        // 找到需要变负的权重边，并记录它们的原始值
+        var edgesToFlip = new List<(Cell, Cell)>();
+        var keysList = _edges.Keys.ToList();
+        
+        foreach (var key in keysList)
+        {
+            if (edgesToFlip.Count >= needToMakeNegative) break;
+            
+            int w = _edgeWeightCache[key];
+            if (w > 0) // 只处理正权重
+            {
+                edgesToFlip.Add(key);
+            }
+        }
+        
+        // 按权重排序，优先翻转最小的正权重
+        edgesToFlip.Sort((a, b) => _edgeWeightCache[a].CompareTo(_edgeWeightCache[b]));
+        
+        // 只翻转需要的数量
+        for (int i = 0; i < Mathf.Min(needToMakeNegative, edgesToFlip.Count); i++)
+        {
+            var key = edgesToFlip[i];
+            int oldW = _edgeWeightCache[key];
+            int newW = -Mathf.Max(1, oldW); // 变为负数，至少为-1
+            
+            _edgeWeightCache[key] = newW;
+            
+            // 更新_edges里存的权重与文本
+            var data = _edges[key];
+            _edges[key] = (data.renderer, newW, data.tmp, data.bg);
+            if (data.tmp != null) data.tmp.text = newW.ToString();
+            
+            UnityEngine.Debug.Log($"翻转边权重: {oldW} -> {newW}");
         }
     }
 }
