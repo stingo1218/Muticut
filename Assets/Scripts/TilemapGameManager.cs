@@ -592,13 +592,13 @@ public class TilemapGameManager : MonoBehaviour
             }
         }
 
-        if (crossedBiomes.Count == 0) return gameManager.GetBiomeWeight(-1); // 使用GameManager的默认权重
+        if (crossedBiomes.Count == 0) return gameManager.CalculateLevelBasedWeight(-1); // 使用GameManager的默认权重
 
         // 简单累加所有地形的权重
         int totalWeight = 0;
         foreach (var biome in crossedBiomes)
         {
-            int biomeWeight = gameManager.GetBiomeWeight((int)biome); // 使用GameManager的权重
+            int biomeWeight = gameManager.CalculateLevelBasedWeight((int)biome); // 使用GameManager的权重
             totalWeight += biomeWeight;
         }
         
@@ -668,7 +668,7 @@ public class TilemapGameManager : MonoBehaviour
         
         foreach (var kvp in biomeCounts)
         {
-            int biomeWeight = gameManager.GetBiomeWeight((int)kvp.Key); // 使用GameManager的权重
+            int biomeWeight = gameManager.CalculateLevelBasedWeight((int)kvp.Key); // 使用GameManager的权重
             Debug.Log($"   {kvp.Key}: {kvp.Value} 个tile (权重: {biomeWeight})");
         }
 
@@ -676,7 +676,7 @@ public class TilemapGameManager : MonoBehaviour
         int totalWeight = 0;
         foreach (var biome in crossedBiomes)
         {
-            int biomeWeight = gameManager.GetBiomeWeight((int)biome); // 使用GameManager的权重
+            int biomeWeight = gameManager.CalculateLevelBasedWeight((int)biome); // 使用GameManager的权重
             totalWeight += biomeWeight;
         }
         

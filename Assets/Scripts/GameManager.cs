@@ -279,17 +279,25 @@ public class GameManager : MonoBehaviour
 
 
     /// <summary>
-    /// 获取指定生物群系的权重（简化版：完全基于关卡号，忽略地形）
+    /// 计算基于关卡的基础权重（忽略地形类型参数）
     /// </summary>
-    /// <param name="biomeType">生物群系类型ID（已忽略）</param>
+    /// <param name="unusedParam">未使用的参数（保持接口兼容性）</param>
     /// <returns>权重值</returns>
-    public int GetBiomeWeight(int biomeType)
+    public int CalculateLevelBasedWeight(int unusedParam = 0)
     {
-        // 完全基于关卡号计算权重，忽略地形类型
-        float levelFactor = Mathf.Log(levelIndex + 1, 2) * 0.1f;
+        // 基于关卡号计算基础权重，确保不为0
+        int baseWeight = levelIndex * 2; // 关卡1=2, 关卡2=4, 关卡3=6...
         
-        // 所有地形类型使用相同的权重计算
-        return Mathf.RoundToInt(levelFactor * 2); // 关卡越多，权重越大
+        // 添加随机变化，避免所有权重相同
+        int randomOffset = UnityEngine.Random.Range(-levelIndex, levelIndex + 1);
+        
+        int finalWeight = baseWeight + randomOffset;
+        
+        // 确保权重在合理范围内且不为0
+        finalWeight = Mathf.Clamp(finalWeight, -maxEdgeWeight, maxEdgeWeight);
+        if (finalWeight == 0) finalWeight = levelIndex % 2 == 0 ? 1 : -1;
+        
+        return finalWeight;
     }
 
     // 更新时间炸弹边的外观（加粗+变色）
@@ -441,7 +449,9 @@ public class GameManager : MonoBehaviour
             }
         }
         
-        // 绑定继续按钮事件 - 自动查找Victory Panel内的Button
+        // 注释掉重复的按钮绑定 - VictoryPanelController已经处理了Continue按钮
+        // 避免重复调用NextLevel()导致关卡跳跃问题 (1→3→5)
+        /*
         if (victoryPanel != null && continueButton == null)
         {
             continueButton = victoryPanel.GetComponentInChildren<UnityEngine.UI.Button>();
@@ -455,6 +465,7 @@ public class GameManager : MonoBehaviour
         {
             continueButton.onClick.AddListener(OnContinueButtonClicked);
         }
+        */
         
         // 读取场景选择器设置的难度和关卡
         LoadDifficultyFromSceneSelector();
@@ -672,7 +683,9 @@ public class GameManager : MonoBehaviour
         else
         {
             UnityEngine.Debug.LogWarning("Victory Panel未设置，直接进入下一关");
-            OnContinueButtonClicked();
+            // 直接调用NextLevel，而不是通过按钮事件
+            Time.timeScale = 1f;
+            NextLevel();
         }
     }
     
@@ -692,6 +705,29 @@ public class GameManager : MonoBehaviour
         
         UnityEngine.Debug.Log($"玩家选择继续，进入关卡 {levelIndex + 1}");
         NextLevel();
+    }
+    
+    /// <summary>
+    /// 返回主菜单按钮点击事件（公开方法，可在Inspector中绑定UI按钮）
+    /// </summary>
+    public void ReturnToMainMenu()
+    {
+        // 恢复游戏时间
+        Time.timeScale = 1f;
+        
+        UnityEngine.Debug.Log("玩家选择返回主菜单");
+        
+        try
+        {
+            // 尝试加载主菜单场景
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+        }
+        catch (System.Exception)
+        {
+            // 如果MainMenu场景不存在，尝试加载第一个场景（通常是主菜单）
+            UnityEngine.Debug.LogWarning("MainMenu场景未找到，尝试加载场景索引0");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        }
     }
     
     /// <summary>
@@ -2712,7 +2748,7 @@ public class GameManager : MonoBehaviour
     private int CalculateBaseTerrainWeight(HashSet<Vector3Int> crossedTiles)
     {
         // 完全忽略地形，只基于关卡号计算基础权重
-        return GetBiomeWeight(0); // 传入任意值，因为地形类型被忽略了
+        return CalculateLevelBasedWeight(); // 计算基于关卡的权重
     }
     
     /// <summary>
@@ -3393,10 +3429,10 @@ public class GameManager : MonoBehaviour
             int currentCost = GetCurrentCost();
             costText.text = $"COST: {currentCost}/{optimalCost}";
             
-            // 每次cost更新时检查是否达到最佳/更优cost（容错）
-            if (!hasShownVictoryPanel && hasOptimalCost && currentCost <= optimalCost)
+            // 每次cost更新时检查是否达到最佳cost（精确匹配）
+            if (!hasShownVictoryPanel && hasOptimalCost && currentCost == optimalCost)
             {
-                UnityEngine.Debug.Log($"达到或优于最佳cost，显示通关Panel。当前: {currentCost}, 最优: {optimalCost}");
+                UnityEngine.Debug.Log($"达到最佳cost，显示通关Panel。当前: {currentCost}, 最优: {optimalCost}");
                 ShowVictoryPanel();
             }
             else if (hasOptimalCost)

@@ -636,9 +636,50 @@
       - **权重分布不均**：通过BalanceEdgeWeights()算法确保合理的正负权重比例
       - **时间炸弹不生效**：修复难度判断逻辑，确保只有Hard难度生成时间炸弹边
    
-    - **测试与验证完成**：
-      - 验证三个难度档位的功能正确性
-      - 测试关卡进展和胜利检测的稳定性
-      - 确认生态区高亮在关卡切换后的正常工作
-      - 验证场景选择系统的数据传递正确性
-      - 测试时间炸弹系统的视觉效果和惩罚机制
+       - **测试与验证完成**：
+     - 验证三个难度档位的功能正确性
+     - 测试关卡进展和胜利检测的稳定性
+     - 确认生态区高亮在关卡切换后的正常工作
+     - 验证场景选择系统的数据传递正确性
+     - 测试时间炸弹系统的视觉效果和惩罚机制
+
+29. **2024-12-20 关卡跳跃问题修复与菜单返回功能** (当前对话)
+   - **关卡跳跃问题根因分析与修复**：
+     - **问题现象**：通关Level1后直接跳到Level3，关卡索引每次递增2（1→3→5）
+     - **根因分析**：双重按钮事件绑定导致NextLevel()被调用两次
+       - GameManager.Start()中：`continueButton.onClick.AddListener(OnContinueButtonClicked)`
+       - VictoryPanelController.Awake()中：`continueButton.onClick.AddListener(HandleContinueClicked)`
+       - 两个事件处理器都调用NextLevel()，导致levelIndex被递增两次
+     - **修复方案**：
+       - 注释掉GameManager中的重复按钮绑定逻辑，避免双重事件注册
+       - 保留VictoryPanelController单独处理Continue按钮事件
+       - 修改ShowVictoryPanel()中的回退逻辑，直接调用NextLevel()而非通过按钮事件
+       - 保留之前添加的防重入保护（isTransitioningLevel标志）作为额外安全措施
+   
+   - **防重入机制实现**：
+     - 新增isTransitioningLevel布尔标志，防止NextLevel()被并发调用
+     - NextLevel()开始时设置isTransitioningLevel = true，结束时重置为false
+     - 如果检测到重复调用，输出警告日志并直接返回
+     - 确保关卡切换过程的原子性和一致性
+   
+   - **返回主菜单功能开发**：
+     - **用户需求**：在UICanvas下添加menu按钮，点击后返回主菜单界面
+     - **技术实现**：
+       - 在GameManager.cs中新增ReturnToMainMenu()公开方法
+       - 实现Scene切换逻辑：优先加载"MainMenu"场景，回退到场景索引0
+       - 添加时间恢复逻辑：Time.timeScale = 1f，避免从暂停状态返回菜单
+       - 完善错误处理：try-catch机制处理场景不存在的情况
+     - **使用方法**：
+       - Unity Editor中选择menu按钮
+       - Button组件OnClick事件添加GameManager.ReturnToMainMenu()
+       - 支持从游戏任何状态返回主菜单
+   
+   - **代码架构优化**：
+     - 解耦按钮事件处理：单一职责原则，避免多个组件处理同一事件
+     - 改进错误处理：添加场景加载异常处理和日志输出
+     - 完善状态管理：确保时间、UI状态在场景切换时正确重置
+   
+   - **修复验证**：
+     - 关卡进展应恢复正常：Level 1 → 2 → 3 → 4...
+     - menu按钮应能正常返回主菜单
+     - 防重入机制应防止意外的双重调用

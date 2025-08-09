@@ -287,7 +287,7 @@ public class EdgeWeightCalculator : MonoBehaviour
         {
             // 获取生物群系权重
             int biomeType = GetBiomeUsingMap(terrainManager, tilePos);
-            int tileWeight = GetBiomeWeight(biomeType);
+            int tileWeight = CalculateLevelBasedWeight(biomeType);
             totalWeight += tileWeight;
             
             // 移除详细的瓦片输出
@@ -359,7 +359,7 @@ public class EdgeWeightCalculator : MonoBehaviour
     /// <summary>
     /// 获取生物群系权重
     /// </summary>
-    private int GetBiomeWeight(int biomeType)
+    private int CalculateLevelBasedWeight(int biomeType)
     {
         if (useGameManagerWeights)
         {
@@ -367,7 +367,7 @@ public class EdgeWeightCalculator : MonoBehaviour
             GameManager gameManager = GameManager.Instance;
             if (gameManager != null)
             {
-                return gameManager.GetBiomeWeight(biomeType);
+                return gameManager.CalculateLevelBasedWeight(biomeType);
             }
         }
         
