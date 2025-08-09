@@ -56,7 +56,6 @@ namespace TerrainSystem
         // 瓦片编号系统
         private Dictionary<Vector3Int, int> tileIndexMap;  // 坐标 -> 编号
         private Dictionary<int, Vector3Int> indexTileMap;  // 编号 -> 坐标
-        private int nextTileIndex = 0;
 
         // 渲染对象
         private Transform terrainRoot;

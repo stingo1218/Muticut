@@ -7,7 +7,6 @@ using UnityEngine.Tilemaps;
 public class RenderOrderFixer : MonoBehaviour
 {
     [Header("调试选项")]
-    [SerializeField] private bool showDebugInfo = true;
     [SerializeField] private bool autoFixOnStart = true;
     
     void Start()

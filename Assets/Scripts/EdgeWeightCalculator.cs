@@ -349,7 +349,7 @@ public class EdgeWeightCalculator : MonoBehaviour
             // Debug.LogWarning($"无法使用映射表获取瓦片 {tilePos} 的生物群系");
             return -1;
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
             // Debug.LogWarning($"获取生物群系时出错: {ex.Message}");
             return -1;

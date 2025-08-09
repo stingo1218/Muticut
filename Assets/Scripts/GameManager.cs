@@ -45,12 +45,10 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private bool useWeightedEdges = true; // 控制是否显示边的权重
-    [SerializeField]
-    private bool useBresenhamLine = false; // 是否启用Bresenham像素线
 
     // 唯一权重缓存
     private Dictionary<(Cell, Cell), int> _edgeWeightCache = new Dictionary<(Cell, Cell), int>();
-    [SerializeField] private int maxEdgeWeight = 10; // 最大权重值
+    private const int maxEdgeWeight = 30; // 权重值范围为 [-30, 30]
 
     private Button debugButton;
 
@@ -244,8 +242,6 @@ public class GameManager : MonoBehaviour
         ShowVictoryPanel();
     }
 
-    [SerializeField] private UnityEngine.UI.Toggle pixelHintTogglePrefab; // Inspector拖引用的PixelHintToggle预制体
-
     private TextMeshProUGUI costText;
     private int optimalCost = 0;
     private TextMeshProUGUI levelDisplayText;
@@ -253,37 +249,10 @@ public class GameManager : MonoBehaviour
     [Header("生态区高亮")]
     [SerializeField] private ClusterHighlighter clusterHighlighter; // 生态区高亮组件（可选，自动查找）
 
-    // 关卡难度与陷阱/奖励边配置（用于从易到难的可控生成）
-    public enum DifficultyTier { Easy, Normal, Hard, Nightmare }
-
-    [System.Serializable]
-    public class EdgeDifficultyConfig
-    {
-        [Header("陷阱边概率与惩罚")]
-        [Range(0f, 1f)] public float trapChance = 0.05f; // 生成陷阱边的概率
-        public int trapPenaltyMin = -6;                   // 陷阱额外惩罚下限（负数）
-        public int trapPenaltyMax = -12;                  // 陷阱额外惩罚上限（负数）
-
-        [Header("奖励边概率与奖励")]
-        [Range(0f, 1f)] public float bonusChance = 0.04f; // 生成奖励边的概率（当未命中陷阱时）
-        public int bonusMin = 3;                          // 额外奖励下限（正数）
-        public int bonusMax = 8;                          // 额外奖励上限（正数）
-
-        [Header("结构性加成/惩罚")]
-        public float longEdgeLengthThreshold = 6.0f;      // 视为长边的阈值（世界单位）
-        public int longEdgeBonus = 2;                     // 长边奖励（鼓励割长边/不割长边可根据权重正负影响）
-        public int mountainPenaltyPerTile = -1;           // 每跨过一个山地瓦片额外惩罚
-        public int waterPenaltyPerTile = -1;              // 每跨过一个水域瓦片额外惩罚
-    }
-
     public enum GameDifficulty { Easy, Medium, Hard }
     
     [Header("游戏难度设置")]
     [SerializeField] private GameDifficulty gameDifficulty = GameDifficulty.Medium;
-    
-    [Header("边难度配置（可按档位覆写）")]
-    public DifficultyTier difficultyTier = DifficultyTier.Normal;
-    public EdgeDifficultyConfig edgeDifficulty = new EdgeDifficultyConfig();
     
     [Header("获胜条件与UI")]
     [SerializeField] private GameObject victoryPanel; // 获胜通知Panel
@@ -292,7 +261,7 @@ public class GameManager : MonoBehaviour
     private bool hasShownVictoryPanel = false; // 防止重复弹出
     
     [Header("时间炸弹设置")]
-    [SerializeField] private bool enableTimeBomb = false;
+    private bool enableTimeBomb = false; // 由难度系统自动控制
     [Range(0f,1f)] [SerializeField] private float timeBombChance = 0.12f;
     [SerializeField] private float timeBombPenaltySeconds = 5f; // 时间炸弹惩罚秒数
     [SerializeField] private Color timeBombEdgeColor = Color.red;
@@ -307,8 +276,7 @@ public class GameManager : MonoBehaviour
     [Range(0f, 0.9f)] [SerializeField] private float targetNegativeEdgeRatio = 0.35f;
     [Tooltip("至少需要的负权重边数量")] 
     [SerializeField] private int minNegativeEdges = 3;
-    [Tooltip("当负边比例不足时，一次性整体平移的步长（权重单位）")] 
-    [SerializeField] private int balanceShiftStep = 2;
+
 
     /// <summary>
     /// 获取指定生物群系的权重（简化版：完全基于关卡号，忽略地形）
@@ -2039,21 +2007,9 @@ public class GameManager : MonoBehaviour
             {
                 renderer.gameObject.SetActive(true);
             }
-            if (useBresenhamLine)
-            {
-                // 用Bresenham算法生成像素点
-                Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
-                Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
-                var pixelPoints = BresenhamLine(fromPixel, toPixel);
-                renderer.positionCount = pixelPoints.Count;
-                for (int i = 0; i < pixelPoints.Count; i++)
-                    renderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
-            }
-            else
-            {
-                renderer.SetPosition(0, fromCell.transform.position);
-                renderer.SetPosition(1, toCell.transform.position);
-            }
+            renderer.positionCount = 2;
+            renderer.SetPosition(0, fromCell.transform.position);
+            renderer.SetPosition(1, toCell.transform.position);
 
             Vector3 midPoint = (fromCell.transform.position + toCell.transform.position) / 2f;
 
@@ -2104,24 +2060,12 @@ public class GameManager : MonoBehaviour
             // 设置默认颜色为黑色
             lineRenderer.startColor = Color.black;
             lineRenderer.endColor = Color.black;
-            if (useBresenhamLine)
-            {
-                Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
-                Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
-                var pixelPoints = BresenhamLine(fromPixel, toPixel);
-                lineRenderer.positionCount = pixelPoints.Count;
-                for (int i = 0; i < pixelPoints.Count; i++)
-                    lineRenderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
-            }
-            else
-            {
-                lineRenderer.positionCount = 2;
-                // 确保LineRenderer的Z轴为0，避免渲染顺序问题
-                Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
-                Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
-                lineRenderer.SetPosition(0, fromPos);
-                lineRenderer.SetPosition(1, toPos);
-            }
+            lineRenderer.positionCount = 2;
+            // 确保LineRenderer的Z轴为0，避免渲染顺序问题
+            Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
+            Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
+            lineRenderer.SetPosition(0, fromPos);
+            lineRenderer.SetPosition(1, toPos);
 
             EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
             Vector2[] points = new Vector2[2];
@@ -2217,23 +2161,11 @@ public class GameManager : MonoBehaviour
         lineRenderer.startColor = Color.black;
         lineRenderer.endColor = Color.black;
         
-        if (useBresenhamLine)
-        {
-            Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
-            Vector2Int toPixel = Vector2Int.RoundToInt(toCell.transform.position);
-            var pixelPoints = BresenhamLine(fromPixel, toPixel);
-            lineRenderer.positionCount = pixelPoints.Count;
-            for (int i = 0; i < pixelPoints.Count; i++)
-                lineRenderer.SetPosition(i, new Vector3(pixelPoints[i].x, pixelPoints[i].y, 0));
-        }
-        else
-        {
-            lineRenderer.positionCount = 2;
-            Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
-            Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
-            lineRenderer.SetPosition(0, fromPos);
-            lineRenderer.SetPosition(1, toPos);
-        }
+        lineRenderer.positionCount = 2;
+        Vector3 fromPos = new Vector3(fromCell.transform.position.x, fromCell.transform.position.y, 0);
+        Vector3 toPos = new Vector3(toCell.transform.position.x, toCell.transform.position.y, 0);
+        lineRenderer.SetPosition(0, fromPos);
+        lineRenderer.SetPosition(1, toPos);
 
         EdgeCollider2D edgeCollider = lineObject.AddComponent<EdgeCollider2D>();
         Vector2[] points = new Vector2[2];
@@ -2768,11 +2700,8 @@ public class GameManager : MonoBehaviour
         // 计算基础地形权重
         int baseTerrainWeight = CalculateBaseTerrainWeight(crossedTiles);
 
-        // 附加：结构性与陷阱/奖励修饰（用于从易到难）
-        int modified = ApplyEdgeDifficultyModifiers(a, b, crossedTiles, baseTerrainWeight);
-
         // 应用基于关卡号的动态权重调整
-        int finalWeight = ApplyLevelBasedWeight(modified);
+        int finalWeight = ApplyLevelBasedWeight(baseTerrainWeight);
         
         return finalWeight;
     }
@@ -2784,50 +2713,6 @@ public class GameManager : MonoBehaviour
     {
         // 完全忽略地形，只基于关卡号计算基础权重
         return GetBiomeWeight(0); // 传入任意值，因为地形类型被忽略了
-    }
-
-    // 根据档位与结构/陷阱/奖励对边权重进行附加修饰（简化版：忽略地形）
-    private int ApplyEdgeDifficultyModifiers(Cell a, Cell b, HashSet<Vector3Int> crossedTiles, int baseWeight)
-    {
-        int weight = baseWeight;
-
-        // 档位影响整体幅度（越难，整体幅度越大、负向惩罚更强、正向奖励更小）
-        float scale = 1f;
-        switch (difficultyTier)
-        {
-            case DifficultyTier.Easy:      scale = 0.8f; break;
-            case DifficultyTier.Normal:    scale = 1.0f; break;
-            case DifficultyTier.Hard:      scale = 1.2f; break;
-            case DifficultyTier.Nightmare: scale = 1.4f; break;
-        }
-        weight = Mathf.RoundToInt(weight * scale);
-
-        // 结构性修饰：长边奖励（让长边更"便宜"或"更值得割"）
-        float length = Vector2.Distance(a.transform.position, b.transform.position);
-        if (length >= edgeDifficulty.longEdgeLengthThreshold)
-        {
-            weight += edgeDifficulty.longEdgeBonus;
-        }
-
-        // 陷阱/奖励（互斥触发）：
-        float r = UnityEngine.Random.value;
-        if (r < edgeDifficulty.trapChance)
-        {
-            // 陷阱：额外负惩罚（更难档位更狠）
-            int trap = UnityEngine.Random.Range(edgeDifficulty.trapPenaltyMax, edgeDifficulty.trapPenaltyMin - 1);
-            if (difficultyTier == DifficultyTier.Hard) trap = Mathf.RoundToInt(trap * 1.2f);
-            if (difficultyTier == DifficultyTier.Nightmare) trap = Mathf.RoundToInt(trap * 1.5f);
-            weight += trap;
-        }
-        else if (r < edgeDifficulty.trapChance + edgeDifficulty.bonusChance)
-        {
-            // 奖励：小幅正向奖励（简单档位更慷慨）
-            int bonus = UnityEngine.Random.Range(edgeDifficulty.bonusMin, edgeDifficulty.bonusMax + 1);
-            if (difficultyTier == DifficultyTier.Easy) bonus = Mathf.RoundToInt(bonus * 1.2f);
-            weight += bonus;
-        }
-
-        return weight;
     }
     
     /// <summary>
@@ -3548,27 +3433,6 @@ public class GameManager : MonoBehaviour
         // 读取Python输出
         string resultJson = File.ReadAllText(outputPath);
         // 你可以用JsonUtility/Json.NET等解析resultJson
-    }
-
-    // 添加Bresenham算法实现
-    public static List<Vector2Int> BresenhamLine(Vector2Int p0, Vector2Int p1)
-    {
-        List<Vector2Int> points = new List<Vector2Int>();
-        int x0 = p0.x, y0 = p0.y;
-        int x1 = p1.x, y1 = p1.y;
-        int dx = Mathf.Abs(x1 - x0), dy = Mathf.Abs(y1 - y0);
-        int sx = x0 < x1 ? 1 : -1;
-        int sy = y0 < y1 ? 1 : -1;
-        int err = dx - dy;
-        while (true)
-        {
-            points.Add(new Vector2Int(x0, y0));
-            if (x0 == x1 && y0 == y1) break;
-            int e2 = 2 * err;
-            if (e2 > -dy) { err -= dy; x0 += sx; }
-            if (e2 < dx) { err += dx; y0 += sy; }
-        }
-        return points;
     }
 
     // 生成地形（如果需要）

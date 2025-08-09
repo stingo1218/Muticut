@@ -94,7 +94,6 @@ public class ClusterHighlighter : MonoBehaviour
     private bool isHighlightVisible = false;
     
     // 后台计算相关
-    private bool isDataInitialized = false;
     private Coroutine backgroundCalculationCoroutine;
     private Dictionary<Vector3Int, Color> cachedTileColors = new Dictionary<Vector3Int, Color>();
     private CH_ClustersAfterCutData cachedClusterData = null;
@@ -157,7 +156,7 @@ public class ClusterHighlighter : MonoBehaviour
                 cachedClustersSignature = BuildClustersSignature(data);
             }
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
             // Debug.LogWarning($"⚠️ ClusterHighlighter: 预热现有簇数据失败: {ex.Message}");
         }
@@ -278,7 +277,6 @@ public class ClusterHighlighter : MonoBehaviour
         cachedTileColors.Clear();
         cachedClusterData = null;
         cachedClustersSignature = null;
-        isDataInitialized = false;
         
         // 如果当前正在显示高亮，需要重新初始化和显示
         if (isHighlightVisible)
@@ -330,7 +328,7 @@ public class ClusterHighlighter : MonoBehaviour
                 }
             }
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
             // Debug.LogWarning($"⚠️ ClusterHighlighter: 读取GameManager._cells失败: {ex.Message}");
         }
@@ -415,7 +413,7 @@ public class ClusterHighlighter : MonoBehaviour
             string json = System.IO.File.ReadAllText(path);
             return JsonUtility.FromJson<CH_ClustersAfterCutData>(json);
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
             // Debug.LogWarning($"⚠️ ClusterHighlighter: 读取JSON失败: {ex.Message}");
             return null;
@@ -646,10 +644,8 @@ public class ClusterHighlighter : MonoBehaviour
                         StartIncrementalRecolor(tilemap, newColors);
                     }
                 }
-                
-                isDataInitialized = true;
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
                 // Debug.LogWarning($"⚠️ 后台生态区计算出错: {ex.Message}");
             }

@@ -53,7 +53,7 @@ public class VictoryPanelController : MonoBehaviour
         Time.timeScale = 1f;
         Hide();
 
-        var gm = FindObjectOfType<GameManager>();
+        var gm = FindFirstObjectByType<GameManager>();
         if (gm != null)
             gm.NextLevel();
     }

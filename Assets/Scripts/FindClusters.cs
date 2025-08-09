@@ -142,7 +142,7 @@ public class FindClusters : MonoBehaviour
             GetDetailedClusterInfo();
             
         }
-        catch (System.Exception ex)
+        catch (System.Exception)
         {
             // Debug.LogError($"❌ FindClusters: 更新簇信息时出错: {ex.Message}");
         }
