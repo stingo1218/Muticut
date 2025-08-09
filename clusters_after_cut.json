@@ -1,24 +1,37 @@
 {
-    "cut_edges": [],
-    "cost": 0,
+    "cut_edges": [
+        {
+            "u": 7,
+            "v": 1
+        },
+        {
+            "u": 7,
+            "v": 2
+        }
+    ],
+    "cost": 2,
     "clusters": [
         {
             "cells": [
                 1,
-                5,
+                4,
                 2,
                 6,
-                3,
-                7,
-                9,
-                4,
+                5,
                 8,
-                10
+                10,
+                3,
+                9
+            ]
+        },
+        {
+            "cells": [
+                7
             ]
         }
     ],
-    "cluster_count": 1,
-    "timestamp": "2025-08-09 15:49:09",
+    "cluster_count": 2,
+    "timestamp": "2025-08-09 16:27:19",
     "level_index": 20,
     "seed": "20"
 }
