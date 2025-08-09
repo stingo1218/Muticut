@@ -224,7 +224,21 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    [Header("Hint高亮设置")]
     [SerializeField] private Material highlightEdgeMaterial;
+    [SerializeField] private Color highlightEdgeColor = Color.green; // Hint功能用的高亮材质
+    
+    [ContextMenu("测试边颜色变化")]
+    public void TestEdgeColorChange()
+    {
+        UnityEngine.Debug.Log("开始测试边颜色变化...");
+        foreach (var edgeInfo in _edges.Values)
+        {
+            edgeInfo.renderer.startColor = Color.red;
+            edgeInfo.renderer.endColor = Color.red;
+            UnityEngine.Debug.Log($"设置边颜色为红色，当前材质: {edgeInfo.renderer.material.name}");
+        }
+    }
 
     [SerializeField] private UnityEngine.UI.Toggle pixelHintTogglePrefab; // Inspector拖引用的PixelHintToggle预制体
 
@@ -257,6 +271,14 @@ public class GameManager : MonoBehaviour
     [Header("边难度配置（可按档位覆写）")]
     public DifficultyTier difficultyTier = DifficultyTier.Normal;
     public EdgeDifficultyConfig edgeDifficulty = new EdgeDifficultyConfig();
+    
+    [Header("时间炸弹设置")]
+    [SerializeField] private bool enableTimeBomb = false;
+    [Range(0f,1f)] [SerializeField] private float timeBombChance = 0.12f;
+    [SerializeField] private float timeBombPenaltySeconds = 5f; // 时间炸弹惩罚秒数
+    [SerializeField] private Color timeBombEdgeColor = Color.red;
+    [SerializeField] private float timeBombEdgeWidth = 0.3f; // 时间炸弹边的宽度（加粗）
+    private HashSet<(Cell, Cell)> timeBombEdges = new HashSet<(Cell, Cell)>();
 
     [Header("节点生成设置")]
     [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
@@ -273,6 +295,41 @@ public class GameManager : MonoBehaviour
         
         // 所有地形类型使用相同的权重计算
         return Mathf.RoundToInt(levelFactor * 2); // 关卡越多，权重越大
+    }
+
+    // 更新时间炸弹边的外观（加粗+变色）
+    private void UpdateTimeBombEdgeAppearance((Cell, Cell) key)
+    {
+        if (!_edges.TryGetValue(key, out var data)) return;
+        var line = data.Item1;
+        if (line == null) return;
+
+        if (timeBombEdges.Contains(key))
+        {
+            // 时间炸弹边：红色+加粗
+            line.startColor = timeBombEdgeColor;
+            line.endColor = timeBombEdgeColor;
+            line.startWidth = timeBombEdgeWidth;
+            line.endWidth = timeBombEdgeWidth;
+        }
+        else
+        {
+            // 普通边：恢复正常
+            line.startWidth = lineWidth;
+            line.endWidth = lineWidth;
+            // 颜色根据useWeightedEdges设置
+            if (useWeightedEdges)
+            {
+                Color edgeColor = GetEdgeColorByWeight(data.Item2);
+                line.startColor = edgeColor;
+                line.endColor = edgeColor;
+            }
+            else
+            {
+                line.startColor = Color.black;
+                line.endColor = Color.black;
+            }
+        }
     }
 
     private void Awake()
@@ -490,10 +547,20 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            foreach (var edgeInfo in _edges.Values)
+            // 恢复所有边的正常外观
+            foreach (var edgeKey in _edges.Keys)
             {
-                if (_lineMaterial != null)
-                    edgeInfo.renderer.material = _lineMaterial;
+                // 重置材质
+                if (_edges.TryGetValue(edgeKey, out var edgeInfo))
+                {
+                    if (_lineMaterial != null)
+                    {
+                        edgeInfo.renderer.material = _lineMaterial;
+                        UnityEngine.Debug.Log($"恢复边材质: {edgeKey.Item1.Number}-{edgeKey.Item2.Number} -> {_lineMaterial.name}");
+                    }
+                }
+                // 恢复正确的颜色和宽度
+                UpdateTimeBombEdgeAppearance(edgeKey);
             }
             UnityEngine.Debug.Log("像素Hint Toggle状态: 关闭");
             UpdateCostText();
@@ -550,6 +617,10 @@ public class GameManager : MonoBehaviour
         RemoveAllEdges();
         _initialEdges.Clear();
         playerCutEdges.Clear();
+        
+        // 清理时间炸弹状态
+        timeBombEdges.Clear();
+        
         ClearUndoHistory();
         InitLevelSeed();
         
@@ -1077,6 +1148,20 @@ public class GameManager : MonoBehaviour
                     // 记录初始边（规范化key）
                     var key = GetCanonicalEdgeKey(_cells[edge.P1Index], _cells[edge.P2Index]);
                     _initialEdges.Add(key);
+                    
+                    // 生成时间炸弹边
+                    if (enableTimeBomb && UnityEngine.Random.value < timeBombChance)
+                    {
+                        timeBombEdges.Add(key);
+                        // 更新外观（加粗+变色）
+                        UpdateTimeBombEdgeAppearance(key);
+                        UnityEngine.Debug.Log($"时间炸弹边已生成: Edge({_cells[edge.P1Index].Number}-{_cells[edge.P2Index].Number})");
+                    }
+                    else
+                    {
+                        // 确保普通边使用正确的外观
+                        UpdateTimeBombEdgeAppearance(key);
+                    }
                 }
             }
         }
@@ -1085,6 +1170,20 @@ public class GameManager : MonoBehaviour
             CreateOrUpdateEdge(_cells[0], _cells[1]);
             var key = GetCanonicalEdgeKey(_cells[0], _cells[1]);
             _initialEdges.Add(key);
+            
+            // 生成时间炸弹边
+            if (enableTimeBomb && UnityEngine.Random.value < timeBombChance)
+            {
+                timeBombEdges.Add(key);
+                // 更新外观（加粗+变色）
+                UpdateTimeBombEdgeAppearance(key);
+                UnityEngine.Debug.Log($"时间炸弹边已生成: Edge({_cells[0].Number}-{_cells[1].Number})");
+            }
+            else
+            {
+                // 确保普通边使用正确的外观
+                UpdateTimeBombEdgeAppearance(key);
+            }
         }
         // If 0 or 1 cell, do nothing
 
@@ -1514,17 +1613,17 @@ public class GameManager : MonoBehaviour
             GameObject lineObj = new GameObject("PreviewLine");
             lineObj.layer = LayerMask.NameToLayer("PreviewEdge");
             previewEdge = lineObj.AddComponent<LineRenderer>();
-            previewEdge.material = _lineMaterial;
+            previewEdge.material = previewEdgeMaterial != null ? previewEdgeMaterial : _lineMaterial;
             previewEdge.startWidth = 0.15f;
             previewEdge.endWidth = 0.15f;
             previewEdge.positionCount = 2;
             previewEdge.useWorldSpace = true;
             previewEdge.startColor = Color.black;
-                            previewEdge.endColor = Color.black;
-                previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
-                previewEdge.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
-                previewEdge.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
-                previewEdge.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
+            previewEdge.endColor = Color.black;
+            previewEdge.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
+            previewEdge.sortingOrder = 1; // 设置较低的排序顺序，确保在cells之下
+            previewEdge.sortingLayerName = "Default"; // 设置为Default层，与cells保持一致
+            previewEdge.gameObject.layer = LayerMask.NameToLayer("Default"); // 设置GameObject的Layer为Default
         }
         // 确保预览线的Z轴为0，避免渲染顺序问题
         Vector3 startPos = new Vector3(startPosition.x, startPosition.y, 0);
@@ -1631,6 +1730,9 @@ public class GameManager : MonoBehaviour
             lineRenderer.endWidth = lineWidth;
             lineRenderer.useWorldSpace = true;
             lineRenderer.textureMode = LineTextureMode.Tile; // 新增：像素风贴图平铺
+            // 设置默认颜色为黑色
+            lineRenderer.startColor = Color.black;
+            lineRenderer.endColor = Color.black;
             if (useBresenhamLine)
             {
                 Vector2Int fromPixel = Vector2Int.RoundToInt(fromCell.transform.position);
@@ -1740,6 +1842,9 @@ public class GameManager : MonoBehaviour
         lineRenderer.endWidth = lineWidth;
         lineRenderer.useWorldSpace = true;
         lineRenderer.textureMode = LineTextureMode.Tile;
+        // 设置默认颜色为黑色
+        lineRenderer.startColor = Color.black;
+        lineRenderer.endColor = Color.black;
         
         if (useBresenhamLine)
         {
@@ -1819,6 +1924,25 @@ public class GameManager : MonoBehaviour
         
         if (_edges.TryGetValue(key, out var edge))
         {
+            // 如果是时间炸弹边，应用时间惩罚
+            if (timeBombEdges.Contains(key))
+            {
+                timeBombEdges.Remove(key);
+                
+                // 应用时间惩罚
+                if (enableTimer && remainingTime > 0)
+                {
+                    remainingTime -= timeBombPenaltySeconds;
+                    if (remainingTime < 0) remainingTime = 0;
+                    UpdateTimerUI();
+                    UnityEngine.Debug.Log($"时间炸弹触发! Edge({fromCell.Number}-{toCell.Number}) 减少 {timeBombPenaltySeconds} 秒，剩余时间: {remainingTime}");
+                }
+                else
+                {
+                    UnityEngine.Debug.Log($"时间炸弹边被切割: Edge({fromCell.Number}-{toCell.Number}) (计时器未启用)");
+                }
+            }
+            
             // 记录玩家切割的边
             playerCutEdges.Add(key);
             
@@ -2570,7 +2694,7 @@ public class GameManager : MonoBehaviour
         var compA = GetAllCellsInSameComponent(a);
         var compB = GetAllCellsInSameComponent(b);
 
-        // 合并两个集合，作为“新簇”的候选
+        // 合并两个集合，作为"新簇"的候选
         var union = new HashSet<Cell>(compA);
         foreach (var c in compB) union.Add(c);
 
@@ -2938,11 +3062,14 @@ public class GameManager : MonoBehaviour
         {
             // UnityEngine.Debug.Log($"[HighlightCutEdges] _edges key: {key.Item1.Number}-{key.Item2.Number}, InstanceID: {key.Item1.GetInstanceID()}-{key.Item2.GetInstanceID()}");
         }
-        // 1. 先全部恢复成普通材质
-        foreach (var edgeInfo in _edges.Values)
+        // 1. 先全部恢复成普通材质和外观
+        foreach (var edgeKey in _edges.Keys)
         {
-            if (_lineMaterial != null)
+            // 重置材质
+            if (_edges.TryGetValue(edgeKey, out var edgeInfo) && _lineMaterial != null)
                 edgeInfo.renderer.material = _lineMaterial;
+            // 恢复正确的颜色和宽度
+            UpdateTimeBombEdgeAppearance(edgeKey);
         }
         // 2. 只把需要切割的边高亮
         foreach (var edge in cutEdges)
@@ -2950,8 +3077,22 @@ public class GameManager : MonoBehaviour
             // UnityEngine.Debug.Log($"高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
             if (_edges.TryGetValue(edge, out var edgeInfo))
             {
+                // 使用Inspector中设置的高亮材质
                 if (highlightEdgeMaterial != null)
+                {
                     edgeInfo.renderer.material = highlightEdgeMaterial;
+                    // 同时设置颜色确保可见
+                    edgeInfo.renderer.startColor = highlightEdgeColor;
+                    edgeInfo.renderer.endColor = highlightEdgeColor;
+                    UnityEngine.Debug.Log($"应用高亮材质到边: {edge.Item1.Number}-{edge.Item2.Number}, 材质名: {highlightEdgeMaterial.name}");
+                }
+                else
+                {
+                    // 如果没有设置材质，直接用颜色高亮
+                    edgeInfo.renderer.startColor = highlightEdgeColor;
+                    edgeInfo.renderer.endColor = highlightEdgeColor;
+                    UnityEngine.Debug.Log($"未设置高亮材质，使用自定义颜色高亮边: {edge.Item1.Number}-{edge.Item2.Number}");
+                }
             }
             else
             {
