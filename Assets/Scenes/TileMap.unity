@@ -158,7 +158,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 125.38, y: -109.37}
+  m_AnchoredPosition: {x: 125.38, y: -147.1}
   m_SizeDelta: {x: 200, y: 33}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &164864520
@@ -294,7 +294,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 125.380005, y: -150.41}
+  m_AnchoredPosition: {x: 125.380005, y: -33}
   m_SizeDelta: {x: 200, y: 33.107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &255628333
@@ -874,7 +874,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 125.380005, y: -31.403442}
+  m_AnchoredPosition: {x: 125.380005, y: -109}
   m_SizeDelta: {x: 200, y: 33.107}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &761184443
@@ -1102,11 +1102,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 943486333611316595, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_text
-      value: Show Ecological Zone
+      value: Show Territory
       objectReference: {fileID: 0}
     - target: {fileID: 943486333611316595, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_fontSize
-      value: 19.4
+      value: 27.75
       objectReference: {fileID: 0}
     - target: {fileID: 943486333611316595, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_fontSizeMin
@@ -1174,7 +1174,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3968772836069914043, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 1534.61
+      value: 1564
       objectReference: {fileID: 0}
     - target: {fileID: 3968772836069914043, guid: cee28147380e2044184a46d2110b84de, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -1460,7 +1460,7 @@ MonoBehaviour:
   _eraseLineMaterial: {fileID: 2100000, guid: a4ee59b374e0bcd4faea5b96e826c84b, type: 2}
   WeightPrefab: {fileID: 7155447657182004721, guid: e24bea3512a6aba4d9df4b9f698ed40a, type: 3}
   useWeightedEdges: 1
-  levelIndex: 20
+  levelIndex: 1
   enableTimer: 1
   timeLimitSeconds: 120
   enableCutLimit: 1
@@ -1471,12 +1471,12 @@ MonoBehaviour:
   highlightEdgeMaterial: {fileID: 2100000, guid: 17d07b291fd33e64ba379a85d9407546, type: 2}
   highlightEdgeColor: {r: 0.61725056, g: 0, b: 0.0040905704, a: 1}
   clusterHighlighter: {fileID: 0}
-  gameDifficulty: 0
+  gameDifficulty: 2
   victoryPanel: {fileID: 718570537}
   continueButton: {fileID: 0}
-  timeBombChance: 0.182
+  timeBombChance: 0.555
   timeBombPenaltySeconds: 5
-  timeBombEdgeColor: {r: 0.99215686, g: 0.8862745, b: 0.9529412, a: 1}
+  timeBombEdgeColor: {r: 0.638814, g: 0.587557, b: 0.19887595, a: 1}
   timeBombEdgeWidth: 0.3
   enableTerrainCheck: 1
   targetNegativeEdgeRatio: 0.35
@@ -2229,7 +2229,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1721229174}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1255477919}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: ReturnToMainMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1721229174
 MonoBehaviour:
   m_ObjectHideFlags: 0

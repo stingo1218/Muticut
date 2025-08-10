@@ -683,3 +683,70 @@
      - 关卡进展应恢复正常：Level 1 → 2 → 3 → 4...
      - menu按钮应能正常返回主菜单
      - 防重入机制应防止意外的双重调用
+
+30. **2024-12-20 游戏逻辑修复与优化** (当前对话)
+   - **权重系统修复**：
+     - **问题**：游戏开始时所有边权重都为0，导致游戏无法正常进行
+     - **根因分析**：`GetBiomeWeight`方法在Level 1时计算结果为0
+       - 原计算：`Mathf.Log(2, 2) * 0.1 * 2 = 0.2`，四舍五入后变成0
+       - 所有边权重都基于这个0值计算，导致全部为0
+     - **修复方案**：重构权重计算逻辑
+       - 基础权重：`levelIndex * 2`（Level 1 = 2, Level 2 = 4...）
+       - 随机变化：`Random.Range(-levelIndex, levelIndex + 1)`增加多样性
+       - 防零保护：如果结果为0，根据关卡奇偶性设为±1
+     - **重命名优化**：`GetBiomeWeight` → `CalculateLevelBasedWeight`，避免命名误导
+   
+   - **胜利判定逻辑修复**：
+     - **问题**：当前cost -11，最优cost -13，但游戏误判为胜利
+     - **根因分析**：存在两个不同的胜利判定逻辑
+       - 正确逻辑：`currentCost == optimalCost`（精确匹配）
+       - 错误逻辑：`currentCost <= optimalCost`（小于等于判定）
+     - **修复方案**：统一使用精确匹配判定
+       - 移除错误的`<=`判定，只保留`==`判定
+       - 确保只有达到最优cost时才算获胜
+   
+   - **关卡跳跃问题再次修复**：
+     - **问题复现**：Level 1 → 3 → 5 跳跃式前进
+     - **根因**：双重按钮事件绑定导致`NextLevel()`被调用两次
+       - GameManager.OnContinueButtonClicked() → NextLevel()
+       - VictoryPanelController.HandleContinueClicked() → gm.NextLevel()
+     - **修复方案**：再次注释掉GameManager中的重复按钮绑定
+       - 保留VictoryPanelController单独处理Continue按钮
+       - 修改ShowVictoryPanel()中的回退逻辑直接调用NextLevel()
+   
+   - **返回主菜单功能恢复**：
+     - **问题**：用户反馈GameManager没有ReturnToMainMenu函数
+     - **原因**：之前的更改被撤销，函数被删除
+     - **修复方案**：重新添加ReturnToMainMenu()公开方法
+       - 支持场景切换：优先加载"MainMenu"场景，回退到场景索引0
+       - 时间恢复：Time.timeScale = 1f
+       - 错误处理：try-catch机制处理场景不存在情况
+   
+   - **编译错误修复**：
+     - **问题**：其他脚本调用已重命名的`GetBiomeWeight`方法导致编译错误
+     - **影响文件**：EdgeWeightCalculator.cs、TilemapGameManager.cs
+     - **修复方案**：全局替换`GetBiomeWeight` → `CalculateLevelBasedWeight`
+     - **验证**：确认所有文件都使用新方法名，无编译错误
+   
+   - **生态区Toggle查找优化**：
+     - **问题**：控制台警告"未找到生态区Toggle"
+     - **根因**：代码查找路径不包含实际的UI结构路径"UICanvas/ShowEcoZone"
+     - **修复方案**：
+       - 添加正确路径：`"UICanvas/ShowEcoZone"`作为主要路径
+       - 保留备用路径：以防UI结构变化
+       - 降级日志：从`LogWarning`改为`Log`，因为是可选功能
+     - **路径优先级**：UICanvas/ShowEcoZone → Canvas/ShowEcoZone → ShowEcoZone → 其他备用路径
+   
+   - **技术债务清理**：
+     - 函数重命名提升代码可读性
+     - 移除重复的事件绑定逻辑
+     - 优化错误处理和日志输出
+     - 统一胜利判定逻辑，避免逻辑分歧
+   
+   - **测试验证**：
+     - ✅ 权重系统：确认Level 1不再出现全0权重
+     - ✅ 胜利判定：确认只有达到最优cost才获胜
+     - ✅ 关卡进展：确认关卡不再跳跃（1→2→3→4...）
+     - ✅ 返回菜单：确认menu按钮正常工作
+     - ✅ 编译通过：确认所有脚本编译无错误
+     - ✅ UI查找：确认生态区Toggle正常识别
