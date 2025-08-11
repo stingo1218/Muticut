@@ -1,0 +1,550 @@
+\documentclass[english]{tudscrreprt}
+\usepackage{babel}
+\usepackage{iftex}
+\iftutex
+  \usepackage{fontspec}
+\else
+  \usepackage[T1]{fontenc}
+  \usepackage[english=english-x-latest]{hyphsubst}
+\fi
+\usepackage{scrhack}
+\usepackage{tudscrsupervisor}
+
+\AfterPackage*{hyperref}{%
+\usepackage[%
+  acronym,% Abbreviations
+  symbols,% Mathematical symbols
+  nomain,% No main glossary
+  nogroupskip,%
+  toc,%
+  section=chapter,%
+  nostyles,%
+  translate=babel,%
+% Easy to use with Tex Live
+  xindy={language=english},
+]{glossaries}
+\makeglossaries
+}% End of AfterPackage
+
+\AfterPackage*{glossaries}{%
+\newglossarystyle{acrotabu}{%
+  \renewenvironment{theglossary}{%
+    \begin{tabu}{@{}lX<{\strut}l@{}}% 'spread 0pt' defekt in v2.9
+  }{%
+    \end{tabu}\par\bigskip%
+  }%
+  \renewcommand*{\glossaryheader}{}%
+  \renewcommand*{\glsgroupheading}[1]{}%
+  \renewcommand*{\glsgroupskip}{}%
+  \renewcommand*{\glossentry}[2]{%
+    \glsentryitem{##1}% Entry number if required
+    \glstarget{##1}{\sffamily\bfseries\glossentryname{##1}} &
+    \glsentrydesc{##1} &
+    ##2\tabularnewline
+  }
+}
+
+\newcommand*{\newformulasymbol}[5][]{%
+  \newglossaryentry{#2}{%
+    type=symbols,%
+    name={#3},%
+    description={\nopostdesc},%
+    symbol={\ensuremath{#4}},%
+    user1={\ensuremath{\mathrm{#5}}},%
+    sort={#2},%
+    #1%
+  }%
+}
+
+\defglsentryfmt[symbols]{%
+  \ifmmode%
+    \glssymbol{\glslabel}%
+  \else%
+    \glsgenentryfmt~\glsentrysymbol{\glslabel}%
+  \fi%
+}
+\newglossarystyle{symblongtabu}{%
+  \renewenvironment{theglossary}{%
+    \begin{longtabu}[l]{ccX<{\strut}l}% 'spread 0pt' defekt in v2.9
+  }{%
+    \end{longtabu}%
+  }%
+  \renewcommand*{\glsgroupheading}[1]{}%
+  \renewcommand*{\glsgroupskip}{}%
+  \renewcommand*{\glossaryheader}{%
+    \toprule
+    \bfseries Symbol & \bfseries Unit &
+    \bfseries Description & \bfseries Page(s)
+    \tabularnewline\midrule\endhead%
+    \bottomrule\endfoot%
+  }%
+  \renewcommand*{\glossentry}[2]{%
+    \glsentryitem{##1}% Entry number if required
+    \glstarget{##1}{\glossentrysymbol{##1}} &
+    \glsentryuseri{##1} &
+    \glossentryname{##1} &
+    ##2\tabularnewline%
+  }%
+}
+}% End of AfterPackage
+
+\usepackage{csquotes}
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+
+\usepackage{filecontents}
+\begin{filecontents}{\jobname-temp.bib}
+@article{garg1997,
+  author    = {Garg, Naveen and Vazirani, Vijay V. and Yannakakis, Mihalis},
+  title     = {Primal-dual approximation algorithms for integral flow and multicut in trees},
+  journal   = {Algorithmica},
+  volume    = {18},
+  number    = {1},
+  pages     = {3--20},
+  year      = {1997},
+  publisher = {Springer},
+  language  = {english},
+}
+@article{calinescu2000,
+  author    = {Calinescu, Gruia and Karloff, Howard and Rabani, Yuval},
+  title     = {An improved approximation algorithm for {MULTICUT}},
+  journal   = {Journal of Computer and System Sciences},
+  volume    = {60},
+  number    = {3},
+  pages     = {564--574},
+  year      = {2000},
+  publisher = {Elsevier},
+  language  = {english},
+}
+@book{schrijver2003,
+  author    = {Schrijver, Alexander},
+  title     = {Combinatorial Optimization: Polyhedra and Efficiency},
+  volume    = {A},
+  series    = {Algorithms and Combinatorics},
+  publisher = {Springer-Verlag},
+  address   = {Berlin},
+  year      = {2003},
+  language  = {english},
+}
+@article{gupta2004,
+  author    = {Gupta, Anupam and Hajiaghayi, MohammadTaghi and R\"{a}cke, Harald},
+  title     = {Oblivious network design},
+  journal   = {Proceedings of the 36th Annual ACM Symposium on Theory of Computing},
+  pages     = {383--392},
+  year      = {2004},
+  publisher = {ACM},
+  language  = {english},
+}
+@article{flowfree2012,
+  author    = {Big Duck Games LLC},
+  title     = {Flow Free},
+  journal   = {Mobile Game},
+  year      = {2012},
+  note      = {Over 100 million downloads},
+  language  = {english},
+}
+@manual{unity2023,
+  author    = {Unity Technologies},
+  title     = {Unity Game Engine Documentation},
+  year      = {2023},
+  url       = {https://docs.unity3d.com/},
+  language  = {english},
+}
+@manual{gurobi2023,
+  author    = {Gurobi Optimization, LLC},
+  title     = {Gurobi Optimizer Reference Manual},
+  year      = {2023},
+  url       = {https://www.gurobi.com/documentation/},
+  language  = {english},
+}
+@article{poisson2007,
+  author    = {Bridson, Robert},
+  title     = {Fast Poisson disk sampling in arbitrary dimensions},
+  journal   = {ACM SIGGRAPH 2007 sketches},
+  pages     = {22},
+  year      = {2007},
+  publisher = {ACM},
+  language  = {english},
+}
+@article{delaunay1934,
+  author    = {Delaunay, Boris},
+  title     = {Sur la sphère vide},
+  journal   = {Bulletin de l'Académie des Sciences de l'URSS},
+  volume    = {6},
+  pages     = {793--800},
+  year      = {1934},
+  language  = {french},
+}
+@article{bansal2004,
+  author    = {Bansal, Nikhil and Blum, Avrim and Chawla, Shuchi},
+  title     = {Correlation clustering},
+  journal   = {Machine Learning},
+  volume    = {56},
+  number    = {1-3},
+  pages     = {89--113},
+  year      = {2004},
+  publisher = {Springer},
+  language  = {english},
+}
+@article{demaine2006,
+  author    = {Demaine, Erik D. and Emanuel, Dotan and Fiat, Amos and Immorlica, Nicole},
+  title     = {Correlation clustering in general weighted graphs},
+  journal   = {Theoretical Computer Science},
+  volume    = {361},
+  number    = {2-3},
+  pages     = {172--187},
+  year      = {2006},
+  publisher = {Elsevier},
+  language  = {english},
+}
+@article{charikar2005,
+  author    = {Charikar, Moses and Guruswami, Venkatesan and Wirth, Anthony},
+  title     = {Clustering with qualitative information},
+  journal   = {Journal of Computer and System Sciences},
+  volume    = {71},
+  number    = {3},
+  pages     = {360--383},
+  year      = {2005},
+  publisher = {Elsevier},
+  language  = {english},
+}
+@article{andres2012a,
+  author    = {Andres, Björn and Kappes, Jörg Hendrik and Beier, Thorsten and Köthe, Ullrich and Hamprecht, Fred A.},
+  title     = {Probabilistic image segmentation with closedness constraints},
+  journal   = {2011 International Conference on Computer Vision},
+  pages     = {2611--2618},
+  year      = {2012},
+  publisher = {IEEE},
+  language  = {english},
+}
+@article{andres2012b,
+  author    = {Andres, Björn and Kröger, Thorsten and Briggman, Kevin L. and Denk, Winfried and Korogod, Natalya and Knott, Graham and Koethe, Ullrich and Hamprecht, Fred A.},
+  title     = {Globally optimal closed-surface segmentation for connectomics},
+  journal   = {European Conference on Computer Vision},
+  pages     = {778--791},
+  year      = {2012},
+  publisher = {Springer},
+  language  = {english},
+}
+\end{filecontents}
+\addbibresource{\jobname-temp.bib}
+
+\usepackage{caption}
+\captionsetup{font=sf,labelfont=bf,labelsep=space}
+\usepackage{floatrow}
+\floatsetup{font=sf}
+\floatsetup[table]{style=plaintop}
+\captionsetup{singlelinecheck=off,format=hang,justification=raggedright}
+\DeclareCaptionSubType[alph]{figure}
+\DeclareCaptionSubType[alph]{table}
+\captionsetup[subfloat]{labelformat=brace,list=off}
+
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{tabulary}
+\usepackage{tabu}
+\usepackage{longtable}
+
+\usepackage{quoting}
+
+\usepackage[babel]{microtype}
+
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep}
+
+\usepackage{ellipsis}
+\let\ellipsispunctuation\relax
+
+\usepackage{xfrac}
+
+\usepackage{isodate}
+
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+
+\begin{document}
+
+\faculty{Faculty of Computer Science}
+\title{%
+  Multicut Game: Alliance Divider
+}
+\thesis{research}
+\graduation{Research Project}
+\renewcommand{\graduationtext}{}
+\author{%
+  Sheng, Yichao%
+  \matriculationnumber{5171752}%
+  % \dateofbirth{1.1.1995}%
+  % \placeofbirth{Beijing}%
+  % \course{Computer Science}%
+  % \discipline{Algorithmic Game Theory}%
+}
+\matriculationyear{2023}
+\supervisor{Jannik Irmai}
+\professor{Prof. Dr. Bjoern Andres}
+\date{12.08.2025}
+\issuedate{07.04.2025}
+\duedate{12.08.2025}
+\makecover
+\maketitle
+
+\newcommand{\taskcontent}{%
+  The Multicut Game project aims to transform the complex combinatorial optimization
+  problem of graph partitioning into an engaging educational game experience.
+  The project focuses on developing an interactive game called "Alliance Divider" that teaches players
+  about the Multicut Problem while providing an optimal solution using Integer
+  Linear Programming (ILP) with Gurobi solver.
+
+  The main objectives include creating an intuitive game interface that
+  represents city-states as nodes and their relationships as weighted edges,
+  implementing the core gameplay mechanics of cutting hostile ties while
+  preserving friendly alliances, and developing a robust technical architecture
+  that bridges Unity game engine with Python optimization algorithms.
+}
+\taskform[pagestyle=empty]{\taskcontent}{%
+  \item Research and analysis of the Multicut Problem
+  \item Design and implementation of game mechanics
+  \item Development of Unity-Python integration architecture
+  \item Implementation of ILP solver with Gurobi
+  \item User interface design and gamification elements
+  \item Testing and optimization of the complete system
+}
+
+\TUDoption{abstract}{section}
+\begin{abstract}
+  This thesis presents the development of "Alliance Divider", an innovative
+  serious game that transforms the complex Multicut Problem from
+  combinatorial optimization into an interactive gaming experience.
+  The game allows players to learn fundamental principles of graph theory
+  and optimization by cutting hostile connections and preserving friendly
+  alliances between city-states. The project demonstrates successful
+  gamification of academic concepts through Unity-Python integration
+  and Integer Linear Programming optimization.
+\end{abstract}
+
+\declaration[company=COMPANY]
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+% moved printing of acronyms/symbols to after their definitions
+
+\chapter{Acronyms and Mathematical Notation}
+
+\section{Acronyms}
+\newacronym{ilp}{ILP}{Integer Linear Programming}
+\newacronym{np}{NP}{Non-deterministic Polynomial time}
+\newacronym{api}{API}{Application Programming Interface}
+\newacronym{json}{JSON}{JavaScript Object Notation}
+\newacronym{hud}{HUD}{Heads-Up Display}
+\newacronym{ui}{UI}{User Interface}
+
+In the context of the Multicut Game project, several key acronyms are used throughout
+this document. The \gls{ilp} approach is central to solving the optimization
+problems, while \gls{np}-hard complexity characterizes the computational
+challenge. The game's \gls{ui} and \gls{hud} provide intuitive interaction,
+while \gls{api} and \gls{json} facilitate cross-language communication.
+
+\section{Mathematical Symbols}
+\newformulasymbol{G}{Graph}{G}{(V,E)}
+\newformulasymbol{V}{Vertex Set}{V}{}
+\newformulasymbol{E}{Edge Set}{E}{}
+\newformulasymbol{w}{Edge Weight}{w}{}
+\newformulasymbol{C}{Cut Set}{C}{}
+\newformulasymbol{c}{Cut Cost}{c}{}
+
+The mathematical foundation of the Multicut Game project is based on graph theory,
+where \gls{G} represents the game's network structure with vertex set \gls{V}
+representing city-states and edge set \gls{E} representing relationships.
+Each edge has an associated weight \gls{w} representing the cost of cutting
+that relationship. The objective is to find a cut set \gls{C} that minimizes
+the total cut cost \gls{c} while satisfying the cycle inequality constraints.
+
+\printacronyms[style=acrotabu]
+\printsymbols[style=symblongtabu]
+
+\chapter{Introduction}
+
+This chapter introduces the Multicut Game project and its objectives. The project aims to transform the complex combinatorial optimization problem of graph partitioning into an engaging educational game experience. The following chapters will provide detailed analysis of the mathematical foundations, game design, technical implementation, and evaluation of the Alliance Divider game.
+
+\chapter{Background and Related Work}
+
+\section{The Multicut Problem}
+The multicut problem is a combinatorial optimization problem. The objective is to cut a given graph into multiple components such that the sum of the cost of the edges that are cut is minimal \cite{schrijver2003}.
+
+Let $G = (V, E)$ be an undirected graph. A set of edges $M \subseteq E$ is called a multicut of $G$ if and only if for every cycle $C = (V_C, E_C)$ in $G$, it holds that $|M \cap E_C| \ne 1$. That is, no cycle contains exactly one edge from $M$ \cite{garg1997}.
+
+The set of all multicuts of $G$ is denoted by $\mathcal{M}(G)$. The multicut problem is the following optimization problem:
+
+\[
+\min_{M \in \mathcal{M}(G)} \sum_{e \in M} c_e
+\]
+
+This problem was first studied in the late 20th century and is also known as "correlation clustering" \cite{bansal2004} and "coalition structure generation" \cite{demaine2006}. The multicut problem is \gls{np}-hard, meaning it is unlikely that an efficient algorithm solving it exactly exists. Nevertheless, it has many interesting applications where it produces state-of-the-art results, leading to significant research efforts in understanding it \cite{calinescu2000}.
+
+The problem has found applications in various domains including:
+\begin{itemize}
+  \item Image Segmentation: Probabilistic image segmentation with closedness constraints \cite{andres2012a}
+  \item Connectomics: Globally optimal closed-surface segmentation for connectomics \cite{andres2012b}
+  \item Network Design: Oblivious network design and optimization \cite{gupta2004}
+  \item Social Network Analysis: Correlation clustering and community detection \cite{charikar2005}
+\end{itemize}
+
+\section{Academic Gamification}
+The concept of transforming complex mathematical problems into engaging games has been successfully demonstrated by various applications. A notable example is the Flow Free game \cite{flowfree2012}, which demonstrates how graph connectivity problems can be transformed into intuitive puzzle mechanics:
+
+\begin{itemize}
+  \item Release Date: 2012
+  \item Success: Over 100 million downloads
+  \item Core Mechanics: Connect all pairs of dots with the same color without intersections
+  \item Algorithmic Foundation: Based on graph connectivity problems
+  \item Educational Value: Teaches players about graph theory concepts through intuitive gameplay
+\end{itemize}
+
+This success demonstrates the potential for serious games to make complex mathematical concepts accessible to a broad audience while maintaining educational value. The Flow Free example shows that mathematical problems can be successfully gamified without losing their core algorithmic complexity, providing a model for the Alliance Divider project.
+
+\chapter{Game Design and Implementation}
+
+\section{Game Design and Mechanics}
+
+\subsection{Alliance Divider: From ``Links'' to ``Alliances''}
+The Alliance Divider game transforms the abstract mathematical problem into an intuitive political strategy game:
+
+\subsubsection{Setting}
+\begin{itemize}
+  \item Multiple city-states with territories and complex political relationships
+  \item Some relationships are friendly, others hostile
+  \item City-states may form alliances based on their connections
+\end{itemize}
+
+\subsubsection{Player Role}
+\begin{itemize}
+  \item Royal Strategist analyzing political networks
+  \item Discover hidden alliance patterns from relationship dynamics
+  \item Make strategic decisions to optimize alliance formation
+\end{itemize}
+
+\subsubsection{Goal}
+\begin{itemize}
+  \item Cut hostile ties while preserving friendly alliances
+  \item Form stable alliance clusters
+  \item Minimize the total cost of cuts while maintaining valid partitions
+\end{itemize}
+
+\subsection{Game Interface and HUD}
+The game provides an intuitive interface with the following elements:
+
+\begin{itemize}
+  \item Level Display: Current level information and progress tracking
+  \item Cut Limit Display: Remaining cuts available to the player
+  \item Cost Display: Current total cost of performed cuts
+  \item Territory Display: Visual representation of alliance clusters
+  \item Hint Function: Access to optimal solution hints
+  \item Revert Function: Undo last action for experimentation
+\end{itemize}
+
+\section{Technical Implementation}
+
+\subsection{Game Scene Generation and Optimization}
+
+\subsubsection{City-State Position Generation with Poisson Disk Sampling}
+\begin{itemize}
+  \item Principle: Maintain a minimum distance around each point to ensure visual clarity \cite{poisson2007}
+  \item Function: Achieve random distribution while avoiding overlapping, ensuring visual uniformity
+  \item Benefits: Creates natural-looking city-state layouts that are easy to interpret
+\end{itemize}
+
+\subsubsection{Connection Generation via Delaunay Triangulation}
+\begin{itemize}
+  \item Principle: Triangles whose circumcircles contain no other points \cite{delaunay1934}
+  \item Function: Generate optimal triangular meshes, avoid thin triangles and line segment intersections
+  \item Advantages: Creates a natural network of connections between city-states
+\end{itemize}
+
+\subsubsection{Automatic Centering and Scaling}
+\begin{itemize}
+  \item Principle: Calculate the bounding box and normalize it to the screen range
+  \item Function: Automatically adjust position and size to fit various screen resolutions
+  \item Implementation: Ensures consistent gameplay experience across different devices
+\end{itemize}
+
+\subsection{Third-Party TileMap Generator Integration}
+The game incorporates advanced tilemap generation systems to create diverse and visually appealing game environments, enhancing the overall user experience.
+
+\subsection{Solving the Multicut Problem: ILP + Gurobi}
+The core optimization engine utilizes:
+
+\begin{itemize}
+  \item Integer Linear Programming (ILP): Mathematical formulation of the optimization problem \cite{schrijver2003}
+  \item Gurobi Solver: High-performance optimization solver for finding optimal solutions \cite{gurobi2023}
+  \item Real-time Processing: Efficient algorithms for interactive gameplay
+\end{itemize}
+
+\subsection{System Integration: Unity to Python Cross-Language Integration}
+
+\subsubsection{Architecture Overview}
+\begin{itemize}
+  \item C\# Process Class: Launches Python process for optimization tasks
+  \item JSON File Exchange: Medium for data transfer between Unity and Python
+  \item Input Data: Graph structure and edge weight information
+  \item Output Data: Cut edges and optimal cost calculations
+\end{itemize}
+
+\subsubsection{Benefits of Cross-Language Integration}
+\begin{itemize}
+  \item Unity: Provides robust game engine capabilities and user interface \cite{unity2023}
+  \item Python: Offers extensive mathematical and optimization libraries
+  \item Modularity: Separates game logic from optimization algorithms
+\end{itemize}
+
+\section{Gamification Design}
+
+\subsection{Alliance Territory Coloring}
+The game employs sophisticated visual design to represent alliance clusters:
+
+\begin{itemize}
+  \item Color coding: Different colors represent distinct alliance groups
+  \item Dynamic updates: Real-time visual feedback as alliances change
+  \item Accessibility: Color-blind friendly design considerations
+\end{itemize}
+
+\subsection{Weight and Difficulty System Architecture}
+The game implements a comprehensive difficulty progression system:
+
+\begin{itemize}
+  \item Edge weights: Represent the cost of cutting relationships
+  \item Dynamic difficulty: Adjusts complexity based on player performance
+  \item Learning curve: Gradual introduction of complex concepts
+\end{itemize}
+
+\section{Future Prospects and Enhancements}
+
+\subsection{Performance Optimization}
+\begin{itemize}
+  \item Optimize territory display performance and resolve lag issues
+  \item Implement efficient rendering algorithms for large-scale maps
+  \item Enhance real-time visual feedback systems
+\end{itemize}
+
+\subsection{Advanced Gameplay Features}
+\begin{itemize}
+  \item Random events: Dynamic changes to edge weights during gameplay
+  \item Hostile city-states: Active repair of cut edges for confrontation
+  \item Environmental factors: Mountains, rivers, and forests modify edge weights
+  \item Multiplayer support: Collaborative and competitive gameplay modes
+\end{itemize}
+
+\subsection{Educational Enhancements}
+\begin{itemize}
+  \item Tutorial system: Interactive learning modules for graph theory concepts
+  \item Problem generation: Algorithmic creation of diverse problem instances
+  \item Analytics dashboard: Detailed performance metrics and learning analytics
+\end{itemize}
+
+\section{Conclusion}
+The Multicut Game project successfully demonstrates the potential of gamification in educational contexts, particularly for complex mathematical concepts. By combining Unity's powerful game engine with Python's optimization capabilities, the project creates an engaging platform for learning graph theory and combinatorial optimization. The modular architecture allows for future enhancements and scalability, making it a valuable tool for both education and research in algorithmic game theory.
+
+\printbibliography[heading=bibintoc]\label{sec:bibliography}%
+
+\end{document}
+

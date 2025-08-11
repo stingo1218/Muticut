@@ -1,0 +1,336 @@
+\glsdefs@newdocentry{ilp}%
+{%
+name={\acronymfont {\glsentryshort {ilp}}},%
+sort={ILP},%
+type={acronym},%
+first={ILP},%
+firstplural={ILPs},%
+text={ILP},%
+plural={ILPs},%
+description={Integer Linear Programming},%
+descriptionplural={Integer Linear Programming},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Integer Linear Programming},%
+longplural={Integer Linear Programmings},%
+short={ILP},%
+shortplural={ILPs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{np}%
+{%
+name={\acronymfont {\glsentryshort {np}}},%
+sort={NP},%
+type={acronym},%
+first={NP},%
+firstplural={NPs},%
+text={NP},%
+plural={NPs},%
+description={Non-deterministic Polynomial time},%
+descriptionplural={Non-deterministic Polynomial time},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Non-deterministic Polynomial time},%
+longplural={Non-deterministic Polynomial times},%
+short={NP},%
+shortplural={NPs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{api}%
+{%
+name={\acronymfont {\glsentryshort {api}}},%
+sort={API},%
+type={acronym},%
+first={API},%
+firstplural={APIs},%
+text={API},%
+plural={APIs},%
+description={Application Programming Interface},%
+descriptionplural={Application Programming Interface},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Application Programming Interface},%
+longplural={Application Programming Interfaces},%
+short={API},%
+shortplural={APIs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{json}%
+{%
+name={\acronymfont {\glsentryshort {json}}},%
+sort={JSON},%
+type={acronym},%
+first={JSON},%
+firstplural={JSONs},%
+text={JSON},%
+plural={JSONs},%
+description={JavaScript Object Notation},%
+descriptionplural={JavaScript Object Notation},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={JavaScript Object Notation},%
+longplural={JavaScript Object Notations},%
+short={JSON},%
+shortplural={JSONs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{hud}%
+{%
+name={\acronymfont {\glsentryshort {hud}}},%
+sort={HUD},%
+type={acronym},%
+first={HUD},%
+firstplural={HUDs},%
+text={HUD},%
+plural={HUDs},%
+description={Heads-Up Display},%
+descriptionplural={Heads-Up Display},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={Heads-Up Display},%
+longplural={Heads-Up Displays},%
+short={HUD},%
+shortplural={HUDs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{ui}%
+{%
+name={\acronymfont {\glsentryshort {ui}}},%
+sort={UI},%
+type={acronym},%
+first={UI},%
+firstplural={UIs},%
+text={UI},%
+plural={UIs},%
+description={User Interface},%
+descriptionplural={User Interface},%
+symbol={\relax },%
+symbolplural={\relax },%
+user1={},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={User Interface},%
+longplural={User Interfaces},%
+short={UI},%
+shortplural={UIs},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{G}%
+{%
+name={Graph},%
+sort={G},%
+type={symbols},%
+first={Graph},%
+firstplural={Graphs},%
+text={Graph},%
+plural={Graphs},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {G}},%
+symbolplural={\ensuremath {G}},%
+user1={\protect \ensuremath  {\protect \mathrm  {(V,E)}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{V}%
+{%
+name={Vertex Set},%
+sort={V},%
+type={symbols},%
+first={Vertex Set},%
+firstplural={Vertex Sets},%
+text={Vertex Set},%
+plural={Vertex Sets},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {V}},%
+symbolplural={\ensuremath {V}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{E}%
+{%
+name={Edge Set},%
+sort={E},%
+type={symbols},%
+first={Edge Set},%
+firstplural={Edge Sets},%
+text={Edge Set},%
+plural={Edge Sets},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {E}},%
+symbolplural={\ensuremath {E}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{w}%
+{%
+name={Edge Weight},%
+sort={w},%
+type={symbols},%
+first={Edge Weight},%
+firstplural={Edge Weights},%
+text={Edge Weight},%
+plural={Edge Weights},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {w}},%
+symbolplural={\ensuremath {w}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{C}%
+{%
+name={Cut Set},%
+sort={C},%
+type={symbols},%
+first={Cut Set},%
+firstplural={Cut Sets},%
+text={Cut Set},%
+plural={Cut Sets},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {C}},%
+symbolplural={\ensuremath {C}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{c}%
+{%
+name={Cut Cost},%
+sort={c},%
+type={symbols},%
+first={Cut Cost},%
+firstplural={Cut Costs},%
+text={Cut Cost},%
+plural={Cut Costs},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {c}},%
+symbolplural={\ensuremath {c}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+

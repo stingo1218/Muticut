@@ -1,0 +1,37 @@
+\babel@toc {english}{}\relax 
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\nonumberline Abstract}{4}{section*.6}%
+\contentsline {chapter}{\numberline {1}Acronyms and Mathematical Notation}{9}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Acronyms}{9}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Mathematical Symbols}{9}{section.1.2}%
+\contentsline {chapter}{\numberline {2}Introduction}{10}{chapter.2}%
+\contentsline {chapter}{\numberline {3}Background and Related Work}{11}{chapter.3}%
+\contentsline {section}{\numberline {3.1}The Multicut Problem}{11}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Academic Gamification}{11}{section.3.2}%
+\contentsline {chapter}{\numberline {4}Game Design and Implementation}{13}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Game Design and Mechanics}{13}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Alliance Divider: From ``Links'' to ``Alliances''}{13}{subsection.4.1.1}%
+\contentsline {subsubsection}{\nonumberline Setting}{13}{subsubsection*.15}%
+\contentsline {subsubsection}{\nonumberline Player Role}{13}{subsubsection*.17}%
+\contentsline {subsubsection}{\nonumberline Goal}{13}{subsubsection*.19}%
+\contentsline {subsection}{\numberline {4.1.2}Game Interface and HUD}{13}{subsection.4.1.2}%
+\contentsline {section}{\numberline {4.2}Technical Implementation}{14}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Game Scene Generation and Optimization}{14}{subsection.4.2.1}%
+\contentsline {subsubsection}{\nonumberline City-State Position Generation with Poisson Disk Sampling}{14}{subsubsection*.21}%
+\contentsline {subsubsection}{\nonumberline Connection Generation via Delaunay Triangulation}{14}{subsubsection*.23}%
+\contentsline {subsubsection}{\nonumberline Automatic Centering and Scaling}{14}{subsubsection*.25}%
+\contentsline {subsection}{\numberline {4.2.2}Third-Party TileMap Generator Integration}{14}{subsection.4.2.2}%
+\contentsline {subsection}{\numberline {4.2.3}Solving the Multicut Problem: ILP + Gurobi}{14}{subsection.4.2.3}%
+\contentsline {subsection}{\numberline {4.2.4}System Integration: Unity to Python Cross-Language Integration}{14}{subsection.4.2.4}%
+\contentsline {subsubsection}{\nonumberline Architecture Overview}{14}{subsubsection*.27}%
+\contentsline {subsubsection}{\nonumberline Benefits of Cross-Language Integration}{14}{subsubsection*.29}%
+\contentsline {section}{\numberline {4.3}Gamification Design}{15}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Alliance Territory Coloring}{15}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Weight and Difficulty System Architecture}{15}{subsection.4.3.2}%
+\contentsline {section}{\numberline {4.4}Future Prospects and Enhancements}{15}{section.4.4}%
+\contentsline {subsection}{\numberline {4.4.1}Performance Optimization}{15}{subsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.4.2}Advanced Gameplay Features}{15}{subsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.4.3}Educational Enhancements}{15}{subsection.4.4.3}%
+\contentsline {section}{\numberline {4.5}Conclusion}{15}{section.4.5}%
+\contentsline {chapter}{\nonumberline Bibliography}{16}{chapter*.30}%
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

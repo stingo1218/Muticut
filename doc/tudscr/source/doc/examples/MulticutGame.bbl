@@ -1,0 +1,352 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{anyt/global//global/global/global}
+    \entry{poisson2007}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=65c851dceea4db6bd4213d41182ae6d3}{%
+           family={Bridson},
+           familyi={B\bibinitperiod},
+           given={Robert},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{fullhash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{fullhashraw}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{bibnamehash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{authorbibnamehash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{authornamehash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{authorfullhash}{65c851dceea4db6bd4213d41182ae6d3}
+      \strng{authorfullhashraw}{65c851dceea4db6bd4213d41182ae6d3}
+      \field{labelalpha}{Bri07}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{ACM SIGGRAPH 2007 sketches}
+      \field{title}{Fast Poisson disk sampling in arbitrary dimensions}
+      \field{year}{2007}
+      \field{pages}{22}
+      \range{pages}{1}
+    \endentry
+    \entry{calinescu2000}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=b33a50c793e1e17a9833a43f3f58afc2}{%
+           family={Calinescu},
+           familyi={C\bibinitperiod},
+           given={Gruia},
+           giveni={G\bibinitperiod}}}%
+        {{hash=e92d16ea2d28730d01d4896892805c43}{%
+           family={Karloff},
+           familyi={K\bibinitperiod},
+           given={Howard},
+           giveni={H\bibinitperiod}}}%
+        {{hash=b64717aa7c1a6668020198f1eb0d2cd5}{%
+           family={Rabani},
+           familyi={R\bibinitperiod},
+           given={Yuval},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{fullhash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{fullhashraw}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{bibnamehash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{authorbibnamehash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{authornamehash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{authorfullhash}{d3b05910a5b2919ad2a25a4999925055}
+      \strng{authorfullhashraw}{d3b05910a5b2919ad2a25a4999925055}
+      \field{labelalpha}{CKR00}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Computer and System Sciences}
+      \field{number}{3}
+      \field{title}{An improved approximation algorithm for {MULTICUT}}
+      \field{volume}{60}
+      \field{year}{2000}
+      \field{pages}{564\bibrangedash 574}
+      \range{pages}{11}
+    \endentry
+    \entry{delaunay1934}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=c9cc9300921661a9db899a3faf2e0e15}{%
+           family={Delaunay},
+           familyi={D\bibinitperiod},
+           given={Boris},
+           giveni={B\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {french}%
+      }
+      \strng{namehash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{fullhash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{fullhashraw}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{bibnamehash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{authorbibnamehash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{authornamehash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{authorfullhash}{c9cc9300921661a9db899a3faf2e0e15}
+      \strng{authorfullhashraw}{c9cc9300921661a9db899a3faf2e0e15}
+      \field{labelalpha}{Del34}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Bulletin de l'Académie des Sciences de l'URSS}
+      \field{title}{Sur la sphère vide}
+      \field{volume}{6}
+      \field{year}{1934}
+      \field{pages}{793\bibrangedash 800}
+      \range{pages}{8}
+    \endentry
+    \entry{gupta2004}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=5986a2ed6c50067dd6fc98838b12178a}{%
+           family={Gupta},
+           familyi={G\bibinitperiod},
+           given={Anupam},
+           giveni={A\bibinitperiod}}}%
+        {{hash=79b32f14d02efefe5a896fd564c804c0}{%
+           family={Hajiaghayi},
+           familyi={H\bibinitperiod},
+           given={MohammadTaghi},
+           giveni={M\bibinitperiod}}}%
+        {{hash=eb5d680cfa0b1669172d225c85238f7b}{%
+           family={Räcke},
+           familyi={R\bibinitperiod},
+           given={Harald},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{fullhash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{fullhashraw}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{bibnamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{authorbibnamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{authornamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{authorfullhash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \strng{authorfullhashraw}{87bbf3108f9ee2968f0f5eaf75ce1a18}
+      \field{labelalpha}{GHR04}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Proceedings of the 36th Annual ACM Symposium on Theory of Computing}
+      \field{title}{Oblivious network design}
+      \field{year}{2004}
+      \field{pages}{383\bibrangedash 392}
+      \range{pages}{10}
+    \endentry
+    \entry{gurobi2023}{manual}{}{}
+      \name{author}{1}{}{%
+        {{hash=3e80cc9fefcee534d638d5d1d1afb1e2}{%
+           family={Gurobi\bibnamedelima Optimization},
+           familyi={G\bibinitperiod\bibinitdelim O\bibinitperiod},
+           given={LLC},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{fullhash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{fullhashraw}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{bibnamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{authorbibnamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{authornamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{authorfullhash}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \strng{authorfullhashraw}{3e80cc9fefcee534d638d5d1d1afb1e2}
+      \field{labelalpha}{Gur23}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Gurobi Optimizer Reference Manual}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://www.gurobi.com/documentation/
+      \endverb
+      \verb{url}
+      \verb https://www.gurobi.com/documentation/
+      \endverb
+    \endentry
+    \entry{garg1997}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=addf06d061ef2eaee8ea772a57852cc2}{%
+           family={Garg},
+           familyi={G\bibinitperiod},
+           given={Naveen},
+           giveni={N\bibinitperiod}}}%
+        {{hash=4391dea254c3bbcaff1fefed241caed0}{%
+           family={Vazirani},
+           familyi={V\bibinitperiod},
+           given={Vijay\bibnamedelima V.},
+           giveni={V\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
+        {{hash=4c46d2f3f797a5dedce8a376cb13fe3a}{%
+           family={Yannakakis},
+           familyi={Y\bibinitperiod},
+           given={Mihalis},
+           giveni={M\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{fullhash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{fullhashraw}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{bibnamehash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{authorbibnamehash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{authornamehash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{authorfullhash}{3c7324470332ffcfe058dab914b2ef5f}
+      \strng{authorfullhashraw}{3c7324470332ffcfe058dab914b2ef5f}
+      \field{labelalpha}{GVY97}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Algorithmica}
+      \field{number}{1}
+      \field{title}{Primal-dual approximation algorithms for integral flow and multicut in trees}
+      \field{volume}{18}
+      \field{year}{1997}
+      \field{pages}{3\bibrangedash 20}
+      \range{pages}{18}
+    \endentry
+    \entry{flowfree2012}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=ca2fe356f13855cb69993f363ff9c778}{%
+           family={LLC},
+           familyi={L\bibinitperiod},
+           given={Big\bibnamedelimb Duck\bibnamedelima Games},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{fullhash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{fullhashraw}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{bibnamehash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{authorbibnamehash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{authornamehash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{authorfullhash}{ca2fe356f13855cb69993f363ff9c778}
+      \strng{authorfullhashraw}{ca2fe356f13855cb69993f363ff9c778}
+      \field{labelalpha}{LLC12}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Mobile Game}
+      \field{note}{Over 100 million downloads}
+      \field{title}{Flow Free}
+      \field{year}{2012}
+    \endentry
+    \entry{schrijver2003}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=25d5b8c6eeb2588f4cd646cfe8d0827b}{%
+           family={Schrijver},
+           familyi={S\bibinitperiod},
+           given={Alexander},
+           giveni={A\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{location}{1}{%
+        {Berlin}%
+      }
+      \list{publisher}{1}{%
+        {Springer-Verlag}%
+      }
+      \strng{namehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{fullhash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{fullhashraw}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{bibnamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{authorbibnamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{authornamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{authorfullhash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \strng{authorfullhashraw}{25d5b8c6eeb2588f4cd646cfe8d0827b}
+      \field{labelalpha}{Sch03}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{series}{Algorithms and Combinatorics}
+      \field{title}{Combinatorial Optimization: Polyhedra and Efficiency}
+      \field{volume}{A}
+      \field{year}{2003}
+    \endentry
+    \entry{unity2023}{manual}{}{}
+      \name{author}{1}{}{%
+        {{hash=90be999720b0d0b2a8d5132207c73182}{%
+           family={Technologies},
+           familyi={T\bibinitperiod},
+           given={Unity},
+           giveni={U\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \strng{namehash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{fullhash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{fullhashraw}{90be999720b0d0b2a8d5132207c73182}
+      \strng{bibnamehash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{authorbibnamehash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{authornamehash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{authorfullhash}{90be999720b0d0b2a8d5132207c73182}
+      \strng{authorfullhashraw}{90be999720b0d0b2a8d5132207c73182}
+      \field{labelalpha}{Tec23}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Unity Game Engine Documentation}
+      \field{year}{2023}
+      \verb{urlraw}
+      \verb https://docs.unity3d.com/
+      \endverb
+      \verb{url}
+      \verb https://docs.unity3d.com/
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
