@@ -37,7 +37,7 @@ public class ClusterHighlighter : MonoBehaviour
     [SerializeField] private string clusterDataPath = "clusters_after_cut.json";
     [SerializeField] private Color initialBaseColor = new Color(0.6f, 0.6f, 0.6f, 0.6f);
     [SerializeField] private int recolorBatchSize = 600;
-    [SerializeField] private bool showOnStart = true;
+    [SerializeField] private bool showOnStart = false; // 启动时不自动显示簇高亮
     [SerializeField] private bool updateColorsOnCostChange = false;
 
     [Header("Colors")]

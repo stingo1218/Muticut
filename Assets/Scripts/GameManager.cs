@@ -37,6 +37,8 @@ public class GameManager : MonoBehaviour
     private Transform linesRoot; // 用于组织所有连线的父物体
 
     private bool isErasing = false;
+    // 批量擦除标记：批量过程中抑制逐条刷新，结束后统一刷新一次
+    private bool isBatchErasing = false;
     private LineRenderer eraseLineRenderer; // 用于显示擦除线
 
     private List<Vector2> erasePath = new List<Vector2>();
@@ -247,7 +249,7 @@ public class GameManager : MonoBehaviour
     private TextMeshProUGUI levelDisplayText;
     
     [Header("生态区高亮")]
-    [SerializeField] private ClusterHighlighter clusterHighlighter; // 生态区高亮组件（可选，自动查找）
+    [SerializeField] private MonoBehaviour clusterHighlighter; // 生态区高亮组件（可选，自动查找）
 
     public enum GameDifficulty { Easy, Medium, Hard }
     
@@ -259,6 +261,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Button continueButton; // 继续按钮 (可选，会自动从Panel中查找)
     private bool hasOptimalCost = false; // 是否已获得最优cost
     private bool hasShownVictoryPanel = false; // 防止重复弹出
+    [SerializeField] private GameObject failPanel; // 失败通知Panel
     
     [Header("时间炸弹设置")]
     private bool enableTimeBomb = false; // 由难度系统自动控制
@@ -269,7 +272,7 @@ public class GameManager : MonoBehaviour
     private HashSet<(Cell, Cell)> timeBombEdges = new HashSet<(Cell, Cell)>();
 
     [Header("节点生成设置")]
-    [SerializeField] private bool enableTerrainCheck = true; // 是否启用地形检查，确保节点生成在陆地上
+    [SerializeField] private bool enableTerrainCheck = false; // 是否启用地形检查，确保节点生成在陆地上
 
     [Header("权重平衡")]
     [Tooltip("目标负权重边比例，低于此比例会对所有边整体左移权重，避免最优cost为0的图")] 
@@ -421,15 +424,45 @@ public class GameManager : MonoBehaviour
             UnityEngine.Debug.LogWarning("未找到UICanvas/LevelDisplay，关卡显示将不可用");
         }
         
-        // 自动查找ClusterHighlighter组件
+        // 自动查找ClusterHighlighter组件（严格按类型名查找，避免拿到错误的MonoBehaviour）
         if (clusterHighlighter == null)
         {
-            clusterHighlighter = FindFirstObjectByType<ClusterHighlighter>();
-            if (clusterHighlighter != null)
+            var allMono = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            var ch = allMono.FirstOrDefault(m => m != null && m.GetType().Name == "ClusterHighlighter");
+            if (ch != null)
             {
+                clusterHighlighter = ch;
                 UnityEngine.Debug.Log("自动找到ClusterHighlighter组件");
             }
         }
+
+        // 启动时强制关闭簇高亮与UI Toggle
+        try
+        {
+            var ecoToggleObj = GameObject.Find("UICanvas/ShowEcoZone");
+            var ecoToggle = ecoToggleObj != null ? ecoToggleObj.GetComponent<UnityEngine.UI.Toggle>() : null;
+            if (ecoToggle != null)
+            {
+                // 防止Toggle默认状态触发回调导致自动开启
+                ecoToggle.onValueChanged.RemoveAllListeners();
+                ecoToggle.SetIsOnWithoutNotify(false);
+            }
+            if (clusterHighlighter != null && clusterHighlighter.GetType().Name == "ClusterHighlighter")
+            {
+                var hideMethod = clusterHighlighter.GetType().GetMethod("HideEcoZones");
+                hideMethod?.Invoke(clusterHighlighter, null);
+            }
+            // 重新绑定回调（若存在ClusterHighlighter）
+            if (ecoToggle != null && clusterHighlighter != null && clusterHighlighter.GetType().Name == "ClusterHighlighter")
+            {
+                var method = clusterHighlighter.GetType().GetMethod("OnEcoZonesToggleChanged");
+                if (method != null)
+                {
+                    ecoToggle.onValueChanged.AddListener(v => method.Invoke(clusterHighlighter, new object[] { v }));
+                }
+            }
+        }
+        catch { }
         
         // 自动查找Victory Panel（如果未在Inspector中设置）
         if (victoryPanel == null)
@@ -446,6 +479,22 @@ public class GameManager : MonoBehaviour
             else
             {
                 UnityEngine.Debug.LogWarning("未找到Victory Panel！请在Inspector中设置或确保Panel命名为VictoryPanel");
+            }
+        }
+
+        // 自动查找Fail Panel（如果未在Inspector中设置）
+        if (failPanel == null)
+        {
+            // 兼容命名：FailPanel 或 Fail
+            var failObj = FindInactiveByPath("UICanvas/Fail");
+            if (failObj != null)
+            {
+                failPanel = failObj;
+                UnityEngine.Debug.Log($"自动找到Fail Panel: {failObj.name}");
+            }
+            else
+            {
+                UnityEngine.Debug.LogWarning("未找到Fail Panel！请在Inspector中设置或确保Panel命名为FailPanel/Fail");
             }
         }
         
@@ -494,6 +543,9 @@ public class GameManager : MonoBehaviour
             remainingCuts = currentCutLimit;
             UnityEngine.Debug.Log($"初始切割次数限制: {currentCutLimit}");
         }
+
+        // 启动时确保失败面板处于隐藏
+        if (failPanel != null) failPanel.SetActive(false);
     }
 
     /// <summary>
@@ -575,7 +627,7 @@ public class GameManager : MonoBehaviour
     private void ApplyProgressiveDifficulty()
     {
         // 节点数量随关卡增加
-        _cellNumbers = Mathf.Min(30, 8 + levelIndex); // 从8个节点开始，最多30个
+        _cellNumbers = Mathf.Min(30, 5 + levelIndex); // 从5个节点开始，最多30个
         
         // 切割次数逐步减少 (所有难度)
         if (enableCutLimit)
@@ -621,15 +673,19 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void ShowVictoryPanel()
     {
-        UnityEngine.Debug.Log("ShowVictoryPanel 被调用");
+        UnityEngine.Debug.Log("🎉 ShowVictoryPanel 被调用 - 开始显示胜利面板");
         
         if (victoryPanel != null)
         {
             // 若面板上挂了控制器，则交由控制器显示
-            var controller = victoryPanel.GetComponent<VictoryPanelController>();
-            if (controller != null)
+            var controller = victoryPanel.GetComponent<MonoBehaviour>();
+            if (controller != null && controller.GetType().Name == "VictoryPanelController")
             {
-                controller.Show();
+                var showMethod = controller.GetType().GetMethod("Show");
+                if (showMethod != null)
+                {
+                    showMethod.Invoke(controller, null);
+                }
                 hasShownVictoryPanel = true;
                 if (enableTimer)
                 {
@@ -686,6 +742,54 @@ public class GameManager : MonoBehaviour
             // 直接调用NextLevel，而不是通过按钮事件
             Time.timeScale = 1f;
             NextLevel();
+        }
+    }
+
+    // 失败面板
+    private void ShowFailPanel()
+    {
+        if (hasShownVictoryPanel) return; // 胜利已触发则不再失败
+
+        if (failPanel != null)
+        {
+            // 确保父级Canvas启用
+            var parentCanvas = failPanel.GetComponentInParent<Canvas>(true);
+            if (parentCanvas != null && !parentCanvas.enabled)
+            {
+                parentCanvas.enabled = true;
+            }
+
+            // 置顶显示
+            failPanel.transform.SetAsLastSibling();
+
+            // 显示并确保可交互
+            failPanel.SetActive(true);
+            var cg = failPanel.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.alpha = 1f;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
+            }
+
+            // 修正缩放
+            var rt = failPanel.GetComponent<RectTransform>();
+            if (rt != null && rt.localScale == Vector3.zero)
+            {
+                rt.localScale = Vector3.one;
+            }
+
+            // 暂停计时器/时间
+            if (enableTimer)
+            {
+                Time.timeScale = 0f;
+            }
+
+            UnityEngine.Debug.Log("❌ 显示失败面板");
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("未设置失败面板 failPanel");
         }
     }
     
@@ -903,13 +1007,17 @@ public class GameManager : MonoBehaviour
         // 自动关闭Hint功能
         TurnOffHint();
 
-        // 重置生态区高亮器状态并自动关闭生态区显示
+        // 重置生态区高亮器状态
         if (clusterHighlighter != null)
         {
-            clusterHighlighter.ResetHighlighter();
+            var resetMethod = clusterHighlighter.GetType().GetMethod("ResetHighlighter");
+            if (resetMethod != null)
+            {
+                resetMethod.Invoke(clusterHighlighter, null);
+            }
             
-            // 通关后自动关闭生态区高亮，让用户自己决定是否重新开启
-            ForceRefreshEcoZonesToggle();
+            // 不再自动关闭生态区高亮，保持用户的选择
+            // ForceRefreshEcoZonesToggle(); // 注释掉自动关闭功能
         }
 
         // 清理权重缓存，确保重新计算
@@ -956,12 +1064,8 @@ public class GameManager : MonoBehaviour
     {
         // 尝试多个可能的路径查找生态区Toggle
         string[] possiblePaths = {
-            "UICanvas/EcoZonesToggle",
-            "Canvas/EcoZonesToggle", 
-            "UICanvas/Show Eco Zones Toggle",
-            "Canvas/Show Eco Zones Toggle",
-            "EcoZonesToggle",
-            "Show Eco Zones Toggle"
+            "UICanvas/ShowEcoZone",  // 正确的路径
+        
         };
 
         UnityEngine.UI.Toggle ecoToggle = null;
@@ -981,21 +1085,36 @@ public class GameManager : MonoBehaviour
 
         if (ecoToggle != null)
         {
-            // 通关后自动关闭生态区高亮
-            if (ecoToggle.isOn)
-            {
-                UnityEngine.Debug.Log("通关后自动关闭生态区高亮");
-                ecoToggle.isOn = false; // 触发OnEcoZonesToggleChanged(false)
-            }
-            else
-            {
-                UnityEngine.Debug.Log("生态区Toggle已为关闭状态");
-            }
+            // 不再自动关闭生态区高亮，保持用户的选择
+            UnityEngine.Debug.Log($"生态区Toggle状态: {ecoToggle.isOn}，保持用户选择");
         }
         else
         {
             UnityEngine.Debug.LogWarning("未找到生态区Toggle，尝试的路径: " + string.Join(", ", possiblePaths));
+            
+            // 尝试查找所有Toggle组件来调试
+            var allToggles = FindObjectsOfType<UnityEngine.UI.Toggle>();
+            UnityEngine.Debug.Log($"场景中找到 {allToggles.Length} 个Toggle组件:");
+            foreach (var toggle in allToggles)
+            {
+                UnityEngine.Debug.Log($"  - {toggle.name} (路径: {GetGameObjectPath(toggle.gameObject)})");
+            }
         }
+    }
+    
+    /// <summary>
+    /// 获取GameObject的完整路径
+    /// </summary>
+    private string GetGameObjectPath(GameObject obj)
+    {
+        string path = obj.name;
+        Transform parent = obj.transform.parent;
+        while (parent != null)
+        {
+            path = parent.name + "/" + path;
+            parent = parent.parent;
+        }
+        return path;
     }
 
     private List<Vector2> GenerateCellPositions(int numberOfPoints)
@@ -1770,6 +1889,17 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        // 如果已经显示胜利面板，阻止所有玩家输入
+        if (hasShownVictoryPanel)
+        {
+            // 添加调试信息，确认胜利状态
+            if (Time.frameCount % 60 == 0) // 每60帧输出一次，避免日志过多
+            {
+                UnityEngine.Debug.Log($"🎉 游戏已胜利，阻止玩家输入。hasShownVictoryPanel={hasShownVictoryPanel}");
+            }
+            return;
+        }
+        
         if (Input.GetMouseButtonDown(0))
         {
             if (!HandleCellClick()) // 只有没点中cell时才检测edge
@@ -1808,7 +1938,7 @@ public class GameManager : MonoBehaviour
         
         // 切割次数UI更新
         UpdateCutLimitUI();
-
+        
         // 按下右键，开始擦除
         if (Input.GetMouseButtonDown(1))
         {
@@ -1817,6 +1947,7 @@ public class GameManager : MonoBehaviour
             erasePath.Add(startPos);
             ShowEraseLine(startPos);
             isErasing = true;
+            isBatchErasing = true; // 开始批量擦除
         }
         // 拖动右键，持续记录轨迹
         else if (Input.GetMouseButton(1) && isErasing)
@@ -1835,6 +1966,13 @@ public class GameManager : MonoBehaviour
             HideEraseLine();
             EraseEdgesCrossedByPath(erasePath);
             isErasing = false;
+            // 批量结束后统一刷新UI/胜利判断
+            if (isBatchErasing)
+            {
+                UpdateCostText();
+                try { CalculateAndSaveClustersAfterCut(); } catch { }
+            }
+            isBatchErasing = false;
         }
     }
 
@@ -2284,7 +2422,7 @@ public class GameManager : MonoBehaviour
             
             // 记录玩家切割的边
             playerCutEdges.Add(key);
-            
+
             // 隐藏边而不是销毁，以便回退时可以恢复
             if (edge.renderer != null && edge.renderer.gameObject != null)
             {
@@ -2294,11 +2432,14 @@ public class GameManager : MonoBehaviour
             {
                 edge.bg.SetActive(false);
             }
-            
-            UpdateCostText(); // 每次切割后刷新
-            
-            // 计算并保存clusters信息
-            CalculateAndSaveClustersAfterCut();
+
+            // 批量过程中不逐条刷新，减少重复胜利判断
+            if (!isBatchErasing)
+            {
+                UpdateCostText();
+                // 计算并保存clusters信息
+                CalculateAndSaveClustersAfterCut();
+            }
         }
     }
 
@@ -2383,7 +2524,7 @@ public class GameManager : MonoBehaviour
     private void OnTimeUp()
     {
         UnityEngine.Debug.Log("⏰ 时间到！自动生成下一关。");
-        NextLevel();
+        ShowFailPanel();
     }
 
     private void UpdateTimerUI()
@@ -2447,6 +2588,7 @@ public class GameManager : MonoBehaviour
             if (enableCutLimit && remainingCuts <= 0)
             {
                 UnityEngine.Debug.Log("切割次数已用完！");
+                ShowFailPanel();
                 return;
             }
             
@@ -2464,6 +2606,10 @@ public class GameManager : MonoBehaviour
             {
                 remainingCuts--;
                 UnityEngine.Debug.Log($"切割次数: {remainingCuts}/{currentCutLimit}");
+                if (remainingCuts <= 0)
+                {
+                    ShowFailPanel();
+                }
             }
             
             UnityEngine.Debug.Log($"批量切割完成，新增切割边数量: {edgesToRemove.Count}");
@@ -3405,9 +3551,17 @@ public class GameManager : MonoBehaviour
                 UnityEngine.Debug.LogWarning($"[HighlightCutEdges] 未找到对应的边: {edge.Item1.Number}-{edge.Item2.Number}");
             }
         }
-        // 更新最优cost（允许为负或为0）
-        optimalCost = cost;
-        hasOptimalCost = true;
+        // 只有在还没有设置最优cost时才更新（避免Hint功能覆盖Python计算的最优成本）
+        if (!hasOptimalCost)
+        {
+            optimalCost = cost;
+            hasOptimalCost = true;
+            UnityEngine.Debug.Log($"🔍 HighlightCutEdges: 设置初始最优成本为 {cost}");
+        }
+        else
+        {
+            UnityEngine.Debug.Log($"🔍 HighlightCutEdges: 保持现有最优成本 {optimalCost}，不覆盖为 {cost}");
+        }
         UpdateCostText();
     }
 
@@ -3419,6 +3573,13 @@ public class GameManager : MonoBehaviour
             if (_edgeWeightCache.TryGetValue(edge, out int w))
                 cost += w;
         }
+        
+        // 添加调试信息
+        if (playerCutEdges.Count > 0)
+        {
+            UnityEngine.Debug.Log($"🔍 GetCurrentCost: 切割了 {playerCutEdges.Count} 条边，总成本 = {cost}");
+        }
+        
         return cost;
     }
 
@@ -3432,12 +3593,18 @@ public class GameManager : MonoBehaviour
             // 每次cost更新时检查是否达到最佳cost（精确匹配）
             if (!hasShownVictoryPanel && hasOptimalCost && currentCost == optimalCost)
             {
-                UnityEngine.Debug.Log($"达到最佳cost，显示通关Panel。当前: {currentCost}, 最优: {optimalCost}");
+                UnityEngine.Debug.Log($"🎉 达到最佳cost，显示通关Panel。当前: {currentCost}, 最优: {optimalCost}");
                 ShowVictoryPanel();
             }
             else if (hasOptimalCost)
             {
                 UnityEngine.Debug.Log($"Cost更新: {currentCost}/{optimalCost} (差值 {currentCost - optimalCost})");
+            }
+            
+            // 添加调试信息，帮助诊断问题
+            if (hasOptimalCost && !hasShownVictoryPanel)
+            {
+                UnityEngine.Debug.Log($"🔍 胜利条件检查: currentCost={currentCost}, optimalCost={optimalCost}, hasOptimalCost={hasOptimalCost}, hasShownVictoryPanel={hasShownVictoryPanel}");
             }
         }
     }
