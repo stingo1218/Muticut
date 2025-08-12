@@ -1,6 +1,6 @@
 # Multicut Game
 
-An interactive puzzle game based on Unity that transforms the complex Multicut Problem into an intuitive and engaging gaming experience.
+An interactive game based on Unity that transforms the complex Multicut Problem into an intuitive and engaging gaming experience.
 
 ## 🎮 Project Overview
 
