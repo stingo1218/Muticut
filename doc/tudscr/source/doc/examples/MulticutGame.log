@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.8.11)  12 AUG 2025 06:56
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.8.11)  12 AUG 2025 07:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -365,4 +365,1868 @@ Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 \c@maxcomprange=\count340
 \c@mincompwidth=\count341
 Package biblatex Info: Trying to load biblatex default data model...
-P
+Package biblatex Info: ... file 'blx-dm.def' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/blx-dm.def
+File: blx-dm.def 2024/03/21 v3.20 biblatex datamodel (PK/MW)
+)
+Package biblatex Info: Trying to load biblatex style data model...
+Package biblatex Info: ... file 'alphabetic.dbx' not found.
+Package biblatex Info: Trying to load biblatex custom data model...
+Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
+\c@afterword=\count342
+\c@savedafterword=\count343
+\c@annotator=\count344
+\c@savedannotator=\count345
+\c@author=\count346
+\c@savedauthor=\count347
+\c@bookauthor=\count348
+\c@savedbookauthor=\count349
+\c@commentator=\count350
+\c@savedcommentator=\count351
+\c@editor=\count352
+\c@savededitor=\count353
+\c@editora=\count354
+\c@savededitora=\count355
+\c@editorb=\count356
+\c@savededitorb=\count357
+\c@editorc=\count358
+\c@savededitorc=\count359
+\c@foreword=\count360
+\c@savedforeword=\count361
+\c@holder=\count362
+\c@savedholder=\count363
+\c@introduction=\count364
+\c@savedintroduction=\count365
+\c@namea=\count366
+\c@savednamea=\count367
+\c@nameb=\count368
+\c@savednameb=\count369
+\c@namec=\count370
+\c@savednamec=\count371
+\c@translator=\count372
+\c@savedtranslator=\count373
+\c@shortauthor=\count374
+\c@savedshortauthor=\count375
+\c@shorteditor=\count376
+\c@savedshorteditor=\count377
+\c@labelname=\count378
+\c@savedlabelname=\count379
+\c@institution=\count380
+\c@savedinstitution=\count381
+\c@lista=\count382
+\c@savedlista=\count383
+\c@listb=\count384
+\c@savedlistb=\count385
+\c@listc=\count386
+\c@savedlistc=\count387
+\c@listd=\count388
+\c@savedlistd=\count389
+\c@liste=\count390
+\c@savedliste=\count391
+\c@listf=\count392
+\c@savedlistf=\count393
+\c@location=\count394
+\c@savedlocation=\count395
+\c@organization=\count396
+\c@savedorganization=\count397
+\c@origlocation=\count398
+\c@savedoriglocation=\count399
+\c@origpublisher=\count400
+\c@savedorigpublisher=\count401
+\c@publisher=\count402
+\c@savedpublisher=\count403
+\c@language=\count404
+\c@savedlanguage=\count405
+\c@origlanguage=\count406
+\c@savedoriglanguage=\count407
+\c@pageref=\count408
+\c@savedpageref=\count409
+\shorthandwidth=\skip79
+\shortjournalwidth=\skip80
+\shortserieswidth=\skip81
+\shorttitlewidth=\skip82
+\shortauthorwidth=\skip83
+\shorteditorwidth=\skip84
+\locallabelnumberwidth=\skip85
+\locallabelalphawidth=\skip86
+\localshorthandwidth=\skip87
+\localshortjournalwidth=\skip88
+\localshortserieswidth=\skip89
+\localshorttitlewidth=\skip90
+\localshortauthorwidth=\skip91
+\localshorteditorwidth=\skip92
+Package biblatex Info: Trying to load enhanced support for Unicode engines...
+Package biblatex Info: ... file 'blx-unicode.def' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/blx-unicode.def)
+Package biblatex Info: Trying to load compatibility code...
+Package biblatex Info: ... file 'blx-compat.def' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/blx-compat.def
+File: blx-compat.def 2024/03/21 v3.20 biblatex compatibility (PK/MW)
+)
+Package biblatex Info: Trying to load generic definitions...
+Package biblatex Info: ... file 'biblatex.def' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/biblatex.def
+File: biblatex.def 2024/03/21 v3.20 biblatex compatibility (PK/MW)
+\c@textcitecount=\count410
+\c@textcitetotal=\count411
+\c@textcitemaxnames=\count412
+\c@biburlbigbreakpenalty=\count413
+\c@biburlbreakpenalty=\count414
+\c@biburlnumpenalty=\count415
+\c@biburlucpenalty=\count416
+\c@biburllcpenalty=\count417
+\biburlbigskip=\muskip18
+\biburlnumskip=\muskip19
+\biburlucskip=\muskip20
+\biburllcskip=\muskip21
+\c@smartand=\count418
+)
+Package biblatex Info: Trying to load bibliography style 'alphabetic'...
+Package biblatex Info: ... file 'alphabetic.bbx' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/bbx/alphabetic.bbx
+File: alphabetic.bbx 2024/03/21 v3.20 biblatex bibliography style (PK/MW)
+Package biblatex Info: Trying to load bibliography style 'standard'...
+Package biblatex Info: ... file 'standard.bbx' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/bbx/standard.bbx
+File: standard.bbx 2024/03/21 v3.20 biblatex bibliography style (PK/MW)
+\c@bbx:relatedcount=\count419
+\c@bbx:relatedtotal=\count420
+))
+Package biblatex Info: Trying to load citation style 'alphabetic'...
+Package biblatex Info: ... file 'alphabetic.cbx' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/cbx/alphabetic.cbx
+File: alphabetic.cbx 2024/03/21 v3.20 biblatex citation style (PK/MW)
+Package biblatex Info: Redefining '\cite'.
+Package biblatex Info: Redefining '\parencite'.
+Package biblatex Info: Redefining '\footcite'.
+Package biblatex Info: Redefining '\footcitetext'.
+Package biblatex Info: Redefining '\smartcite'.
+Package biblatex Info: Redefining '\textcite'.
+Package biblatex Info: Redefining '\textcites'.
+Package biblatex Info: Redefining '\cites'.
+Package biblatex Info: Redefining '\parencites'.
+Package biblatex Info: Redefining '\smartcites'.
+)
+Package biblatex Info: Trying to load configuration file...
+Package biblatex Info: ... file 'biblatex.cfg' found.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/biblatex.cfg
+File: biblatex.cfg 
+)
+Package biblatex Info: XeTeX detected.
+(biblatex)             Assuming input encoding 'utf8'.
+Package biblatex Info: Document encoding is UTF8 ....
+Package biblatex Info: ... and expl3
+(biblatex)             2025-01-18 L3 programming layer (loader) 
+(biblatex)             is new enough (at least 2020/04/06),
+(biblatex)             setting 'casechanger=expl3'.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/blx-case-expl3.sty
+Package: blx-case-expl3 2024/03/21 v3.20 expl3 case changing code for biblatex
+)) (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: xetex.def on input line 106.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics-def/xetex.def
+File: xetex.def 2022/09/22 v5.0n Graphics/color driver for xetex
+))
+\Gin@req@height=\dimen176
+\Gin@req@width=\dimen177
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/caption/subcaption.sty
+Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2023/08/05 v3.6o Customizing captions (AR)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
+\caption@tempdima=\dimen178
+\captionmargin=\dimen179
+\caption@leftmargin=\dimen180
+\caption@rightmargin=\dimen181
+\caption@width=\dimen182
+\caption@indent=\dimen183
+\caption@parindent=\dimen184
+\caption@hangindent=\dimen185
+Package caption Info: KOMA-Script document class detected.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/caption/caption-koma.sto
+File: caption-koma.sto 2023/09/08 v2.0e Adaption of the caption package to the KOMA-Script document classes (AR)
+))
+\c@caption@flags=\count421
+\c@continuedfloat=\count422
+Package caption Info: KOMA-Script scrextend package detected.
+\caption@addmargin@hsize=\dimen186
+\caption@addmargin@linewidth=\dimen187
+)
+Package caption Info: New subtype `subfigure' on input line 238.
+\c@subfigure=\count423
+Package caption Info: New subtype `subtable' on input line 238.
+\c@subtable=\count424
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/floatrow/floatrow.sty
+Package: floatrow 2008/08/02 v0.3b floatrow: float package extension
+\c@float@type=\count425
+\float@exts=\toks24
+\float@box=\box68
+\@floatcapt=\box69
+Package floatrow Info: Modified float package code loaded on input line 455.
+Package floatrow Info: Modified rotfloat package code loaded on input line 473.
+\FR@everyfloat=\toks25
+\flrow@foot=\insert252
+\FB@wd=\dimen188
+\FBo@wd=\dimen189
+\FBc@wd=\dimen190
+\FBo@ht=\skip93
+\FBc@ht=\skip94
+\FBf@ht=\skip95
+\FBo@max=\skip96
+\FBc@max=\skip97
+\FBf@max=\skip98
+\c@FBl@b=\count426
+\floatbox@depth=\count427
+\c@FRobj=\count428
+\c@FRsobj=\count429
+\Xhsize=\skip99
+\sXhsize=\skip100
+\Zhsize=\skip101
+\sZhsize=\skip102
+\flrow@rowbox=\box70
+\FR@Zunitlength=\dimen191
+\c@FBcnt=\count430
+\FPOScnt=\count431
+\LTleft=\skip103
+\LTright=\skip104
+\LTleft=\skip105
+\LTright=\skip106
+\flrow@types=\toks26
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/floatrowbytocbasic/floatrowbytocbasic.sty
+Package: floatrowbytocbasic 2023-08-16 v1.0 improved floatrow package using tocbasic
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: xetex.def on input line 274.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count432
+\lst@gtempboxa=\box71
+\lst@token=\toks27
+\lst@length=\count433
+\lst@currlwidth=\dimen192
+\lst@column=\count434
+\lst@pos=\count435
+\lst@lostspace=\dimen193
+\lst@width=\dimen194
+\lst@newlines=\count436
+\lst@lineno=\count437
+\lst@maxwidth=\dimen195
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/listings/lstpatch.sty
+File: lstpatch.sty 2024/09/23 1.10c (Carsten Heinz)
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2024/09/23 1.10c (Carsten Heinz)
+\c@lstnumber=\count438
+\lst@skipnumbers=\count439
+\lst@framebox=\box72
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/listings/listings.cfg
+File: listings.cfg 2024/09/23 1.10c listings configuration
+))
+Package: listings 2024/09/23 1.10c (Carsten Heinz)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/filecontents/filecontents.sty
+Package: filecontents 2023/04/02 v1.5a Create an external file from within a LaTeX document
+
+
+Package filecontents Warning: This package is obsolete. Disabling it and
+(filecontents)                passing control to the filecontents environment
+(filecontents)                defined by the LaTeX kernel.
+
+)
+
+LaTeX Info: File `MulticutGame-temp.bib' already exists on the system.
+            Not generating it from this source.
+
+Package caption Info: Modify subtype `subfigure' on input line 260.
+Package caption Info: Modify subtype `subtable' on input line 261.
+(d:/Program/texlive/2025/texmf-dist/tex/latex/booktabs/booktabs.sty
+Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
+\heavyrulewidth=\dimen196
+\lightrulewidth=\dimen197
+\cmidrulewidth=\dimen198
+\belowrulesep=\dimen199
+\belowbottomsep=\dimen256
+\aboverulesep=\dimen257
+\abovetopsep=\dimen258
+\cmidrulesep=\dimen259
+\cmidrulekern=\dimen260
+\defaultaddspace=\dimen261
+\@cmidla=\count440
+\@cmidlb=\count441
+\@aboverulesep=\dimen262
+\@belowrulesep=\dimen263
+\@thisruleclass=\count442
+\@lastruleclass=\count443
+\@thisrulewidth=\dimen264
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tools/array.sty
+Package: array 2024/10/17 v2.6g Tabular extension package (FMi)
+\col@sep=\dimen265
+\ar@mcellbox=\box73
+\extrarowheight=\dimen266
+\NC@list=\toks28
+\extratabsurround=\skip107
+\backup@length=\skip108
+\ar@cellbox=\box74
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tools/tabularx.sty
+Package: tabularx 2023/12/11 v2.12a `tabularx' package (DPC)
+\TX@col@width=\dimen267
+\TX@old@table=\dimen268
+\TX@old@col=\dimen269
+\TX@target=\dimen270
+\TX@delta=\dimen271
+\TX@cols=\count444
+\TX@ftn=\toks29
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tabulary/tabulary.sty
+Package: tabulary 2024/06/04 v0.11 tabulary package (DPC)
+\TY@count=\count445
+\TY@linewidth=\dimen272
+\tymin=\dimen273
+\tymax=\dimen274
+\TY@tablewidth=\dimen275
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tabu/tabu.sty
+Package: tabu 2019/01/11 v2.9 - flexible LaTeX tabulars (FC+tabu-fixed)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/varwidth/varwidth.sty
+Package: varwidth 2009/03/30 ver 0.92;  Variable-width minipages
+\@vwid@box=\box75
+\sift@deathcycles=\count446
+\@vwid@loff=\dimen276
+\@vwid@roff=\dimen277
+)
+\c@taburow=\count447
+\tabu@nbcols=\count448
+\tabu@cnt=\count449
+\tabu@Xcol=\count450
+\tabu@alloc=\count451
+\tabu@nested=\count452
+\tabu@target=\dimen278
+\tabu@spreadtarget=\dimen279
+\tabu@naturalX=\dimen280
+\tabucolX=\dimen281
+\tabu@Xsum=\dimen282
+\extrarowdepth=\dimen283
+\abovetabulinesep=\dimen284
+\belowtabulinesep=\dimen285
+\tabustrutrule=\dimen286
+\tabu@thebody=\toks30
+\tabu@footnotes=\toks31
+\tabu@box=\box76
+\tabu@arstrutbox=\box77
+\tabu@hleads=\box78
+\tabu@vleads=\box79
+\tabu@cellskip=\skip109
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tools/longtable.sty
+Package: longtable 2024-10-27 v4.22 Multi-page Table package (DPC)
+\LTleft=\skip110
+\LTright=\skip111
+\LTpre=\skip112
+\LTpost=\skip113
+\LTchunksize=\count453
+\LTcapwidth=\dimen287
+\LT@head=\box80
+\LT@firsthead=\box81
+\LT@foot=\box82
+\LT@lastfoot=\box83
+\LT@gbox=\box84
+\LT@cols=\count454
+\LT@rows=\count455
+\c@LT@tables=\count456
+\c@LT@chunks=\count457
+\LT@p@ftn=\toks32
+)
+Class scrreprt Info: longtable captions redefined on input line 270.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/quoting/quoting.sty
+Package: quoting 2014/01/28 v0.1c Consolidated environment for displayed text
+\quo@toppartop=\skip114
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/microtype/microtype.sty
+Package: microtype 2025/02/11 v3.2a Micro-typographical refinements (RS)
+\MT@toks=\toks33
+\MT@tempbox=\box85
+\MT@count=\count458
+LaTeX Info: Redefining \noprotrusionifhmode on input line 1087.
+LaTeX Info: Redefining \leftprotrusion on input line 1088.
+\MT@prot@toks=\toks34
+LaTeX Info: Redefining \rightprotrusion on input line 1107.
+LaTeX Info: Redefining \textls on input line 1449.
+\MT@outer@kern=\dimen288
+LaTeX Info: Redefining \microtypecontext on input line 2053.
+LaTeX Info: Redefining \textmicrotypecontext on input line 2070.
+\MT@listname@count=\count459
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/microtype/microtype-xetex.def
+File: microtype-xetex.def 2025/02/11 v3.2a Definitions specific to xetex (RS)
+LaTeX Info: Redefining \lsstyle on input line 443.
+LaTeX Info: Redefining \lslig on input line 451.
+\MT@outer@space=\skip115
+)
+Package microtype Info: Loading configuration file microtype.cfg.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/microtype/microtype.cfg
+File: microtype.cfg 2025/02/11 v3.2a microtype main configuration file (RS)
+)
+LaTeX Info: Redefining \microtypesetup on input line 3065.
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/enumitem/enumitem.sty
+Package: enumitem 2025/02/06 v3.11 Customized lists
+\labelindent=\skip116
+\enit@outerparindent=\dimen289
+\enit@toks=\toks35
+\enit@inbox=\box86
+\enit@count@id=\count460
+\enitdp@description=\count461
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/ellipsis/ellipsis.sty
+Package: ellipsis 2020/05/22 v1.8 fixes spacing around ellipses (three dots)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/tools/xspace.sty
+Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
+)
+LaTeX Info: Redefining \textellipsis on input line 77.
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/xfrac/xfrac.sty (d:/Program/texlive/2025/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2021/08/26 v2.01 AMS text
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks36
+\ex@=\dimen290
+))
+Package: xfrac 2024-06-04 Split-level fractions
+\l__xfrac_slash_box=\box87
+\l__xfrac_tmp_box=\box88
+\l__xfrac_denominator_bot_sep_dim=\dimen291
+\l__xfrac_numerator_bot_sep_dim=\dimen292
+\l__xfrac_numerator_top_sep_dim=\dimen293
+\l__xfrac_slash_left_sep_dim=\dimen294
+\l__xfrac_slash_right_sep_dim=\dimen295
+\l__xfrac_slash_left_muskip=\muskip22
+\l__xfrac_slash_right_muskip=\muskip23
+
+LaTeX template Info: Declaring template type 'xfrac' taking 3 argument(s) on
+(template)           line 100.
+
+
+LaTeX template Info: Declaring instance 'cmr' of type xfrac on line 392.
+
+
+LaTeX template Info: Declaring instance 'cmss' of type xfrac on line 392.
+
+
+LaTeX template Info: Declaring instance 'cmtt' of type xfrac on line 392.
+
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/isodate/isodate.sty
+Package: isodate 2010/01/03 v2.30 Print dates with different formats (HH)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/substr/substr.sty
+Package: substr 2009/10/20 v1.2 Handle substrings
+\c@su@anzahl=\count462
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/isodate/english.idf
+File: english.idf 2010/01/03 v2.30 Language definitions for isodate package (HH)
+
+Define commands for English date format
+)
+\c@iso@tmpmonth=\count463
+\c@iso@yeartwo=\count464
+\c@iso@slash=\count465
+\c@iso@minus=\count466
+\c@iso@dot=\count467
+\c@iso@@slash=\count468
+\c@iso@@minus=\count469
+\c@iso@@dot=\count470
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2024-11-05 v7.01l Hypertext links for LaTeX
+ (d:/Program/texlive/2025/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+) (d:/Program/texlive/2025/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/hycolor/hycolor.sty
+Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2023-11-26 v2.56 Cross-referencing by name of section
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/refcount/refcount.sty
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+) (d:/Program/texlive/2025/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+)
+\c@section@level=\count471
+) (d:/Program/texlive/2025/texmf-dist/tex/generic/stringenc/stringenc.sty
+Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO)
+)
+\@linkdim=\dimen296
+\Hy@linkcounter=\count472
+\Hy@pagecounter=\count473
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2024-11-05 v7.01l Hyperref: PDFDocEncoding definition (HO)
+) (d:/Program/texlive/2025/texmf-dist/tex/generic/intcalc/intcalc.sty
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+\Hy@SavedSpaceFactor=\count474
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/hyperref/puenc.def
+File: puenc.def 2024-11-05 v7.01l Hyperref: PDF Unicode definition (HO)
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 4040.
+Package hyperref Info: Hyper figures OFF on input line 4157.
+Package hyperref Info: Link nesting OFF on input line 4162.
+Package hyperref Info: Hyper index ON on input line 4165.
+Package hyperref Info: Plain pages OFF on input line 4172.
+Package hyperref Info: Backreferencing OFF on input line 4177.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4424.
+\c@Hy@tempcnt=\count475
+LaTeX Info: Redefining \url on input line 4763.
+\XeTeXLinkMargin=\dimen297
+ (d:/Program/texlive/2025/texmf-dist/tex/generic/bitset/bitset.sty
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+ (d:/Program/texlive/2025/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
+))
+\Fld@menulength=\count476
+\Field@Width=\dimen298
+\Fld@charsize=\dimen299
+Package hyperref Info: Hyper figures OFF on input line 6042.
+Package hyperref Info: Link nesting OFF on input line 6047.
+Package hyperref Info: Hyper index ON on input line 6050.
+Package hyperref Info: backreferencing OFF on input line 6057.
+Package hyperref Info: Link coloring ON on input line 6060.
+Package hyperref Info: Link coloring with OCG OFF on input line 6067.
+Package hyperref Info: PDF/A mode OFF on input line 6072.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/base/atbegshi-ltx.sty
+Package: atbegshi-ltx 2021/01/10 v1.0c Emulation of the original atbegshi
+package with kernel methods
+)
+\Hy@abspage=\count477
+\c@Item=\count478
+\c@Hfootnote=\count479
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/glossaries/base/glossaries.sty
+Package: glossaries 2025/03/03 v4.56 (NLCT)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+Package: xkeyval 2022/06/16 v2.9 package option processing (HA)
+ (d:/Program/texlive/2025/texmf-dist/tex/generic/xkeyval/xkeyval.tex (d:/Program/texlive/2025/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+\XKV@toks=\toks37
+\XKV@tempa@toks=\toks38
+)
+\XKV@depth=\count480
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+)) (d:/Program/texlive/2025/texmf-dist/tex/latex/mfirstuc/mfirstuc.sty
+Package: mfirstuc 2022/10/14 v2.08 (NLCT)
+\@glsmfirst=\toks39
+\@glsmrest=\toks40
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/xfor/xfor.sty
+Package: xfor 2009/02/05 v1.05 (NLCT)
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tracklang/tracklang.sty
+Package: tracklang 2025/03/04 v1.6.5 (NLCT) Track Languages
+ (d:/Program/texlive/2025/texmf-dist/tex/generic/tracklang/tracklang.tex)) (d:/Program/texlive/2025/texmf-dist/tex/latex/glossaries-english/glossaries-english.ldf
+File: glossaries-english.ldf 2014/11/23 v1.0
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/datatool/datatool-base.sty
+Package: datatool-base 2025/03/05 v3.0.1 (NLCT)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2024/11/05 v2.17t AMS math features
+\@mathmargin=\skip117
+
+For additional information on amsmath, use the `?' option.
+(d:/Program/texlive/2025/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen300
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count481
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count482
+\leftroot@=\count483
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count484
+\DOTSCASE@=\count485
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box89
+\strutbox@=\box90
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen301
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count486
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count487
+\dotsspace@=\muskip24
+\c@parentequation=\count488
+\dspbrk@lvl=\count489
+\tag@help=\toks41
+\row@=\count490
+\column@=\count491
+\maxfields@=\count492
+\andhelp@=\toks42
+\eqnshift@=\dimen302
+\alignsep@=\dimen303
+\tagshift@=\dimen304
+\tagwidth@=\dimen305
+\totwidth@=\dimen306
+\lineht@=\dimen307
+\@envbody=\toks43
+\multlinegap=\skip118
+\multlinetaggap=\skip119
+\mathdisplay@stack=\toks44
+LaTeX Info: Redefining \[ on input line 2953.
+LaTeX Info: Redefining \] on input line 2954.
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/datatool/datatool-l3fp.def
+File: datatool-l3fp.def 2025/03/05 v3.0.1 (NLCT)
+)
+\@dtl@toks=\toks45
+\@dtl@tmpcount=\count493
+\dtl@tmplength=\skip120
+\l__datatool_measure_box=\box91
+\dtl@sortresult=\count494
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/datatool/datatool-utf8.ldf
+File: datatool-utf8.ldf 2025/03/05 v3.0.1 (NLCT)
+)
+\@dtl@datatype=\count495
+\l__datatool_tmpa_int=\count496
+\l__datatool_tmpb_int=\count497
+\l__datatool_tmpc_int=\count498
+\l__datatool_tmpd_int=\count499
+\l__datatool_count_int=\count500
+\l__datatool_tmp_datatype_int=\count501
+\l__datatool_tmpa_dim=\dimen308
+\l__datatool_tmpb_dim=\dimen309
+\c_datatool_unknown_int=\count502
+\l__datatool_year_int=\count503
+\l__datatool_month_int=\count504
+\l__datatool_day_int=\count505
+\l__datatool_hour_int=\count506
+\l__datatool_minute_int=\count507
+\l__datatool_second_int=\count508
+\l__datatool_tzhour_int=\count509
+\l__datatool_tzminute_int=\count510
+\l__datatool_julian_int=\count511
+\l__datatool_local_julian_int=\count512
+\l__datatool_prefix_int=\count513
+\l__datatool_suffix_int=\count514
+\@dtl@foreach@level=\count515
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/datatool-english/datatool-english.ldf
+File: datatool-english.ldf 2025/03/01 v1.0 (NLCT)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/datatool-english/datatool-english-utf8.ldf
+File: datatool-english-utf8.ldf 2025/03/01 v1.0 (NLCT)
+))
+\dtl@codeA=\count516
+\dtl@codeB=\count517
+)
+\gls@level=\count518
+\@gls@tmpb=\toks46
+\gls@tmplen=\skip121
+\glskeylisttok=\toks47
+\glslabeltok=\toks48
+\glsshorttok=\toks49
+\glslongtok=\toks50
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/glossaries/styles/glossary-hypernav.sty
+Package: glossary-hypernav 2025/03/03 v4.56 (NLCT)
+))
+\glswrite=\write4
+\glo@acronym@file=\write5
+\openout5 = `MulticutGame.acn'.
+
+Package glossaries Info: Writing glossary file MulticutGame.acn on input line 286.
+\glo@symbols@file=\write6
+\openout6 = `MulticutGame.slo'.
+
+Package glossaries Info: Writing glossary file MulticutGame.slo on input line 286.
+Package hyperref Info: Driver (autodetected): hxetex.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/hyperref/hxetex.def
+File: hxetex.def 2024-11-05 v7.01l Hyperref driver for XeTeX
+\pdfm@box=\box92
+\c@Hy@AnnotLevel=\count519
+\HyField@AnnotCount=\count520
+\Fld@listcount=\count521
+\c@bookmark@seq@number=\count522
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+Package: rerunfilecheck 2022-07-10 v1.10 Rerun checks for auxiliary files (HO)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/base/atveryend-ltx.sty
+Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atveryend package
+with kernel methods
+) (d:/Program/texlive/2025/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 285.
+)
+\Hy@SectionHShift=\skip122
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/tudscr/tudscrcolor.sty
+Package: tudscrcolor 2022/08/09 v2.06o TUD-Script package (corporate design colors)
+)
+Invalid UTF-8 byte or sequence at line 287 replaced by U+FFFD.
+Invalid UTF-8 byte or sequence at line 287 replaced by U+FFFD.
+Invalid UTF-8 byte or sequence at line 287 replaced by U+FFFD.
+
+Package fontspec Info: 
+(fontspec)             Font family 'opensans-TOsF' created for font
+(fontspec)             'opensans-TOsF' with options
+(fontspec)             [NFSSFamily=opensans-TOsF,Ligatures=TeX,BoldFont={},ItalicFont={},BoldItalicFont={},SmallCapsFont={},Numbers=OldStyle,UprightFont={OpenSans-Regular},FontFace={l}{n}{OpenSans-Light},FontFace={m}{n}{OpenSans-Regular},FontFace={sb}{n}{OpenSans-SemiBold},FontFace={b}{n}{OpenSans-Bold},FontFace={bx}{n}{OpenSans-Bold},FontFace={eb}{n}{OpenSans-ExtraBold},FontFace={l}{it}{OpenSans-LightItalic},FontFace={m}{it}{OpenSans-Italic},FontFace={sb}{it}{OpenSans-SemiBoldItalic},FontFace={b}{it}{OpenSans-BoldItalic},FontFace={bx}{it}{OpenSans-BoldItalic},FontFace={eb}{it}{OpenSans-ExtraBoldItalic}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - (l/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Light/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Regular/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (sb/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-SemiBold/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Bold/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (bx/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Bold/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (eb/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-ExtraBold/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (l/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-LightItalic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-Italic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (sb/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-SemiBoldItalic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-BoldItalic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (bx/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-BoldItalic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+(fontspec)             - (eb/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-ExtraBoldItalic/OT:script=latn;language=dflt;+onum;mapping=tex-text;"
+
+
+Package fontspec Info: 
+(fontspec)             Font family 'opensans-TLF' created for font
+(fontspec)             'opensans-TLF' with options
+(fontspec)             [NFSSFamily=opensans-TLF,Ligatures=TeX,BoldFont={},ItalicFont={},BoldItalicFont={},SmallCapsFont={},UprightFont={OpenSans-Regular},FontFace={l}{n}{OpenSans-Light},FontFace={m}{n}{OpenSans-Regular},FontFace={sb}{n}{OpenSans-SemiBold},FontFace={b}{n}{OpenSans-Bold},FontFace={bx}{n}{OpenSans-Bold},FontFace={eb}{n}{OpenSans-ExtraBold},FontFace={l}{it}{OpenSans-LightItalic},FontFace={m}{it}{OpenSans-Italic},FontFace={sb}{it}{OpenSans-SemiBoldItalic},FontFace={b}{it}{OpenSans-BoldItalic},FontFace={bx}{it}{OpenSans-BoldItalic},FontFace={eb}{it}{OpenSans-ExtraBoldItalic}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - (l/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Light/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Regular/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (sb/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-SemiBold/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Bold/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (bx/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-Bold/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (eb/n) with NFSS spec.:
+(fontspec)             <->"OpenSans-ExtraBold/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (l/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-LightItalic/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-Italic/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (sb/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-SemiBoldItalic/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-BoldItalic/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (bx/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-BoldItalic/OT:script=latn;language=dflt;mapping=tex-text;"
+(fontspec)             - (eb/it) with NFSS spec.:
+(fontspec)             <->"OpenSans-ExtraBoldItalic/OT:script=latn;language=dflt;mapping=tex-text;"
+
+LaTeX Info: Redefining \textcdln on input line 287.
+LaTeX Info: Redefining \textcdrn on input line 287.
+LaTeX Info: Redefining \textcdsn on input line 287.
+LaTeX Info: Redefining \textcdbn on input line 287.
+LaTeX Info: Redefining \textcdxn on input line 287.
+LaTeX Info: Redefining \textcdli on input line 287.
+LaTeX Info: Redefining \textcdri on input line 287.
+LaTeX Info: Redefining \textcdsi on input line 287.
+LaTeX Info: Redefining \textcdbi on input line 287.
+LaTeX Info: Redefining \textcdxi on input line 287.
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Regular scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Light scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Regular scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Medium scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Bold scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Bold scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Bold scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-LightItalic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-Italic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-MediumItalic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-BoldItalic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-BoldItalic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             RobotoMono-BoldItalic scale = 0.9.
+
+
+Package fontspec Info: 
+(fontspec)             Font family 'tudtt' created for font 'tudtt' with
+(fontspec)             options
+(fontspec)             [NFSSFamily=tudtt,Ligatures=TeX,BoldFont={},ItalicFont={},BoldItalicFont={},SmallCapsFont={},Scale={0.9},UprightFont={RobotoMono-Regular},FontFace={l}{n}{RobotoMono-Light},FontFace={m}{n}{RobotoMono-Regular},FontFace={sb}{n}{RobotoMono-Medium},FontFace={b}{n}{RobotoMono-Bold},FontFace={bx}{n}{RobotoMono-Bold},FontFace={eb}{n}{RobotoMono-Bold},FontFace={l}{it}{RobotoMono-LightItalic},FontFace={m}{it}{RobotoMono-Italic},FontFace={sb}{it}{RobotoMono-MediumItalic},FontFace={b}{it}{RobotoMono-BoldItalic},FontFace={bx}{it}{RobotoMono-BoldItalic},FontFace={eb}{it}{RobotoMono-BoldItalic}].
+(fontspec)              
+(fontspec)              This font family consists of the following NFSS
+(fontspec)             series/shapes:
+(fontspec)              
+(fontspec)             - (l/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Light/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - 'normal' (m/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Regular/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (sb/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Medium/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - 'bold' (b/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Bold/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (bx/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Bold/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (eb/n) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Bold/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (l/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-LightItalic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - 'italic' (m/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-Italic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (sb/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-MediumItalic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - 'bold italic' (b/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-BoldItalic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (bx/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-BoldItalic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+(fontspec)             - (eb/it) with NFSS spec.:
+(fontspec)             <->s*[0.9]"RobotoMono-BoldItalic/OT:script=DFLT;language=dflt;mapping=tex-text;"
+
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/mathastext/mathastext.sty
+Package: mathastext 2024/10/26 v1.4e Use the text font in math mode (JFB)
+
+Package mathastext Info: Starting the math mode configuration.
+\mst@exists@muskip=\muskip25
+\mst@forall@muskip=\muskip26
+\mst@prime@muskip=\muskip27
+\mst@do@nonletters=\toks51
+\mst@undo@nonletters=\toks52
+\mst@do@easynonletters=\toks53
+\mst@undo@easynonletters=\toks54
+\symmtoperatorfont=\mathgroup4
+\symmtletterfont=\mathgroup5
+(   mathastext:   ) ! and ?
+(   mathastext:   ) punctuation: , . : ; and \colon
+LaTeX Info: Redefining \relbar on input line 1197.
+LaTeX Info: Redefining \rightarrowfill on input line 1198.
+LaTeX Info: Redefining \leftarrowfill on input line 1201.
+(   mathastext:   ) + and =
+(   mathastext:   ) parentheses ( ) [ ] and slash /
+(   mathastext:   ) alldelims: < > \backslash \setminus | \vert \mid \{ \}
+LaTeX Font Info:    Redeclaring math symbol \setminus on input line 1410.
+LaTeX Info: Redefining \models on input line 1429.
+(   mathastext:   ) \# \mathdollar \% \& 
+(   mathastext:   ) \imath and \jmath 
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `normal'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 2934.
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `bold'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 2934.
+(   mathastext:   ) \hbar
+(   mathastext:   ) minus is kept as is in subdued normal and bold math versions
+(   mathastext:   ) Subdued `normal' and `bold' math versions.
+
+Package mathastext Info: Loading is complete.  You can now use \Mathastext to
+(mathastext)             modify the normal and bold math versions.  Use it
+(mathastext)             with optional argument or use \MTDeclareVersion to
+(mathastext)             declare additional math versions.
+)
+\symtudupgrk=\mathgroup6
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `bold'
+(Font)                  LGR/cmr/m/n --> LGR/cmr/bx/n on input line 287.
+\symtuditgrk=\mathgroup7
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `bold'
+(Font)                  LGR/cmr/m/it --> LGR/cmr/bx/it on input line 287.
+\c@mv@tudnormal@lm=\count523
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudnormal@lm'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/l/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudnormal@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+\c@mv@tudbold@lm=\count524
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudbold@lm'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/m/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudbold@lm'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudnormal@lm'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudbold@lm'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudnormal@lm'
+(Font)                  OML/cmm/m/it --> OML/iwona/l/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudbold@lm'
+(Font)                  OML/cmm/m/it --> OML/iwona/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudnormal@lm'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudbold@lm'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudnormal@lm'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudbold@lm'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudnormal@lm'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudbold@lm'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudnormal@lm'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudbold@lm'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudnormal@lm'
+(Font)                  OT1/iwona/l/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudbold@lm'
+(Font)                  OT1/iwona/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudnormal@lm'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudbold@lm'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudnormal@lm'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudbold@lm'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudnormal@lm'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudbold@lm'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudnormal@lm'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudbold@lm'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudnormal@lm'
+(Font)                  OMS/iwona/l/n --> U/eus/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudbold@lm'
+(Font)                  OMS/iwona/m/n --> U/eus/b/n on input line 287.
+\c@mv@tudnormal@lsb=\count525
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudnormal@lsb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/l/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudnormal@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/l/n on input line 287.
+\c@mv@tudbold@lsb=\count526
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudbold@lsb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/sb/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudbold@lsb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudnormal@lsb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudbold@lsb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudnormal@lsb'
+(Font)                  OML/cmm/m/it --> OML/iwona/l/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudbold@lsb'
+(Font)                  OML/cmm/m/it --> OML/iwona/sb/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudnormal@lsb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudbold@lsb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudnormal@lsb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudbold@lsb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudnormal@lsb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudbold@lsb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudnormal@lsb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudbold@lsb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudnormal@lsb'
+(Font)                  > TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudbold@lsb'
+(Font)                  > TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudnormal@lsb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudbold@lsb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudnormal@lsb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudbold@lsb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudnormal@lsb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/l/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudbold@lsb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudnormal@lsb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/l/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudbold@lsb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudnormal@lsb'
+(Font)                  > U/eus/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudbold@lsb'
+(Font)                  > U/eus/b/n on input line 287.
+\c@mv@tudnormal@msb=\count527
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudnormal@msb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/m/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudnormal@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+\c@mv@tudbold@msb=\count528
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudbold@msb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/sb/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudbold@msb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudnormal@msb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudbold@msb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudnormal@msb'
+(Font)                  OML/cmm/m/it --> OML/iwona/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudbold@msb'
+(Font)                  OML/cmm/m/it --> OML/iwona/sb/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudnormal@msb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudbold@msb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudnormal@msb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudbold@msb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/sb/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudnormal@msb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudbold@msb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudnormal@msb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudbold@msb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudnormal@msb'
+(Font)                  > TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudbold@msb'
+(Font)                  > TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudnormal@msb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudbold@msb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudnormal@msb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudbold@msb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudnormal@msb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudbold@msb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/sb/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudnormal@msb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudbold@msb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/sb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudnormal@msb'
+(Font)                  > U/eus/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudbold@msb'
+(Font)                  > U/eus/b/n on input line 287.
+\c@mv@tudnormal@mb=\count529
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudnormal@mb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/m/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudnormal@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/m/n on input line 287.
+\c@mv@tudbold@mb=\count530
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/b/it on input line 287.
+
+Package mathastext Info: Latin letters in math version `tudbold@mb'
+(mathastext)             declared on input line 287
+(mathastext)             will use the font TU/opensans-TLF/b/it
+(mathastext)             Other characters (digits, ...) and \log-like names
+(mathastext)             will be in `n' shape.
+
+LaTeX Font Info:    Overwriting math alphabet `\Mathnormalbold' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathbf' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathit' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/l/it --> TU/opensans-TLF/b/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathsf' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\Mathtt' in version `tudbold@mb'
+(Font)                  TU/opensans-TLF/l/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudnormal@mb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `operators' in version `tudbold@mb'
+(Font)                  OT1/cmr/m/n --> OT1/iwona/b/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudnormal@mb'
+(Font)                  OML/cmm/m/it --> OML/iwona/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `letters' in version `tudbold@mb'
+(Font)                  OML/cmm/m/it --> OML/iwona/b/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudnormal@mb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `symbols' in version `tudbold@mb'
+(Font)                  OMS/cmsy/m/n --> OMS/iwona/b/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudnormal@mb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `tudbold@mb'
+(Font)                  OMX/cmex/m/n --> OMX/iwona/b/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudnormal@mb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tuditgrk' in version `tudbold@mb'
+(Font)                  LGR/cmr/m/it --> LGR/opensans-TLF/b/it on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudnormal@mb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting symbol font `tudupgrk' in version `tudbold@mb'
+(Font)                  LGR/cmr/m/n --> LGR/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudnormal@mb'
+(Font)                  > TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathrm' in version `tudbold@mb'
+(Font)                  > TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudnormal@mb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `tudbold@mb'
+(Font)                  OT1/cmr/bx/n --> TU/opensans-TLF/eb/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudnormal@mb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `tudbold@mb'
+(Font)                  OT1/cmss/m/n --> TU/opensans-TLF/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudnormal@mb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/m/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `tudbold@mb'
+(Font)                  OT1/cmr/m/it --> TU/opensans-TLF/b/it on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudnormal@mb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `tudbold@mb'
+(Font)                  OT1/cmtt/m/n --> TU/tudtt/b/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudnormal@mb'
+(Font)                  > U/eus/m/n on input line 287.
+LaTeX Font Info:    Overwriting math alphabet `\mathcal' in version `tudbold@mb'
+(Font)                  > U/eus/b/n on input line 287.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/koma-script/scrlayer-scrpage.sty
+Package: scrlayer-scrpage 2024/10/24 v3.43 KOMA-Script package (end user interface for scrlayer)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/koma-script/scrlayer.sty
+Package: scrlayer 2024/10/24 v3.43 KOMA-Script package (defining layers and page styles)
+Package scrlayer Info: patching LaTeX kernel macro \pagestyle on input line 2182.
+)
+Package scrlayer-scrpage Info: Makeing stand-alone element `pagehead' from
+(scrlayer-scrpage)             alias to `pageheadfoot' on input line 1106.
+)
+Package typearea Info: These are the values describing the layout:
+(typearea)             DIV  = 10
+(typearea)             BCOR = 0.0pt
+(typearea)             \paperwidth      = 597.50793pt
+(typearea)              \textwidth      = 418.25555pt
+(typearea)              DIV departure   = -6%
+(typearea)              \evensidemargin = 17.3562pt
+(typearea)              \oddsidemargin  = 17.3562pt
+(typearea)             \paperheight     = 845.04694pt
+(typearea)              \textheight     = 595.80026pt
+(typearea)              \topmargin      = -25.16531pt
+(typearea)              \headheight     = 17.0pt
+(typearea)              \headsep        = 20.40001pt
+(typearea)              \topskip        = 11.0pt
+(typearea)              \footskip       = 47.6pt
+(typearea)              \baselineskip   = 13.6pt
+(typearea)              on input line 287.
+Package typearea Info: Using dirty hack to recalculate internal output
+(typearea)             dimensions of LaTeX on input line 287.
+Package csquotes Info: Checking for multilingual support...
+Package csquotes Info: ... found 'babel' package.
+Package csquotes Info: Adjusting default style.
+Package csquotes Info: Redefining alias 'default' -> 'english'.
+ (./MulticutGame.aux)
+\openout1 = `MulticutGame.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for TU/lmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 287.
+LaTeX Font Info:    ... okay on input line 287.
+LaTeX Font Info:    Checking defaults for LGR/lmr/m/n on input line 287.
+LaTeX Font Info:    Trying to load font information for LGR+lmr on input line 287.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/cbfonts-fd/lgrlmr.fd
+File: lgrlmr.fd 2017/07/29 v1.2 Scalable Greek Latin Modern Regular
+)
+LaTeX Font Info:    ... okay on input line 287.
+Package scrbase Info: activating english \abstractname on input line 287.
+Package scrbase Info: activating english \partname on input line 287.
+Package scrbase Info: activating english \chaptername on input line 287.
+Package scrbase Info: activating english \appendixname on input line 287.
+Package scrbase Info: activating english \figurename on input line 287.
+Package scrbase Info: activating english \tablename on input line 287.
+Package scrbase Info: activating english \contentsname on input line 287.
+Package scrbase Info: activating english \listfigurename on input line 287.
+Package scrbase Info: activating english \listtablename on input line 287.
+Package scrbase Info: activating english \bibname on input line 287.
+Package scrbase Info: activating english \indexname on input line 287.
+Package scrbase Info: activating english \graduationtext on input line 287.
+Package scrbase Info: activating english \refereename on input line 287.
+Package scrbase Info: activating english \refereeothername on input line 287.
+Package scrbase Info: activating english \advisorname on input line 287.
+Package scrbase Info: activating english \advisorothername on input line 287.
+Package scrbase Info: activating english \supervisorname on input line 287.
+Package scrbase Info: activating english \supervisorothername on input line 287.
+Package scrbase Info: activating english \professorname on input line 287.
+Package scrbase Info: activating english \professorothername on input line 287.
+Package scrbase Info: activating english \datetext on input line 287.
+Package scrbase Info: activating english \dateofbirthtext on input line 287.
+Package scrbase Info: activating english \placeofbirthtext on input line 287.
+Package scrbase Info: activating english \defensedatetext on input line 287.
+Package scrbase Info: activating english \matriculationyearname on input line 287.
+Package scrbase Info: activating english \matriculationnumbername on input line 287.
+Package scrbase Info: activating english \coverpagename on input line 287.
+Package scrbase Info: activating english \titlepagename on input line 287.
+Package scrbase Info: activating english \titlename on input line 287.
+Package scrbase Info: activating english \confirmationname on input line 287.
+Package scrbase Info: activating english \confirmationtext on input line 287.
+Package scrbase Info: activating english \blockingname on input line 287.
+Package scrbase Info: activating english \blockingtext on input line 287.
+Package scrbase Info: activating english \coursename on input line 287.
+Package scrbase Info: activating english \disciplinename on input line 287.
+Package scrbase Info: activating english \listingname on input line 287.
+Package scrbase Info: activating english \listlistingname on input line 287.
+Package scrbase Info: activating english \habilitationname on input line 287.
+Package scrbase Info: activating english \dissertationname on input line 287.
+Package scrbase Info: activating english \diplomathesisname on input line 287.
+Package scrbase Info: activating english \masterthesisname on input line 287.
+Package scrbase Info: activating english \bachelorthesisname on input line 287.
+Package scrbase Info: activating english \studentthesisname on input line 287.
+Package scrbase Info: activating english \studentresearchname on input line 287.
+Package scrbase Info: activating english \projectpapername on input line 287.
+Package scrbase Info: activating english \seminarpapername on input line 287.
+Package scrbase Info: activating english \termpapername on input line 287.
+Package scrbase Info: activating english \researchname on input line 287.
+Package scrbase Info: activating english \logname on input line 287.
+Package scrbase Info: activating english \internshipname on input line 287.
+Package scrbase Info: activating english \reportname on input line 287.
+File: TUD-black.pdf Graphic file (type pdf)
+<use TUD-black.pdf>
+File: TUD-blue.pdf Graphic file (type pdf)
+<use TUD-blue.pdf>
+File: TUD-white.pdf Graphic file (type pdf)
+<use TUD-white.pdf>
+File: DDC-24.pdf Graphic file (type pdf)
+<use DDC-24.pdf>
+File: DDC-27.pdf Graphic file (type pdf)
+<use DDC-27.pdf>
+File: DDC-30.pdf Graphic file (type pdf)
+<use DDC-30.pdf>
+File: DDC-22.pdf Graphic file (type pdf)
+<use DDC-22.pdf>
+File: DDC-25.pdf Graphic file (type pdf)
+<use DDC-25.pdf>
+File: DDC-28.pdf Graphic file (type pdf)
+<use DDC-28.pdf>
+
+*geometry* detected driver: <none>
+*geometry* verbose mode - [ preamble ] result:
+* driver: \Gm@driver 
+* paper: custom
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(85.35826pt, 455.24417pt, 56.9055pt)
+* v-part:(T,H,B)=(56.9055pt, 702.78317pt, 85.35826pt)
+* \paperwidth=597.50793pt
+* \paperheight=845.04694pt
+* \textwidth=455.24417pt
+* \textheight=702.78317pt
+* \oddsidemargin=13.08827pt
+* \evensidemargin=13.08827pt
+* \topmargin=-52.7645pt
+* \headheight=17.0pt
+* \headsep=20.40001pt
+* \topskip=11.0pt
+* \footskip=42.60748pt
+* \marginparwidth=36.5055pt
+* \marginparsep=10.20001pt
+* \columnsep=14.96pt
+* \skip\footins=10.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+Package scrbase Info: activating english \authorname on input line 287.
+Package scrbase Info: activating english \contactname on input line 287.
+Package scrbase Info: activating english \contactpersonname on input line 287.
+Package scrbase Info: activating english \taskname on input line 287.
+Package scrbase Info: activating english \tasktext on input line 287.
+Package scrbase Info: activating english \namesname on input line 287.
+Package scrbase Info: activating english \issuedatetext on input line 287.
+Package scrbase Info: activating english \duedatetext on input line 287.
+Package scrbase Info: activating english \chairmanname on input line 287.
+Package scrbase Info: activating english \focusname on input line 287.
+Package scrbase Info: activating english \objectivesname on input line 287.
+Package scrbase Info: activating english \evaluationname on input line 287.
+Package scrbase Info: activating english \evaluationtext on input line 287.
+Package scrbase Info: activating english \contentname on input line 287.
+Package scrbase Info: activating english \assessmentname on input line 287.
+Package scrbase Info: activating english \gradetext on input line 287.
+Package scrbase Info: activating english \noticename on input line 287.
+Package biblatex Info: Trying to load language 'english'...
+Package biblatex Info: ... file 'english.lbx' found.
+(d:/Program/texlive/2025/texmf-dist/tex/latex/biblatex/lbx/english.lbx
+File: english.lbx 2024/03/21 v3.20 biblatex localization (PK/MW)
+)
+Package biblatex Info: XeTeX detected.
+(biblatex)             Assuming input encoding 'utf8'.
+Package biblatex Info: Automatic encoding selection.
+(biblatex)             Assuming data encoding 'utf8'.
+\openout3 = `MulticutGame.bcf'.
+
+Package biblatex Info: Trying to load bibliographic data...
+Package biblatex Info: ... file 'MulticutGame.bbl' found.
+ (./MulticutGame.bbl)
+Package biblatex Info: Reference section=0 on input line 287.
+Package biblatex Info: Reference segment=0 on input line 287.
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: float package is loaded.
+Package caption Info: floatrow package is loaded.
+Package caption Info: floatrow package is loaded.
+Package caption Info: hyperref package is loaded.
+Package caption Info: listings package is loaded.
+Package caption Info: longtable package is loaded.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/caption/ltcaption.sty
+Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
+)
+Package caption Info: Fixing longtable code of `floatrow' package.
+Package caption Info: End \AtBeginDocument code.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/floatrow/fr-longtable.sty
+Package: fr-longtable 2007/11/28 v0.1b (beta) floatrow: additions for longtable
+\flrow@LT@lasthead=\box93
+\flrow@LT@prelastfoot=\box94
+\c@FBLTpage=\count531
+)
+\c@lstlisting=\count532
+Package tocbasic Info: setting babel extension for `lol' on input line 287.
+\scr@dte@lstlisting@maxnumwidth=\skip123
+Package microtype Info: Patching varwidth to enable character protrusion.
+\MT@vwid@leftmargin=\dimen310
+\MT@vwid@rightmargin=\dimen311
+LaTeX Info: Redefining \microtypecontext on input line 287.
+Package microtype Info: Applying patch `item' on input line 287.
+Package microtype Info: Applying patch `toc' on input line 287.
+Package microtype Info: Applying patch `eqnum' on input line 287.
+Package microtype Info: Applying patch `footnote' on input line 287.
+Package microtype Info: Applying patch `verbatim' on input line 287.
+LaTeX Info: Redefining \microtypesetup on input line 287.
+Package microtype Info: Character protrusion enabled (level 2).
+Package microtype Info: Using default protrusion set `alltext'.
+Package microtype Info: No adjustment of tracking.
+Package microtype Info: No adjustment of spacing.
+Package microtype Info: No adjustment of kerning.
+Package microtype Info: Redefining babel's language switching commands.
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `opensans-TLF' (encoding: TU).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+LaTeX Info: Redefining \dots on input line 287.
+
+isodate: babel.sty has been loaded
+Package hyperref Info: Link coloring ON on input line 287.
+(./MulticutGame.out) (./MulticutGame.out)
+\@outlinefile=\write7
+\openout7 = `MulticutGame.out'.
+
+Class scrreprt Info: loading recommended package `bookmark'.
+(scrreprt)           Using `bookmark' together with `hyperref' is recommended,
+(scrreprt)           because of handling of possible bookmark level gaps.
+(scrreprt)           You can avoid loading `bookmark' with KOMA-Script option
+(scrreprt)           `bookmarkpackage=false' before \begin{document} and
+(scrreprt)           you can avoid this message adding:
+(scrreprt)             \usepackage{bookmark}
+(scrreprt)           before \begin{document} on input line 287.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/bookmark/bookmark.sty
+Package: bookmark 2023-12-10 v1.31 PDF bookmarks (HO)
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/bookmark/bkm-dvipdfm.def
+File: bkm-dvipdfm.def 2023-12-10 v1.31 bookmark driver for dvipdfm (HO)
+\BKM@id=\count533
+)) (./MulticutGame.glsdefs)
+LaTeX Font Info:    Encoding `TU' has changed to `OML' for symbol font
+(Font)              `mtletterfont' in the math version `normal' on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `normal'
+(Font)                  TU/opensans-TLF/l/n --> OML/cmm/m/it on input line 287.
+LaTeX Font Info:    Encoding `TU' has changed to `OML' for symbol font
+(Font)              `mtletterfont' in the math version `bold' on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtletterfont' in version `bold'
+(Font)                  TU/opensans-TLF/l/n --> OML/cmm/b/it on input line 287.
+LaTeX Font Info:    Encoding `TU' has changed to `T1' for symbol font
+(Font)              `mtoperatorfont' in the math version `normal' on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `normal'
+(Font)                  TU/opensans-TLF/l/n --> T1/cmr/m/n on input line 287.
+LaTeX Font Info:    Encoding `TU' has changed to `T1' for symbol font
+(Font)              `mtoperatorfont' in the math version `bold' on input line 287.
+LaTeX Font Info:    Overwriting symbol font `mtoperatorfont' in version `bold'
+(Font)                  TU/opensans-TLF/l/n --> T1/cmr/bx/n on input line 287.
+
+Package mathastext Info: ...entering subdued mode...
+(mathastext)             ...done on input line 287.
+
+Package hyperref Info: Option `pageanchor' set `false' on input line 311.
+LaTeX Font Info:    Trying to load font information for OT1+iwona on input line 311.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/iwona/ot1iwona.fd
+File: ot1iwona.fd 2008/07/22 v0.995 font definition file for OT1/iwona (MW)
+)
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `iwona' (encoding: OT1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+LaTeX Font Info:    Trying to load font information for OML+iwona on input line 311.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/iwona/omliwona.fd
+File: omliwona.fd 2008/07/22 v0.995 font definition file for OML/iwona (MW)
+)
+LaTeX Font Info:    Trying to load font information for OMS+iwona on input line 311.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/iwona/omsiwona.fd
+File: omsiwona.fd 2008/07/22 v0.995 font definition file for OMS/iwona (MW)
+)
+LaTeX Font Info:    Trying to load font information for OMX+iwona on input line 311.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/iwona/omxiwona.fd
+File: omxiwona.fd 2008/07/22 v0.995 font definition file for OMX/iwona (MW)
+)
+LaTeX Font Info:    Trying to load font information for LGR+opensans-TLF on input line 311.
+ (d:/Program/texlive/2025/texmf-dist/tex/latex/opensans/LGRopensans-TLF.fd
+File: LGRopensans-TLF.fd 2019/06/24 Font definitions for LGR/opensans-TLF.
+)
+
+[1
+
+\openout4 = `MulticutGame.xdy'.
+
+
+
+
+
+
+
+]
+
+[2
+
+
+
+
+
+
+
+
+
+]
+
+[3
+
+
+]
+Package tocbasic Info: character protrusion at toc deactivated on input line 341.
+ (./MulticutGame.toc
+
+LaTeX Font Info:    Font shape `TU/opensans-TLF/l/sl' in size <10.95> not available
+(Font)              Font shape `TU/opensans-TLF/l/it' tried instead on input line 45.
+[4
+
+
+])
+\tf@toc=\write8
+\openout8 = `MulticutGame.toc'.
+
+
+
+[5]
+Package tocbasic Info: character protrusion at lof deactivated on input line 342.
+ (./MulticutGame.lof
+Overfull \hbox (23.11507pt too wide) in paragraph at lines 16--16
+ [][] [][][]\TU/opensans-TLF/l/n/10.95 Optimized territory coloring algorithm flowchart showing the performance-optimized 
+ []
+
+)
+\tf@lof=\write9
+\openout9 = `MulticutGame.lof'.
+
+
+
+[6
+
+]
+Package tocbasic Info: character protrusion at lot deactivated on input line 343.
+ (./MulticutGame.lot)
+\tf@lot=\write10
+\openout10 = `MulticutGame.lot'.
+
+
+
+[7
+
+]
+chapter 1.
+\@gls@deffile=\write11
+\openout11 = `MulticutGame.glsdefs'.
+
+No file MulticutGame.acr.
+No file MulticutGame.sls.
+
+
+[8
+
+]
+chapter 2.
+
+
+[9
+
+]
+chapter 3.
+LaTeX Font Info:    Trying to load font information for U+eus on input line 402.
+(d:/Program/texlive/2025/texmf-dist/tex/latex/amsfonts/ueus.fd
+File: ueus.fd 2013/01/14 v3.01 Euler Script
+) (d:/Program/texlive/2025/texmf-dist/tex/latex/microtype/mt-eus.cfg
+File: mt-eus.cfg 2006/07/28 v1.2 microtype config. file: AMS Euler Script (RS)
+)
+File: figures/multicut.png Graphic file (type bmp)
+<figures/multicut.png>
+
+
+[10
+
+]
+
+[11]
+chapter 4.
+
+Overfull \hbox (0.31842pt too wide) in paragraph at lines 443--444
+\TU/opensans-TLF/l/n/10.95 Unity-Python integration architecture, operational ILP solver integration with Gurobi, functional
+ []
+
+
+
+[12
+
+]
+
+[13]
+
+[14]
+
+LaTeX Warning: Citation 'fantasyhextiles' on page 15 undefined on input line 502.
+
+
+Overfull \hbox (16.55402pt too wide) in paragraph at lines 502--503
+[]\TU/opensans-TLF/l/n/10.95 The terrain sprite system is complemented by specialized assets such as roads_rivers-tileset.png
+ []
+
+File: figures/tileset-borderless.png Graphic file (type bmp)
+<figures/tileset-borderless.png>
+
+
+[15]
+
+[16]
+File: figures/game_interface.png.png Graphic file (type bmp)
+<figures/game_interface.png.png>
+File: figures/data_structures.png Graphic file (type bmp)
+<figures/data_structures.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[17]
+
+[18]
+File: figures/system_architecture.png Graphic file (type bmp)
+<figures/system_architecture.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[19]
+
+[20]
+LaTeX Font Info:    Font shape `TU/tudtt/l/n' will be
+(Font)              scaled to size 8.09995pt on input line 657.
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `tudtt' (encoding: TU).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
+
+
+[21]
+File: figures/hexGrid1.png Graphic file (type bmp)
+<figures/hexGrid1.png>
+File: figures/hexGrid2.png Graphic file (type bmp)
+<figures/hexGrid2.png>
+File: figures/hexGrid3.png Graphic file (type bmp)
+<figures/hexGrid3.png>
+File: figures/hexGrid4.png Graphic file (type bmp)
+<figures/hexGrid4.png>
+File: figures/hexGrid5.png Graphic file (type bmp)
+<figures/hexGrid5.png>
+File: figures/hexGrid6.png Graphic file (type bmp)
+<figures/hexGrid6.png>
+
+
+[22]
+File: figures/coordinate_system.png Graphic file (type bmp)
+<figures/coordinate_system.png>
+
+
+[23]
+File: figures/unity_python_integration.png Graphic file (type bmp)
+<figures/unity_python_integration.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[24]
+
+[25]
+
+[26]
+File: figures/level_generation.png Graphic file (type bmp)
+<figures/level_generation.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \hbox (20.8442pt too wide) in paragraph at lines 895--896
+\TU/opensans-TLF/l/n/10.95 The main UI elements include COST display (current cost/optimal cost), level display (Level:Hard_01),
+ []
+
+
+
+[27]
+Overfull \hbox (9.95618pt too wide) in paragraph at lines 913--914
+[] [][]\TU/opensans-TLF/m/n/10.95 Performance Optimization Strategy[][] \TU/opensans-TLF/l/n/10.95 To minimize computational overhead and ensure smooth
+ []
+
+
+
+[28]
+File: figures/territory_coloring_flowchart.png Graphic file (type bmp)
+<figures/territory_coloring_flowchart.png>
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[29]
+
+[30]
+
+[31]
+
+[32]
+
+[33]
+chapter without number
+
+Overfull \hbox (2.4906pt too wide) in paragraph at lines 1028--1028
+\TU/opensans-TLF/l/n/10.95 itative information”. In: \TU/opensans-TLF/l/it/10.95 Journal of Computer and System Sciences \TU/opensans-TLF/l/n/10.95 71.3 (2005), pp. 360–
+ []
+
+LaTeX Font Info:    Font shape `TU/tudtt/l/n' will be
+(Font)              scaled to size 9.85492pt on input line 1028.
+
+
+[34
+
+] (./MulticutGame.aux)
+ ***********
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2020/03/25>
+ ***********
+
+
+LaTeX Warning: There were undefined references.
+
+Package rerunfilecheck Info: File `MulticutGame.out' has not changed.
+(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+
+Package biblatex Warning: Please (re)run Biber on the file:
+(biblatex)                MulticutGame
+(biblatex)                and rerun LaTeX afterwards.
+
+Package logreq Info: Writing requests to 'MulticutGame.run.xml'.
+\openout1 = `MulticutGame.run.xml'.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 45099 strings out of 473832
+ 945262 string characters out of 5729486
+ 2251507 words of memory out of 5000000
+ 67581 multiletter control sequences out of 15000+600000
+ 619909 words of font info for 198 fonts, out of 8000000 for 9000
+ 1348 hyphenation exceptions out of 8191
+ 108i,21n,107p,10994b,5869s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+Output written on MulticutGame.pdf (34 pages).
