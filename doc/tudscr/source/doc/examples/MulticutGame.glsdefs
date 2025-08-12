@@ -334,3 +334,87 @@ parent={},%
 %
 }%
 
+\glsdefs@newdocentry{q}%
+{%
+name={Hexagonal Axial Coordinate},%
+sort={q},%
+type={symbols},%
+first={Hexagonal Axial Coordinate},%
+firstplural={Hexagonal Axial Coordinates},%
+text={Hexagonal Axial Coordinate},%
+plural={Hexagonal Axial Coordinates},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {q}},%
+symbolplural={\ensuremath {q}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{r}%
+{%
+name={Hexagonal Axial Coordinate},%
+sort={r},%
+type={symbols},%
+first={Hexagonal Axial Coordinate},%
+firstplural={Hexagonal Axial Coordinates},%
+text={Hexagonal Axial Coordinate},%
+plural={Hexagonal Axial Coordinates},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {r}},%
+symbolplural={\ensuremath {r}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+
+\glsdefs@newdocentry{hexSize}%
+{%
+name={Hexagonal Grid Size},%
+sort={hexSize},%
+type={symbols},%
+first={Hexagonal Grid Size},%
+firstplural={Hexagonal Grid Sizes},%
+text={Hexagonal Grid Size},%
+plural={Hexagonal Grid Sizes},%
+description={\nopostdesc },%
+descriptionplural={\nopostdesc },%
+symbol={\ensuremath {hexSize}},%
+symbolplural={\ensuremath {hexSize}},%
+user1={\protect \ensuremath  {\protect \mathrm  {}}},%
+user2={},%
+user3={},%
+user4={},%
+user5={},%
+user6={},%
+long={},%
+longplural={},%
+short={},%
+shortplural={},%
+counter={page},%
+parent={},%
+%
+}%
+

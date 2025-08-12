@@ -19,208 +19,76 @@
 
 \refsection{0}
   \datalist[entry]{anyt/global//global/global/global}
-    \entry{poisson2007}{article}{}{}
-      \name{author}{1}{}{%
-        {{hash=65c851dceea4db6bd4213d41182ae6d3}{%
-           family={Bridson},
-           familyi={B\bibinitperiod},
-           given={Robert},
-           giveni={R\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \list{publisher}{1}{%
-        {ACM}%
-      }
-      \strng{namehash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{fullhash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{fullhashraw}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{bibnamehash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{authorbibnamehash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{authornamehash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{authorfullhash}{65c851dceea4db6bd4213d41182ae6d3}
-      \strng{authorfullhashraw}{65c851dceea4db6bd4213d41182ae6d3}
-      \field{labelalpha}{Bri07}
-      \field{sortinit}{B}
-      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{ACM SIGGRAPH 2007 sketches}
-      \field{title}{Fast Poisson disk sampling in arbitrary dimensions}
-      \field{year}{2007}
-      \field{pages}{22}
-      \range{pages}{1}
-    \endentry
-    \entry{calinescu2000}{article}{}{}
-      \name{author}{3}{}{%
-        {{hash=b33a50c793e1e17a9833a43f3f58afc2}{%
-           family={Calinescu},
-           familyi={C\bibinitperiod},
-           given={Gruia},
-           giveni={G\bibinitperiod}}}%
-        {{hash=e92d16ea2d28730d01d4896892805c43}{%
-           family={Karloff},
-           familyi={K\bibinitperiod},
-           given={Howard},
-           giveni={H\bibinitperiod}}}%
-        {{hash=b64717aa7c1a6668020198f1eb0d2cd5}{%
-           family={Rabani},
-           familyi={R\bibinitperiod},
-           given={Yuval},
-           giveni={Y\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \list{publisher}{1}{%
-        {Elsevier}%
-      }
-      \strng{namehash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{fullhash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{fullhashraw}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{bibnamehash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{authorbibnamehash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{authornamehash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{authorfullhash}{d3b05910a5b2919ad2a25a4999925055}
-      \strng{authorfullhashraw}{d3b05910a5b2919ad2a25a4999925055}
-      \field{labelalpha}{CKR00}
-      \field{sortinit}{C}
-      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Journal of Computer and System Sciences}
-      \field{number}{3}
-      \field{title}{An improved approximation algorithm for {MULTICUT}}
-      \field{volume}{60}
-      \field{year}{2000}
-      \field{pages}{564\bibrangedash 574}
-      \range{pages}{11}
-    \endentry
-    \entry{delaunay1934}{article}{}{}
-      \name{author}{1}{}{%
-        {{hash=c9cc9300921661a9db899a3faf2e0e15}{%
-           family={Delaunay},
-           familyi={D\bibinitperiod},
-           given={Boris},
+    \entry{andres2012a}{article}{}{}
+      \name{author}{5}{}{%
+        {{hash=b2961fb3e78d641d46c6b6a4eea417b0}{%
+           family={Andres},
+           familyi={A\bibinitperiod},
+           given={Björn},
            giveni={B\bibinitperiod}}}%
+        {{hash=1ffa4b8ed97f8970e8a6aa9d32f7a4f0}{%
+           family={Kappes},
+           familyi={K\bibinitperiod},
+           given={Jörg\bibnamedelima Hendrik},
+           giveni={J\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=5f1060045113a9df10f1c587e72aee52}{%
+           family={Beier},
+           familyi={B\bibinitperiod},
+           given={Thorsten},
+           giveni={T\bibinitperiod}}}%
+        {{hash=0dd1d3f7acb8053593402a08d07e455b}{%
+           family={Köthe},
+           familyi={K\bibinitperiod},
+           given={Ullrich},
+           giveni={U\bibinitperiod}}}%
+        {{hash=7871c4e1ed2fbdab6da3b739b1a73478}{%
+           family={Hamprecht},
+           familyi={H\bibinitperiod},
+           given={Fred\bibnamedelima A.},
+           giveni={F\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
       }
       \list{language}{1}{%
-        {french}%
+        {english}%
       }
-      \strng{namehash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{fullhash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{fullhashraw}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{bibnamehash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{authorbibnamehash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{authornamehash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{authorfullhash}{c9cc9300921661a9db899a3faf2e0e15}
-      \strng{authorfullhashraw}{c9cc9300921661a9db899a3faf2e0e15}
-      \field{labelalpha}{Del34}
-      \field{sortinit}{D}
-      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \list{publisher}{1}{%
+        {IEEE}%
+      }
+      \strng{namehash}{b413cb6f7df6ada1972650dbbd5fbc06}
+      \strng{fullhash}{1253a42b951cfc86a28e511543b68089}
+      \strng{fullhashraw}{1253a42b951cfc86a28e511543b68089}
+      \strng{bibnamehash}{b413cb6f7df6ada1972650dbbd5fbc06}
+      \strng{authorbibnamehash}{b413cb6f7df6ada1972650dbbd5fbc06}
+      \strng{authornamehash}{b413cb6f7df6ada1972650dbbd5fbc06}
+      \strng{authorfullhash}{1253a42b951cfc86a28e511543b68089}
+      \strng{authorfullhashraw}{1253a42b951cfc86a28e511543b68089}
+      \field{labelalpha}{And+12}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{journaltitle}{Bulletin de l'Académie des Sciences de l'URSS}
-      \field{title}{Sur la sphère vide}
-      \field{volume}{6}
-      \field{year}{1934}
-      \field{pages}{793\bibrangedash 800}
+      \field{journaltitle}{2011 International Conference on Computer Vision}
+      \field{title}{Probabilistic image segmentation with closedness constraints}
+      \field{year}{2012}
+      \field{pages}{2611\bibrangedash 2618}
       \range{pages}{8}
     \endentry
-    \entry{gupta2004}{article}{}{}
+    \entry{bansal2004}{article}{}{}
       \name{author}{3}{}{%
-        {{hash=5986a2ed6c50067dd6fc98838b12178a}{%
-           family={Gupta},
-           familyi={G\bibinitperiod},
-           given={Anupam},
-           giveni={A\bibinitperiod}}}%
-        {{hash=79b32f14d02efefe5a896fd564c804c0}{%
-           family={Hajiaghayi},
-           familyi={H\bibinitperiod},
-           given={MohammadTaghi},
-           giveni={M\bibinitperiod}}}%
-        {{hash=eb5d680cfa0b1669172d225c85238f7b}{%
-           family={Räcke},
-           familyi={R\bibinitperiod},
-           given={Harald},
-           giveni={H\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \list{publisher}{1}{%
-        {ACM}%
-      }
-      \strng{namehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{fullhash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{fullhashraw}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{bibnamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{authorbibnamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{authornamehash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{authorfullhash}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \strng{authorfullhashraw}{87bbf3108f9ee2968f0f5eaf75ce1a18}
-      \field{labelalpha}{GHR04}
-      \field{sortinit}{G}
-      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Proceedings of the 36th Annual ACM Symposium on Theory of Computing}
-      \field{title}{Oblivious network design}
-      \field{year}{2004}
-      \field{pages}{383\bibrangedash 392}
-      \range{pages}{10}
-    \endentry
-    \entry{gurobi2023}{manual}{}{}
-      \name{author}{1}{}{%
-        {{hash=3e80cc9fefcee534d638d5d1d1afb1e2}{%
-           family={Gurobi\bibnamedelima Optimization},
-           familyi={G\bibinitperiod\bibinitdelim O\bibinitperiod},
-           given={LLC},
-           giveni={L\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \strng{namehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{fullhash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{fullhashraw}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{bibnamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{authorbibnamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{authornamehash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{authorfullhash}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \strng{authorfullhashraw}{3e80cc9fefcee534d638d5d1d1afb1e2}
-      \field{labelalpha}{Gur23}
-      \field{sortinit}{G}
-      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{title}{Gurobi Optimizer Reference Manual}
-      \field{year}{2023}
-      \verb{urlraw}
-      \verb https://www.gurobi.com/documentation/
-      \endverb
-      \verb{url}
-      \verb https://www.gurobi.com/documentation/
-      \endverb
-    \endentry
-    \entry{garg1997}{article}{}{}
-      \name{author}{3}{}{%
-        {{hash=addf06d061ef2eaee8ea772a57852cc2}{%
-           family={Garg},
-           familyi={G\bibinitperiod},
-           given={Naveen},
+        {{hash=e5933a3896c092918084907295ad0307}{%
+           family={Bansal},
+           familyi={B\bibinitperiod},
+           given={Nikhil},
            giveni={N\bibinitperiod}}}%
-        {{hash=4391dea254c3bbcaff1fefed241caed0}{%
-           family={Vazirani},
-           familyi={V\bibinitperiod},
-           given={Vijay\bibnamedelima V.},
-           giveni={V\bibinitperiod\bibinitdelim V\bibinitperiod}}}%
-        {{hash=4c46d2f3f797a5dedce8a376cb13fe3a}{%
-           family={Yannakakis},
-           familyi={Y\bibinitperiod},
-           given={Mihalis},
-           giveni={M\bibinitperiod}}}%
+        {{hash=c348e11a9e7f34b17b0811660fa01649}{%
+           family={Blum},
+           familyi={B\bibinitperiod},
+           given={Avrim},
+           giveni={A\bibinitperiod}}}%
+        {{hash=d3a62767b03b2910ef550737737bbb40}{%
+           family={Chawla},
+           familyi={C\bibinitperiod},
+           given={Shuchi},
+           giveni={S\bibinitperiod}}}%
       }
       \list{language}{1}{%
         {english}%
@@ -228,90 +96,121 @@
       \list{publisher}{1}{%
         {Springer}%
       }
-      \strng{namehash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{fullhash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{fullhashraw}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{bibnamehash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{authorbibnamehash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{authornamehash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{authorfullhash}{3c7324470332ffcfe058dab914b2ef5f}
-      \strng{authorfullhashraw}{3c7324470332ffcfe058dab914b2ef5f}
-      \field{labelalpha}{GVY97}
-      \field{sortinit}{G}
-      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \strng{namehash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{fullhash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{fullhashraw}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{bibnamehash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{authorbibnamehash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{authornamehash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{authorfullhash}{19b158a5ec661c3f9339c54cb26332a8}
+      \strng{authorfullhashraw}{19b158a5ec661c3f9339c54cb26332a8}
+      \field{labelalpha}{BBC04}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{journaltitle}{Algorithmica}
-      \field{number}{1}
-      \field{title}{Primal-dual approximation algorithms for integral flow and multicut in trees}
-      \field{volume}{18}
-      \field{year}{1997}
-      \field{pages}{3\bibrangedash 20}
-      \range{pages}{18}
+      \field{journaltitle}{Machine Learning}
+      \field{number}{1-3}
+      \field{title}{Correlation clustering}
+      \field{volume}{56}
+      \field{year}{2004}
+      \field{pages}{89\bibrangedash 113}
+      \range{pages}{25}
     \endentry
-    \entry{flowfree2012}{article}{}{}
-      \name{author}{1}{}{%
-        {{hash=ca2fe356f13855cb69993f363ff9c778}{%
-           family={LLC},
-           familyi={L\bibinitperiod},
-           given={Big\bibnamedelimb Duck\bibnamedelima Games},
-           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim G\bibinitperiod}}}%
-      }
-      \list{language}{1}{%
-        {english}%
-      }
-      \strng{namehash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{fullhash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{fullhashraw}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{bibnamehash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{authorbibnamehash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{authornamehash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{authorfullhash}{ca2fe356f13855cb69993f363ff9c778}
-      \strng{authorfullhashraw}{ca2fe356f13855cb69993f363ff9c778}
-      \field{labelalpha}{LLC12}
-      \field{sortinit}{L}
-      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{Mobile Game}
-      \field{note}{Over 100 million downloads}
-      \field{title}{Flow Free}
-      \field{year}{2012}
-    \endentry
-    \entry{schrijver2003}{book}{}{}
-      \name{author}{1}{}{%
-        {{hash=25d5b8c6eeb2588f4cd646cfe8d0827b}{%
-           family={Schrijver},
-           familyi={S\bibinitperiod},
-           given={Alexander},
+    \entry{charikar2005}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=e1b3700a6d5248ffa34baab20bc00fa5}{%
+           family={Charikar},
+           familyi={C\bibinitperiod},
+           given={Moses},
+           giveni={M\bibinitperiod}}}%
+        {{hash=fb6e0e6ff36a30395ada0c82fe11cc98}{%
+           family={Guruswami},
+           familyi={G\bibinitperiod},
+           given={Venkatesan},
+           giveni={V\bibinitperiod}}}%
+        {{hash=b4c596341e280d5acb0013d3e6b20a6a}{%
+           family={Wirth},
+           familyi={W\bibinitperiod},
+           given={Anthony},
            giveni={A\bibinitperiod}}}%
       }
       \list{language}{1}{%
         {english}%
       }
-      \list{location}{1}{%
-        {Berlin}%
-      }
       \list{publisher}{1}{%
-        {Springer-Verlag}%
+        {Elsevier}%
       }
-      \strng{namehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{fullhash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{fullhashraw}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{bibnamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{authorbibnamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{authornamehash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{authorfullhash}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \strng{authorfullhashraw}{25d5b8c6eeb2588f4cd646cfe8d0827b}
-      \field{labelalpha}{Sch03}
-      \field{sortinit}{S}
-      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \strng{namehash}{2bc704299811b8735da790e18ad2da65}
+      \strng{fullhash}{2bc704299811b8735da790e18ad2da65}
+      \strng{fullhashraw}{2bc704299811b8735da790e18ad2da65}
+      \strng{bibnamehash}{2bc704299811b8735da790e18ad2da65}
+      \strng{authorbibnamehash}{2bc704299811b8735da790e18ad2da65}
+      \strng{authornamehash}{2bc704299811b8735da790e18ad2da65}
+      \strng{authorfullhash}{2bc704299811b8735da790e18ad2da65}
+      \strng{authorfullhashraw}{2bc704299811b8735da790e18ad2da65}
+      \field{labelalpha}{CGW05}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{series}{Algorithms and Combinatorics}
-      \field{title}{Combinatorial Optimization: Polyhedra and Efficiency}
-      \field{volume}{A}
-      \field{year}{2003}
+      \field{journaltitle}{Journal of Computer and System Sciences}
+      \field{number}{3}
+      \field{title}{Clustering with qualitative information}
+      \field{volume}{71}
+      \field{year}{2005}
+      \field{pages}{360\bibrangedash 383}
+      \range{pages}{24}
+    \endentry
+    \entry{demaine2006}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=30a06bf5f3263989d79d20f48ddf828c}{%
+           family={Demaine},
+           familyi={D\bibinitperiod},
+           given={Erik\bibnamedelima D.},
+           giveni={E\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=7d1d21ec20aac10bdda1f5dcf1993ce5}{%
+           family={Emanuel},
+           familyi={E\bibinitperiod},
+           given={Dotan},
+           giveni={D\bibinitperiod}}}%
+        {{hash=f5bfb67a9bf9effc7ef349b81997386d}{%
+           family={Fiat},
+           familyi={F\bibinitperiod},
+           given={Amos},
+           giveni={A\bibinitperiod}}}%
+        {{hash=2bf2d58e3c96261c225f4c422f263192}{%
+           family={Immorlica},
+           familyi={I\bibinitperiod},
+           given={Nicole},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{language}{1}{%
+        {english}%
+      }
+      \list{publisher}{1}{%
+        {Elsevier}%
+      }
+      \strng{namehash}{fc2ef0f0a9d6c8a5f9d34cc66f0919f4}
+      \strng{fullhash}{b78893a0c3f0238f743a53d13ab82628}
+      \strng{fullhashraw}{b78893a0c3f0238f743a53d13ab82628}
+      \strng{bibnamehash}{fc2ef0f0a9d6c8a5f9d34cc66f0919f4}
+      \strng{authorbibnamehash}{fc2ef0f0a9d6c8a5f9d34cc66f0919f4}
+      \strng{authornamehash}{fc2ef0f0a9d6c8a5f9d34cc66f0919f4}
+      \strng{authorfullhash}{b78893a0c3f0238f743a53d13ab82628}
+      \strng{authorfullhashraw}{b78893a0c3f0238f743a53d13ab82628}
+      \field{labelalpha}{Dem+06}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Theoretical Computer Science}
+      \field{number}{2-3}
+      \field{title}{Correlation clustering in general weighted graphs}
+      \field{volume}{361}
+      \field{year}{2006}
+      \field{pages}{172\bibrangedash 187}
+      \range{pages}{16}
     \endentry
     \entry{unity2023}{manual}{}{}
       \name{author}{1}{}{%
