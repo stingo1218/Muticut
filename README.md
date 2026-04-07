@@ -204,7 +204,7 @@ The Multicut problem is NP-hard, so exact optimization is expensive. We use **Gu
 
 ### System Integration: Unity -> Python
 
-![system-hierarchy](doc/pic/hierarchy.png)
+<img src="https://raw.githubusercontent.com/stingo1218/pic/main/pic/20260407172929259.png" alt="image-20260407172929190" style="zoom:50%;" />
 
 A C# `Process` launches Python, and JSON files are used for data exchange:
 
