@@ -219,8 +219,7 @@ A nearest-neighbor based assignment maps terrain tiles to city-states to visuali
 
 ## Demo Video
 
-- Local file in this repo: `doc/demo.mp4`
-- Recommended for README preview: upload video to GitHub Release or external platform and link it here.
+-see  `releases/demo.mp4`
 
 ## Future Work
 
