@@ -222,9 +222,7 @@ Multicut 问题为 NP-hard，精确求解计算代价高昂。本项目采用 **
 基于**最近邻算法**将地形瓦片分配给城邦，建立城邦与地形之间的对应关系，实现联盟领地的可视化。
 
 ## 演示视频
-
-<video src="F:\Project\Muticut\doc\pic\Media1.mp4" controls=""></video>
-
+见release
 ## 未来展望
 
 - 优化领地显示性能，解决卡顿问题
