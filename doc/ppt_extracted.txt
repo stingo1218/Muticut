@@ -1,0 +1,383 @@
+### slide1
+Sheng,Yichao
+Multicut
+G
+ame
+Cut the Enemies, Unite the Allies
+Alliance Divider
+APB2026 – 12.08.2025
+
+### slide2
+Game Background
+
+### slide3
+Multicut
+Problem
+Academic Foundation:
+Belongs to the family of combinatorial optimization and graph partitioning problems
+Key Validity Constraint:
+No cycle is allowed to be cut by only one edge (Cycle Inequalities)
+Known to be
+NP-hard
+, commonly solved using ILP for optimal solution
+Typical Applications:
+Image Segmentation: Similar pixels are kept in the same cluster, dissimilar pixels are separated
+Social Network Analysis (Community Detection): Friendly relationships are aggregated, conflicting relationships are cut
+Figure 1: Multicut Example
+Source: Swoboda et al. (2017)
+Figure 2: Image Segmentation Example
+Source: Mindy Support
+Figure 3: Community Detection Example
+Source: Liu et al. (2020)
+
+### slide4
+Successful Examples of Academic
+Gameification
+Basic Information:
+Release Date: 2012
+Over 100 million downloads
+Core Mechanics:
+Objective: Connect all pairs of dots with the same color
+No Intersections: Pipes cannot cross or overlap each other
+Algorithmic Foundation:
+Graph Theory: Based on graph connectivity problems
+Figure 4: Flow Free
+Source:
+lohchness
+/flow-free-solver (GitHub)
+
+### slide5
+Alliance Divider
+From "Links" to "Alliances"
+Setting:
+• Multiple city-states with territories and complex political relationships
+• Some relationships are friendly, others hostile
+• City-states may form alliances
+Player Role:
+• Royal Strategist analyzing political networks
+• Discover hidden alliance patterns from relationship dynamics
+Goal:
+• Cut hostile ties, preserve friendly alliances
+• Form stable alliance
+Figure 5: Game Map
+
+### slide6
+Game HUD
+
+### slide7
+Level Display: Current level information
+Level name (Difficulty +
+levelID
+)
+
+### slide8
+Cut Limit Display: Remaining cuts available
+Available/Total
+
+### slide9
+Cost Display
+Current cost / Optimal target cost
+
+### slide10
+How to play
+Core Gameplay: From "Links" to "Alliances"
+
+### slide11
+How to play
+Step 1
+：
+Hold the right mouse button to activate "Cut Mode."
+Step 2
+：
+Choose "Valid & Low-Cost" Edges to Cut
+Step 3
+：
+Observe Results & Optimize Gradually
+What is a "Valid Edge"?
+An edge that, when cut, splits at least one pair of target vertices into different territories
+Why "Low Cost"?
+Cutting low-cost edges reduces total
+consumption and helps meet optimal cost
+Invalid Cut
+Valid Cut
+
+### slide12
+Territory Display: Alliance cluster visualization
+Intuitive Display:
+Help players quickly identify alliance boundaries
+Enhance Experience:
+Materialize abstract graph structures into territories
+Color Differentiation:
+Different alliances use different colors
+Association Judgment:
+Units in same colored area connected by uncut lines
+
+### slide13
+Hint Function: Get optimal solution hints
+The optimal cutting solution calculated by the ILP algorithm
+
+### slide14
+Revert: Undo last action
+Connect again
+Click on button
+2 options
+
+### slide15
+Core Gameplay: From "Links" to "Alliances"
+Basic units on the map,
+divided into two types based on
+terrain
+Urban: Spawns on land terrain
+Port: Only spawns on blue water terrain
+
+### slide16
+Core Gameplay: From "Links" to "Alliances"
+Larger values
+→
+Tighter connections, higher cutting cost
+Smaller values
+→
+Looser connections, lower cutting cost
+Connection strength
+
+### slide17
+Menu
+Press “Menu”
+Jump to Menu
+Few city-states(nodes)
+More city-states(nodes)
+Add
+timer
+Much more city-states(nodes)
+Add timer
+Add “
+penalty”
+edge – cutting will decrease left time
+
+### slide18
+Gameplay Demo (Video)
+
+### slide20
+Technical Implementation
+
+### slide21
+Game Scene Build
+Generation and Optimization of City-States
+1. Generate City-State Positions with
+Poisson Disk Sampling
+Principle: Maintain a minimum distance  around each point.
+Function: Achieve random distribution while
+avoiding
+overlapping
+, ensuring visual uniformity.
+2. Connect City-States via
+Delaunay Triangulation
+Principle: Triangles whose circumcircles contain no other points.
+Function: Generate optimal triangular meshes, avoid
+thin triangles
+and line segment
+intersections
+.
+3. Automatic Centering and Scaling for Different Map Sizes
+Principle: Calculate the bounding box and normalize it to the screen range.
+Function: Automatically adjust position and size to fit various screens.
+Figure 6: Poisson Disk Sampling Result
+Figure 7: Delaunay Triangulation Result
+
+### slide22
+Game Scene Build
+Third-Party
+TileMap
+Generator & Integration
+Third-party
+TileMap
+Generator
+Source:
+https://github.com/HextoryWorld/TiledProceduralHexTerrainGenerator
+Terrain Generation Steps
+Step 1: Generate a random heightmap
+Step 2: Overlay multiple layers of details
+Step 3: Classify terrain types
+Step 4: Add humidity variations
+Integration
+Steps
+Step 1: Calculate World Coordinates
+Tilemap
+coordinates
+(
+q,r
+)
+→
+Unity world coordinates
+(
+x,y
+)
+Step 2: Handle Coordinate Offset
+the origin of Unity is at the screen center (0,0)
+Step 3: Invert Y-axis
+q
+r
+x
+y
+(0,0)
+(0,0)
+Figure 8:
+TiledProceduralHexTerrainGenerator
+
+### slide23
+Solving the Multi-Cut Problem: ILP +
+Gurobi
+Challenge:
+Multi-cut is NP-hard—exact solutions are
+computationally expensive
+.
+Solution Type
+Limitations
+Gurobi
+ILP Advantages
+Heuristic Algorithms
+(e.g., Genetic/Simulated Annealing)
+Fast, but cannot guarantee
+global optimality
+Equally fast
+(powered by
+Gurobi’s
+industrial-grade ILP optimization) +
+rigorously proves global optimality
+Approximation Algorithms
+Has performance guarantees , but yields
+poor results
+No approximation; delivers
+theoretically optimal results
+Brute-force Approach
+Completely infeasible
+Feasible with
+industrial-grade speed
+
+### slide24
+System Integration
+Unity
+→
+Python Cross-Language Integration
+C# Process Class Launches Python Process
+JSON File - Exchange Medium
+Input
+: Graph structure, edge weight data
+Output
+: Cut edges, optimal cost
+Unity (C#)
+Provide data(
+nodes,edges
+)
+C# Process
+Python
+Build ILP Model
+Gurobi
+Solver
+Find Optimal Solution
+Return Solution
+Create
+Start
+Call
+Return Solution
+
+### slide25
+Gamification Design
+Alliance Territory Coloring
+Principle
+Based on the
+Nearest Neighbor Algorithm
+to allocate terrain tiles to city-states
+Function
+Establish the correspondence between city-states and terrain
+
+### slide26
+Gamification Design
+Weight and Difficulty System Architecture
+Infinite Level System
+Difficulty System
+Easy
+Medium
+Hard
+Level Change
+Node Count
+Cut Limit Count
+Time Limit Change
+Timer
+Penalty Edges
+Weight Balancing Mechanism
+Weight Balancing Mechanism
+Smart Flip Algorithm
+Levels
+
+### slide27
+Prospect
+
+### slide28
+Prospect
+Optimize territory display
+performance
+and resolve lag issues
+Add
+random events
+to change edge weights
+Hostile city-states actively repair cut edges for confrontation
+Mountains, rivers, forests modify edge weights
+
+### slide29
+TilemapGenerator
+
+### slide31
+Tilemap
+系统与普通坐标转换
+
+### slide32
+无效切割阻碍的实现
+
+### slide33
+权重平衡机制
+**问题背景**
+• 随机权重生成可能导致分布不均
+• 三角形内全是负数边的情况
+• 最优解为0的无聊局面
+• 影响游戏挑战性和可玩性
+**平衡策略**
+• 负边比例控制：确保35%负权重边
+• 最小负边数量：至少3条负权重边
+• 智能翻转算法：将最小正权重边变负
+• 保守调整：只翻转必要的边数量
+**智能翻转算法详解**
+•
+步骤
+1
+：统计当前负边比例和数量
+•
+步骤
+2
+：计算需要翻转的边数量
+•
+步骤
+3
+：收集所有正权重边
+•
+步骤
+4
+：按权重从小到大排序
+•
+步骤
+5
+：优先翻转最小正权重边
+•
+步骤
+6
+：将正权重变为负权重
+**效果验证**
+• 确保每关都有足够的负权重边
+• 保持游戏的挑战性和策略性
+• 避免最优解为0的简单局面
+• 提升整体游戏体验
+**技术亮点**
+• 动态权重平衡算法
+• 智能边权重翻转策略
+• 实时权重分布监控
+• 游戏可玩性保障机制
